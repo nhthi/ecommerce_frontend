@@ -1,37 +1,52 @@
 import React from "react";
 import "../Product/ProductCard.css";
-const images = [
-  "https://bizweb.dktcdn.net/100/396/594/products/website-3x4-model-0013s-0001-lbindoort711272.jpg",
-  "https://bizweb.dktcdn.net/100/396/594/products/back-2.jpg",
-  "https://bizweb.dktcdn.net/100/045/077/products/00722451800-a2-3439cf90-7200-457a-85dd-1dd5a1e1515a.jpg",
-  "https://bizweb.dktcdn.net/100/396/594/products/back-2.jpg",
-];
-const SimilarProductCard = () => {
+import { Product } from "../../../types/ProductType";
+
+const formatVND = (value: number) =>
+  value?.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+
+const SimilarProductCard = ({ product }: { product: Product }) => {
   return (
-    <>
-      <div className="group px-4 relative">
-        <div className="card shadow-lg">
-          <img
-            className="card-media object-top"
-            alt="product_card"
-            src={
-              "https://cdn.chiaki.vn/unsafe/0x960/left/top/smart/filters:quality(75)/https://chiaki.vn/upload/product/2022/08/ao-the-thao-3-lo-cho-nam-gymshark-62e9dc11eb855-03082022092313.jpg"
-            }
-          />
-        </div>
-        <div className="details pt-3 space-y-1 group-hover-effect rounded-md w-[250px]">
-          <div className="name">
-            <h1>Niky</h1>
-            <p>Blue Shirt</p>
-          </div>
-          <div className="price flex items-center gap-3">
-            <span className="font-sans text-gray-800">$ 400</span>
-            <span className="thin-line-through text-gray-400">$ 999</span>
-            <span className="text-primary-color font-semibold">60%</span>
-          </div>
+    <div className="group px-2 relative cursor-pointer transition-all hover:-translate-y-1">
+      <div className="card shadow-md rounded-xl overflow-hidden bg-white border border-slate-100">
+        <img
+          className="card-media object-cover w-full h-56 transition-all duration-300 group-hover:scale-105"
+          alt="product_card"
+          src={product.images[0] || ""}
+        />
+      </div>
+
+      <div className="pt-3 space-y-2 w-[230px]">
+        {/* Shop Name */}
+        <h1 className="text-xs text-slate-500 font-medium truncate">
+          {product.seller?.businessDetails.businessName}
+        </h1>
+
+        {/* Product Title */}
+        <p className="font-semibold text-slate-900 text-sm truncate">
+          {product.title}
+        </p>
+
+        {/* Price Section */}
+        <div className="flex items-center gap-2 pt-1">
+          <span className="font-bold text-primary-color">
+            {formatVND(product.sellingPrice)}
+          </span>
+
+          {product.mrpPrice && (
+            <span className="line-through text-xs text-slate-400">
+              {formatVND(product.mrpPrice)}
+            </span>
+          )}
+
+          {product.discountPercent > 0 && (
+            <span className="text-red-500 text-xs font-semibold bg-red-50 px-1.5 py-0.5 rounded-md">
+              -{product.discountPercent}%
+            </span>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
