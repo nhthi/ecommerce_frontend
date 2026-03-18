@@ -2,11 +2,7 @@ import React from "react";
 import CustomerTable from "./CustomerTable";
 
 const Customers = () => {
-  return (
-    <div>
-      <CustomerTable />
-    </div>
-  );
+  return <CustomerTable />;
 };
 
 export default Customers;

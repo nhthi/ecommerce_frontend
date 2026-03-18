@@ -15,32 +15,38 @@ const ShopByCategoryCard: React.FC<ShopByCategoryCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    if (link) navigate(link);
-  };
-
   return (
-    <motion.div
-      whileHover={{ scale: 1.03, y: -4 }}
-      className="relative rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg bg-[#f5faff] transition-all"
-      onClick={handleClick}
+    <motion.button
+      type="button"
+      whileHover={{ scale: 1.03, y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      className="group relative overflow-hidden rounded-[1.4rem] border border-orange-500/15 bg-[#161616] text-left transition-all"
+      onClick={() => link && navigate(link)}
     >
-      {/* Ảnh */}
-      <div className="h-32 md:h-40 w-full overflow-hidden">
+      {/* Image */}
+      <div className="h-36 w-full overflow-hidden">
         <img
           src={image}
           alt={name}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
       </div>
 
-      {/* Overlay tên danh mục */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-6 flex items-end">
-        <span className="text-white text-xs md:text-sm font-semibold drop-shadow">
+      {/* Overlay gradient */}
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/50 to-transparent px-4 pb-3 pt-10">
+        <span className="text-sm font-bold text-white drop-shadow">
           {name}
         </span>
+
+        {/* CTA nhỏ */}
+        <div className="mt-1 text-[11px] text-orange-400 opacity-0 transition group-hover:opacity-100">
+          Xem ngay →
+        </div>
       </div>
-    </motion.div>
+
+      {/* Hover border glow */}
+      <div className="pointer-events-none absolute inset-0 rounded-[1.4rem] border border-transparent transition group-hover:border-orange-400/40" />
+    </motion.button>
   );
 };
 

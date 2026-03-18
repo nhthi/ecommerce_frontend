@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
+  Avatar,
   Box,
+  Button,
   Chip,
   Divider,
   Menu,
   MenuItem,
   Paper,
-  styled,
   Table,
   TableBody,
   TableCell,
@@ -15,50 +16,45 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Button,
 } from "@mui/material";
+import { styled } from "@mui/material/styles";
+import { Block, KeyboardArrowDown, Person } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
-import {
-  fetchAllCustomer,
-  updateUserStatus,
-} from "../../../state/admin/adminUserSlice";
-import { KeyboardArrowDown } from "@mui/icons-material";
+import { fetchAllCustomer, updateUserStatus } from "../../../state/admin/adminUserSlice";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
-    background: "linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc)",
-    color: theme.palette.common.white,
-    fontWeight: 600,
-    fontSize: 13,
+    backgroundColor: "#171717",
+    color: "#fed7aa",
+    borderBottomColor: "rgba(249,115,22,0.22)",
+    fontWeight: 700,
+    fontSize: 12,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   [`&.${tableCellClasses.body}`]: {
+    color: "rgba(255,255,255,0.92)",
     fontSize: 14,
-    borderBottomColor: "rgba(148, 163, 184, 0.25)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
   },
-}));
+});
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
-    transform: "translateY(-1px)",
-    transition: "all 0.15s ease-in-out",
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
+const StyledTableRow = styled(TableRow)({
+  "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
+});
+
+const panelSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  overflow: "hidden",
+};
 
 const CustomerTable: React.FC = () => {
   const dispatch = useAppDispatch();
   const { adminUser } = useAppSelector((store) => store);
-
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,10 +63,7 @@ const CustomerTable: React.FC = () => {
     dispatch(fetchAllCustomer());
   }, [dispatch]);
 
-  const handleOpenMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    customerId: number
-  ) => {
+  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>, customerId: number) => {
     setMenuAnchor(event.currentTarget);
     setSelectedCustomer(customerId);
   };
@@ -91,126 +84,103 @@ const CustomerTable: React.FC = () => {
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid rgba(148, 163, 184, 0.25)",
-        boxShadow: "0 18px 45px rgba(15, 23, 42, 0.13)",
-      }}
-    >
-      {loading && <CustomLoading message="Đang cập nhật..." />}
-
-      {/* Header */}
-      <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>
-          Quản lý khách hàng
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Danh sách khách hàng và trạng thái hoạt động của tài khoản.
-        </Typography>
-
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ mt: 1, display: "block" }}
-        >
-          {adminUser.customers?.length || 0} khách hàng được tìm thấy
+    <Paper elevation={0} sx={panelSx}>
+      {loading && <CustomLoading message="Dang cap nhat khach hang..." />}
+      <Box sx={{ px: 3, py: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <Typography fontSize={26} fontWeight={800} color="white">Khach hang</Typography>
+        <Typography sx={{ mt: 0.7, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
+          Theo doi tai khoan dang hoat dong, khoa tai khoan khi can va xem nhanh dia chi giao hang mac dinh.
         </Typography>
       </Box>
-
-      <Divider />
-
       <TableContainer>
-        <Table sx={{ minWidth: 900 }}>
+        <Table sx={{ minWidth: 920 }}>
           <TableHead>
             <TableRow>
-              <StyledTableCell>ID</StyledTableCell>
-              <StyledTableCell>Họ và tên</StyledTableCell>
+              <StyledTableCell>Khach hang</StyledTableCell>
               <StyledTableCell>Email</StyledTableCell>
-              <StyledTableCell>Số điện thoại</StyledTableCell>
-              <StyledTableCell>Địa chỉ</StyledTableCell>
-              <StyledTableCell align="center">Trạng thái</StyledTableCell>
-              <StyledTableCell align="center">
-                Thay đổi trạng thái
-              </StyledTableCell>
+              <StyledTableCell>So dien thoai</StyledTableCell>
+              <StyledTableCell>Dia chi</StyledTableCell>
+              <StyledTableCell align="center">Trang thai</StyledTableCell>
+              <StyledTableCell align="right">Tac vu</StyledTableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
-            {adminUser.customers?.length > 0 ? (
-              adminUser.customers.map((c) => (
-                <StyledTableRow key={c.id}>
-                  <StyledTableCell>{c.id}</StyledTableCell>
-                  <StyledTableCell>{c.fullName}</StyledTableCell>
-                  <StyledTableCell>{c.email}</StyledTableCell>
-                  <StyledTableCell>{c.mobile}</StyledTableCell>
+            {adminUser.customers?.length ? adminUser.customers.map((customer) => {
+              const active = customer.status === "ACTIVE";
+              return (
+                <StyledTableRow key={customer.id}>
                   <StyledTableCell>
-                    {c.addresses?.[0]?.province || "-"}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Avatar sx={{ bgcolor: "rgba(249,115,22,0.14)", color: "#fb923c" }}>
+                        <Person />
+                      </Avatar>
+                      <Box>
+                        <Typography fontWeight={700}>{customer.fullName}</Typography>
+                        <Typography sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}>ID #{customer.id}</Typography>
+                      </Box>
+                    </Box>
                   </StyledTableCell>
-
-                  {/* STATUS CHIP */}
+                  <StyledTableCell>{customer.email}</StyledTableCell>
+                  <StyledTableCell>{customer.mobile || "-"}</StyledTableCell>
+                  <StyledTableCell>{customer.addresses?.[0]?.province || "Chua co dia chi"}</StyledTableCell>
                   <StyledTableCell align="center">
                     <Chip
                       size="small"
-                      label={
-                        c.status === "ACTIVE"
-                          ? "Hoạt động"
-                          : c.status === "BANNED"
-                          ? "Đã khóa"
-                          : c.status
-                      }
-                      color={c.status === "ACTIVE" ? "success" : "error"}
                       variant="outlined"
-                      sx={{ borderRadius: 999, fontSize: 11 }}
+                      label={active ? "Hoat dong" : "Da khoa"}
+                      sx={{
+                        borderRadius: 999,
+                        color: active ? "#86efac" : "#fca5a5",
+                        borderColor: active ? "rgba(34,197,94,0.35)" : "rgba(239,68,68,0.35)",
+                        backgroundColor: active ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+                      }}
                     />
                   </StyledTableCell>
-
-                  {/* BUTTON */}
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="right">
                     <Button
                       size="small"
                       variant="outlined"
-                      onClick={(e) => handleOpenMenu(e, c.id || 0)}
                       endIcon={<KeyboardArrowDown />}
+                      onClick={(e) => handleOpenMenu(e, customer.id || 0)}
                       sx={{
                         textTransform: "none",
                         borderRadius: 999,
                         px: 2,
+                        color: "#fff7ed",
+                        borderColor: "rgba(255,255,255,0.16)",
                       }}
                     >
-                      Thay đổi
+                      Doi trang thai
                     </Button>
                   </StyledTableCell>
                 </StyledTableRow>
-              ))
-            ) : (
+              );
+            }) : (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">
-                    Không có khách hàng nào.
-                  </Typography>
+                <TableCell colSpan={6} align="center" sx={{ py: 8, color: "rgba(255,255,255,0.6)" }}>
+                  Chua co khach hang nao.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-
-        {/* MENU CHANGE STATUS */}
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={handleCloseMenu}
-        >
-          <MenuItem onClick={() => handleChangeStatus("ACTIVE")}>
-            Hoạt động
-          </MenuItem>
-          <MenuItem onClick={() => handleChangeStatus("BANNED")}>
-            Khóa tài khoản
-          </MenuItem>
-        </Menu>
       </TableContainer>
+      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
+      <Box sx={{ px: 3, py: 2.2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography sx={{ color: "rgba(255,255,255,0.5)", fontSize: 13.5 }}>
+          {adminUser.customers?.length || 0} tai khoan khach hang trong he thong
+        </Typography>
+        <Chip icon={<Block sx={{ color: "#fb923c !important" }} />} label="Kiem soat tai khoan nhanh" variant="outlined" sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.28)" }} />
+      </Box>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseMenu}
+        PaperProps={{ sx: { backgroundColor: "#171717", color: "white", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "18px", mt: 1 } }}
+      >
+        <MenuItem onClick={() => handleChangeStatus("ACTIVE")}>Hoat dong</MenuItem>
+        <MenuItem onClick={() => handleChangeStatus("BANNED")}>Khoa tai khoan</MenuItem>
+      </Menu>
     </Paper>
   );
 };

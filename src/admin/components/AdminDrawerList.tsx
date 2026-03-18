@@ -1,117 +1,84 @@
 import {
-  AccountBalanceWallet,
   AccountBox,
-  Add,
-  AddBusiness,
-  BarChart,
+  Analytics,
   Category,
-  Dashboard,
-  ElectricBolt,
-  Home,
-  IntegrationInstructions,
-  Inventory,
+  ConfirmationNumber,
+  Group,
   Inventory2,
-  LocalOffer,
   Logout,
-  People,
-  PeopleAlt,
-  Receipt,
   Settings,
   ShoppingBag,
-  ShoppingCart,
-  SupervisorAccount,
+  SupportAgent,
 } from "@mui/icons-material";
 import React from "react";
 import DrawerList from "../../component/DrawerList";
+
+const iconClass = "text-orange-300";
+const activeIconClass = "text-black";
+
 const menu = [
-  // Dashboard
   {
-    name: "Tổng quan",
+    name: "Tong quan",
     path: "/admin",
-    icon: <Dashboard className="text-primary-color" />,
-    activeIcon: <Dashboard className="text-white" />,
+    icon: <Analytics className={iconClass} />,
+    activeIcon: <Analytics className={activeIconClass} />,
   },
-
-  // Coupon
   {
-    name: "Mã giảm giá",
+    name: "Ma giam gia",
     path: "/admin/coupon",
-    icon: <IntegrationInstructions className="text-primary-color" />,
-    activeIcon: <IntegrationInstructions className="text-white" />,
+    icon: <ConfirmationNumber className={iconClass} />,
+    activeIcon: <ConfirmationNumber className={activeIconClass} />,
   },
   {
-    name: "Danh mục",
+    name: "Danh muc",
     path: "/admin/categories",
-    icon: <IntegrationInstructions className="text-primary-color" />,
-    activeIcon: <IntegrationInstructions className="text-white" />,
+    icon: <Category className={iconClass} />,
+    activeIcon: <Category className={activeIconClass} />,
   },
-
-  // {
-  //   name: "Deals",
-  //   path: "/admin/deals",
-  //   icon: <Receipt className="text-primary-color" />,
-  //   activeIcon: <Receipt className="text-white" />,
-  // },
-
-  // Products
   {
-    name: "Sản phẩm",
+    name: "San pham",
     path: "/admin/products",
-    icon: <Inventory2 className="text-primary-color" />,
-    activeIcon: <Inventory2 className="text-white" />,
+    icon: <Inventory2 className={iconClass} />,
+    activeIcon: <Inventory2 className={activeIconClass} />,
   },
-
-  // Orders
   {
-    name: "Đơn hàng",
+    name: "Don hang",
     path: "/admin/orders",
-    icon: <ShoppingCart className="text-primary-color" />,
-    activeIcon: <ShoppingCart className="text-white" />,
+    icon: <ShoppingBag className={iconClass} />,
+    activeIcon: <ShoppingBag className={activeIconClass} />,
   },
-
-  // Customers
   {
-    name: "Khách hàng",
+    name: "Khach hang",
     path: "/admin/customers",
-    icon: <People className="text-primary-color" />,
-    activeIcon: <People className="text-white" />,
+    icon: <Group className={iconClass} />,
+    activeIcon: <Group className={activeIconClass} />,
   },
   {
-    name: "Người bán",
+    name: "Nguoi ban",
     path: "/admin/sellers",
-    icon: <PeopleAlt className="text-primary-color" />,
-    activeIcon: <PeopleAlt className="text-white" />,
+    icon: <SupportAgent className={iconClass} />,
+    activeIcon: <SupportAgent className={activeIconClass} />,
   },
-
-  // Reports
   {
-    name: "Báo cáo",
-    path: "/admin/reports",
-    icon: <BarChart className="text-primary-color" />,
-    activeIcon: <BarChart className="text-white" />,
-  },
-
-  // Settings
-  {
-    name: "Cài đặt",
+    name: "Cai dat",
     path: "/admin/settings",
-    icon: <Settings className="text-primary-color" />,
-    activeIcon: <Settings className="text-white" />,
+    icon: <Settings className={iconClass} />,
+    activeIcon: <Settings className={activeIconClass} />,
   },
 ];
 
 const menu2 = [
   {
-    name: "Tài khoản",
+    name: "Tai khoan",
     path: "/admin/account",
-    icon: <AccountBox className="text-primary-color" />,
-    activeIcon: <AccountBox className="text-white" />,
+    icon: <AccountBox className={iconClass} />,
+    activeIcon: <AccountBox className={activeIconClass} />,
   },
   {
-    name: "Đăng xuất",
+    name: "Dang xuat",
     path: "/",
-    icon: <Logout className="text-primary-color" />,
-    activeIcon: <Logout className="text-white" />,
+    icon: <Logout className={iconClass} />,
+    activeIcon: <Logout className={activeIconClass} />,
   },
 ];
 

@@ -1,4 +1,3 @@
-import { Divider } from "@mui/material";
 import React from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Orders from "./Orders";
@@ -12,7 +11,7 @@ import OrderReviewPageWrapper from "./OrderReviewPageWrapper";
 const menu = [
   { name: "Đơn hàng", path: "/account/orders" },
   { name: "Cá nhân", path: "/account" },
-  { name: "Thẻ thanh toán", path: "/account/save-card" }, // TODO: thêm component sau
+  { name: "Thẻ thanh toán", path: "/account/save-card", disabled: true },
   { name: "Địa chỉ", path: "/account/addresses" },
   { name: "Đăng xuất", path: "/" },
 ];
@@ -27,113 +26,88 @@ const Account = () => {
     dispatch(logout(navigate));
   };
 
-  // xác định active cho menu (để /account/orders/123 vẫn active tab Đơn hàng)
   const isActivePath = (itemPath: string) => {
-    if (itemPath === "/") return false; // Đăng xuất không cần active
-    if (itemPath === "/account") {
-      return location.pathname === "/account";
-    }
+    if (itemPath === "/") return false;
+    if (itemPath === "/account") return location.pathname === "/account";
     return location.pathname.startsWith(itemPath);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      <div className="px-4 lg:px-10 xl:px-32 py-10">
-        {/* Tiêu đề + info user */}
-        <div className="max-w-6xl mx-auto mb-6 flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Tài khoản của bạn
-          </h1>
-          <p className="text-sm text-slate-500">
-            Xin chào,{" "}
-            <span className="font-medium text-slate-800">
-              {auth.user?.fullName || "Khách hàng"}
-            </span>
-            . Quản lý đơn hàng, thông tin cá nhân và địa chỉ giao hàng tại đây.
+    <div className="min-h-screen bg-[#080808] px-4 py-8 text-white lg:px-12">
+      <div className="mx-auto max-w-[1320px] space-y-6">
+        <div className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] lg:p-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">Tài khoản của tôi</p>
+          <h1 className="mt-3 text-4xl font-black text-white lg:text-5xl">Tài khoản của bạn.</h1>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg">
+            Quản lý thông tin cá nhân, theo dõi đơn hàng, địa chỉ giao hàng và các thao tác sau mua trong cùng một khu vực dễ đọc.
           </p>
         </div>
 
-        {/* Card chính */}
-        <div className="max-w-6xl mx-auto rounded-2xl bg-white/90 shadow-xl border border-slate-100 backdrop-blur-md overflow-hidden">
-          {/* Header nhỏ trên card */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <div>
-              <p className="text-sm text-slate-500">Tài khoản</p>
-              <p className="text-base font-semibold text-slate-900">
-                {auth.user?.fullName || "Người dùng"}
+        <div className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
+          <aside className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] lg:p-5">
+            <div className="rounded-[1.5rem] border border-white/6 bg-black/20 p-4">
+              <p className="text-sm font-semibold text-slate-400">Tài khoản</p>
+              <h2 className="mt-2 text-2xl font-black text-white">
+                {auth.user?.fullName || "Khách hàng"}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                {auth.user?.email || "Email chưa cập nhật"}
               </p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs sm:text-sm font-medium text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full transition"
-            >
-              Đăng xuất
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3">
-            {/* Sidebar menu */}
-            <section className="col-span-1 border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/60">
-              <div className="py-4 px-3 lg:px-4 space-y-1">
-                {menu.map((item) => {
-                  const isLogout = item.path === "/";
-                  const active = isActivePath(item.path);
+            <div className="mt-4 space-y-2">
+              {menu.map((item) => {
+                const isLogout = item.path === "/";
+                const active = isActivePath(item.path);
 
-                  return (
-                    <div
-                      key={item.name}
-                      onClick={() => {
-                        if (isLogout) {
-                          handleLogout();
-                        } else {
-                          navigate(item.path);
-                        }
-                      }}
-                      className={`group flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl cursor-pointer text-sm font-medium transition-all
-                        ${
-                          active && !isLogout
-                            ? "bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md"
-                            : "text-slate-600 hover:bg-slate-100"
-                        }
-                        ${
-                          isLogout
-                            ? "mt-3 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            : ""
-                        }
-                      `}
-                    >
-                      <span>{item.name}</span>
-                      {!isLogout && active && (
-                        <span className="text-[10px] uppercase tracking-wider opacity-80">
-                          Đang xem
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+                return (
+                  <button
+                    key={item.name}
+                    type="button"
+                    disabled={item.disabled}
+                    onClick={() => {
+                      if (item.disabled) return;
+                      if (isLogout) handleLogout();
+                      else navigate(item.path);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-[1.2rem] px-4 py-4 text-left text-base font-semibold transition ${
+                      active && !isLogout
+                        ? "bg-orange-500 text-black"
+                        : isLogout
+                        ? "text-red-300 hover:bg-red-500/10"
+                        : item.disabled
+                        ? "cursor-not-allowed text-slate-600"
+                        : "bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    {active && !isLogout ? (
+                      <span className="text-xs font-bold uppercase tracking-[0.16em]">
+                        Đang xem
+                      </span>
+                    ) : item.disabled ? (
+                      <span className="text-xs uppercase tracking-[0.16em] text-slate-600">
+                        Sắp có
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
 
-            {/* Content bên phải */}
-            <section className="right lg:col-span-2 px-4 sm:px-6 py-5">
-              {/* Divider nhỏ trên mobile */}
-              <div className="lg:hidden mb-3">
-                <Divider />
-              </div>
-
-              <Routes>
-                <Route path="/" element={<UserDetails />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/orders/:orderId" element={<OrderDetails />} />
-                <Route path="/addresses" element={<Address />} />
-                <Route
-                  path="/orders/:orderId/review"
-                  element={<OrderReviewPageWrapper />}
-                />
-                {/* Có thể thêm route cho /save-card sau này */}
-              </Routes>
-            </section>
-          </div>
+          <section className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)] lg:p-8">
+            <Routes>
+              <Route path="/" element={<UserDetails />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:orderId" element={<OrderDetails />} />
+              <Route path="/addresses" element={<Address />} />
+              <Route
+                path="/orders/:orderId/review"
+                element={<OrderReviewPageWrapper />}
+              />
+            </Routes>
+          </section>
         </div>
       </div>
     </div>

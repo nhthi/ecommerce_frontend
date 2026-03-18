@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import "./ProductCard.css";
 import { Button } from "@mui/material";
 import {
@@ -18,111 +18,103 @@ import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
 import ProductChatDialog from "./ProductChatDialog";
 
 const ProductCard = ({ product }: { product: Product }) => {
-  const [openChat, setOpenChat] = useState(false); // 👈 thêm state
+  const [openChat, setOpenChat] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { wishlist } = useAppSelector((store) => store);
+
   useEffect(() => {
     let interval: any;
-    if (isHovered) {
+    if (isHovered && product.images.length > 1) {
       interval = setInterval(() => {
         setCurrentImage((prevImage) => (prevImage + 1) % product.images.length);
-      }, 1000);
-    } else if (interval) {
-      clearInterval(interval);
-      interval = null;
+      }, 1400);
     }
     return () => clearInterval(interval);
-  }, [isHovered]);
+  }, [isHovered, product.images.length]);
 
   const handleWishlist = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // ⛔ chặn lan sự kiện click ra ngoài
+    e.stopPropagation();
     if (product.id) {
       await dispatch(addProductToWishlist(Number(product.id)));
     }
   };
+
   const handleOpenChat = (e: React.MouseEvent) => {
-    e.stopPropagation(); // tránh click card -> navigate
+    e.stopPropagation();
     setOpenChat(true);
   };
+
   useEffect(() => {
     dispatch(getWishlistByUser());
-  }, []);
+  }, [dispatch]);
+
   return (
     <>
       <div
-        className="group px-4 relative"
+        className="product-card group"
         onClick={() =>
           navigate(
-            `/product-details/${
-              product.category?.categoryId
-            }/${product.title.replaceAll("/", "_")}/${product.id}`
+            `/product-details/${product.category?.categoryId}/${product.title.replaceAll("/", "_")}/${product.id}`,
           )
         }
       >
         <div
-          className="card shadow-lg"
+          className="product-card__frame"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          {product.images.map((item, index) => (
-            <img
-              className="card-media object-top"
-              alt="product_card"
-              src={item}
-              style={{
-                transform: `translateX(${(index - currentImage) * 100}%)`,
-              }}
-            />
-          ))}
-          {isHovered && (
-            <div className="indicator flex flex-col items-center space-y-2">
-              <div className="flex gap-3">
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={handleWishlist}
-                >
-                  {isWishlist(
-                    wishlist.wishlist?.products,
-                    Number(product.id)
-                  ) ? (
-                    <Favorite sx={{ color: "#0097e6" }} />
+          <div className="product-card__media">
+            {product.discountPercent > 0 && (
+              <div className="product-card__badge">-{product.discountPercent}%</div>
+            )}
+
+            {product.images.map((item, index) => (
+              <img
+                key={`${product.id}-${index}`}
+                className="product-card__image"
+                alt={product.title}
+                src={item}
+                style={{
+                  transform: `translateX(${(index - currentImage) * 100}%)`,
+                }}
+              />
+            ))}
+
+            <div className="product-card__overlay">
+              <div className="product-card__actions">
+                <Button className="product-card__icon-btn" onClick={handleWishlist}>
+                  {isWishlist(wishlist.wishlist?.products, Number(product.id)) ? (
+                    <Favorite sx={{ color: "#111111", fontSize: 18 }} />
                   ) : (
-                    <FavoriteBorderOutlined sx={{ color: "#0097e6" }} />
+                    <FavoriteBorderOutlined sx={{ color: "#111111", fontSize: 18 }} />
                   )}
                 </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={handleOpenChat} // 👈 thêm
-                >
-                  <ModeComment sx={{ color: "#0097e6" }} />
+                <Button className="product-card__icon-btn" onClick={handleOpenChat}>
+                  <ModeComment sx={{ color: "#111111", fontSize: 18 }} />
                 </Button>
               </div>
             </div>
-          )}
-        </div>
-        <div className="details pt-3 space-y-1 group-hover-effect rounded-md">
-          <div className="name">
-            <h1>{product.seller?.businessDetails.businessName}</h1>
-            <p>{product.title}</p>
           </div>
-          <div className="price flex items-center gap-3">
-            <span className="font-sans text-gray-800">
-              {formatCurrencyVND(product.sellingPrice)}
-            </span>
-            <span className="thin-line-through text-gray-400">
-              {formatCurrencyVND(product.mrpPrice)}
-            </span>
-            <span className="text-primary-color font-semibold">
-              {product.discountPercent}%
-            </span>
+
+          <div className="product-card__content">
+            <div className="product-card__meta">
+              <p className="product-card__brand">
+                {product.seller?.businessDetails.businessName || "Fitness Store"}
+              </p>
+              <p className="product-card__title">{product.title}</p>
+            </div>
+
+            <div className="product-card__price-row">
+              <span className="product-card__price">{formatCurrencyVND(product.sellingPrice)}</span>
+              <span className="product-card__old-price">{formatCurrencyVND(product.mrpPrice)}</span>
+            </div>
           </div>
         </div>
       </div>
+
       <ProductChatDialog
         open={openChat}
         onClose={() => setOpenChat(false)}
@@ -134,3 +126,4 @@ const ProductCard = ({ product }: { product: Product }) => {
 };
 
 export default ProductCard;
+

@@ -1,771 +1,286 @@
 import * as React from "react";
-import { styled } from "@mui/material/styles";
 import {
+  Avatar,
   Box,
-  Paper,
-  Typography,
-  Grid,
-  Stack,
-  Chip,
   Button,
+  Chip,
   Divider,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
-  IconButton,
-  Tooltip,
-  tableCellClasses,
+  Grid,
+  LinearProgress,
+  Paper,
+  Stack,
+  Typography,
 } from "@mui/material";
 import {
-  BarChart,
+  AccessTime,
+  DirectionsRun,
+  Groups2,
+  Inventory2,
+  LocalShipping,
+  MonetizationOn,
+  NorthEast,
+  NotificationsActive,
+  Storefront,
+  TrendingUp,
+  WarningAmber,
+} from "@mui/icons-material";
+import {
   Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from "recharts";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import GroupIcon from "@mui/icons-material/Group";
-import PaymentIcon from "@mui/icons-material/Payment";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 
-// ========= Styled table =========
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    background: "linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc)",
-    color: theme.palette.common.white,
-    fontWeight: 600,
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 13,
-    borderBottomColor: "rgba(148, 163, 184, 0.3)",
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
-    transform: "translateY(-1px)",
-    transition: "all 0.15s ease-in-out",
-  },
-  transition: "all 0.15s ease-in-out",
-}));
-
-// ========= Fake data =========
-const overview = {
-  totalRevenue: 425_600_000,
-  totalOrders: 50,
-  totalUsers: 25,
-  totalSellers: 5,
-  pendingPayouts: 19,
-  systemBalance: 182_400_000,
-};
+const overviewCards = [
+  { title: "Doanh thu thang nay", value: "425.6M", note: "+14% so voi thang truoc", icon: MonetizationOn },
+  { title: "Don hang dang xu ly", value: "128", note: "18 don can uu tien", icon: LocalShipping },
+  { title: "San pham can duyet", value: "37", note: "Tap trung vao nhom ta va phu kien", icon: Inventory2 },
+  { title: "Seller dang hoat dong", value: "24", note: "3 ho so moi cho xac minh", icon: Storefront },
+];
 
 const monthlyRevenue = [
-  { month: "Th1", revenue: 50_000_000 },
-  { month: "Th2", revenue: 42_000_000 },
-  { month: "Th3", revenue: 53_000_000 },
-  { month: "Th4", revenue: 60_000_000 },
-  { month: "Th5", revenue: 72_000_000 },
-  { month: "Th6", revenue: 64_000_000 },
+  { month: "T1", revenue: 48 },
+  { month: "T2", revenue: 54 },
+  { month: "T3", revenue: 51 },
+  { month: "T4", revenue: 66 },
+  { month: "T5", revenue: 72 },
+  { month: "T6", revenue: 69 },
 ];
 
-const orderStatusData = [
-  { status: "Chờ xử lý", count: 10 },
-  { status: "Đã đặt", count: 5 },
-  { status: "Đã gửi", count: 15 },
-  { status: "Đã giao", count: 8 },
-  { status: "Đã huỷ", count: 4 },
-  { status: "Trả hàng", count: 8 },
-];
-
-const COLORS = [
-  "#0088FE",
-  "#00C49F",
-  "#FFBB28",
-  "#22c55e",
-  "#f97316",
-  "#ef4444",
+const orderMix = [
+  { name: "Moi", value: 24, color: "#f97316" },
+  { name: "Dong goi", value: 19, color: "#fb923c" },
+  { name: "Dang giao", value: 31, color: "#fdba74" },
+  { name: "Hoan tat", value: 20, color: "#22c55e" },
+  { name: "Huy", value: 6, color: "#ef4444" },
 ];
 
 const alerts = [
-  {
-    type: "RỦI RO",
-    title: "Tỷ lệ huỷ đơn COD tăng 24% so với tuần trước",
-    time: "5 phút trước",
-  },
-  {
-    type: "NHÀ BÁN",
-    title: "3 seller bị báo cáo spam / bán hàng giả",
-    time: "30 phút trước",
-  },
-  {
-    type: "RÚT TIỀN",
-    title: "Có 7 yêu cầu rút tiền chờ duyệt > 24h",
-    time: "1 giờ trước",
-  },
+  { title: "Nhieu don gym mat vua tao trong 2 gio qua", detail: "Kiem tra ton kho de tranh ban vuot so luong.", level: "Can xu ly" },
+  { title: "3 seller chua bo sung giay to doi soat", detail: "Nen nhac truoc khi mo rut tien tu dong.", level: "Theo doi" },
+  { title: "Ty le bo gio tang o nhom day khang luc", detail: "Can xem lai gia va banner o trang danh muc.", level: "Toi uu" },
+];
+
+const quickStats = [
+  { label: "Khach hang moi", value: "286", helper: "7 ngay qua" },
+  { label: "Tin nhan chua doc", value: "14", helper: "Can phan hoi" },
+  { label: "Khoa hoc ban duoc", value: "53", helper: "Tuan nay" },
 ];
 
 const recentOrders = [
-  {
-    id: "ORD-908123",
-    customer: "Trần Minh Tâm",
-    seller: "Local Brand A",
-    total: 320_000,
-    status: "Đã giao",
-  },
-  {
-    id: "ORD-908090",
-    customer: "Nguyễn Thị Hoa",
-    seller: "Sneaker Zone",
-    total: 1_250_000,
-    status: "Đang giao",
-  },
-  {
-    id: "ORD-907999",
-    customer: "Lê Quốc Huy",
-    seller: "Street Wear B",
-    total: 280_000,
-    status: "Chờ xử lý",
-  },
+  { id: "ORD-9182", customer: "Nguyen Hoang Anh", total: "1.240.000", status: "Dang giao" },
+  { id: "ORD-9178", customer: "Tran Gia Linh", total: "890.000", status: "Moi" },
+  { id: "ORD-9172", customer: "Pham Duc Long", total: "2.180.000", status: "Hoan tat" },
 ];
 
-const recentSellers = [
-  {
-    id: "SEL-101",
-    name: "Tokyo Streetwear",
-    joined: "Hôm nay",
-    status: "Chờ duyệt",
-  },
-  {
-    id: "SEL-099",
-    name: "Minimal Studio",
-    joined: "Hôm qua",
-    status: "Đang hoạt động",
-  },
+const topCategories = [
+  { name: "Ta tay", value: 78 },
+  { name: "Day khang luc", value: 65 },
+  { name: "Ghe tap", value: 49 },
+  { name: "Phu kien yoga", value: 42 },
 ];
 
-const recentPayouts = [
-  {
-    id: "PAYOUT-20251201-001",
-    seller: "Local Brand A",
-    amount: 12_800_000,
-    status: "Chờ duyệt",
-  },
-  {
-    id: "PAYOUT-20251130-004",
-    seller: "Sneaker Zone",
-    amount: 8_500_000,
-    status: "Hoàn tất",
-  },
-];
-
-const formatCurrency = (v: number) =>
-  v.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+const cardSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(25,25,25,0.96), rgba(12,12,12,0.98))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  color: "#ffffff",
+};
 
 const AdminDashboardPage: React.FC = () => {
   return (
-    <Box p={4}>
-      {/* Header */}
-      <Box
-        mb={3}
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        gap={2}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={700} gutterBottom>
-            Bảng điều khiển Admin
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Tổng quan hệ thống sàn thương mại điện tử nhiều nhà bán: người dùng,
-            đơn hàng, thanh toán và các cảnh báo rủi ro.
-          </Typography>
+    <Box sx={{ color: "#ffffff" }} className="space-y-5">
+      <Paper elevation={0} sx={{ ...cardSx, overflow: "hidden" }}>
+        <Box
+          sx={{
+            p: { xs: 3, lg: 4 },
+            background:
+              "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 34%), radial-gradient(circle at right, rgba(251,146,60,0.12), transparent 24%)",
+          }}
+        >
+          <Stack direction={{ xs: "column", lg: "row" }} justifyContent="space-between" spacing={3}>
+            <Box maxWidth={760}>
+              <Chip label="Admin fitness workspace" sx={{ mb: 2, color: "#fed7aa", borderColor: "rgba(249,115,22,0.35)", backgroundColor: "rgba(249,115,22,0.12)" }} variant="outlined" />
+              <Typography fontSize={{ xs: 28, lg: 38 }} fontWeight={800} lineHeight={1.08} sx={{ color: "#ffffff" }}>
+                Tong quan van hanh he thong ban dung cu fitness, blog va khoa hoc.
+              </Typography>
+              <Typography sx={{ mt: 1.5, maxWidth: 640, color: "rgba(255,255,255,0.72)", fontSize: 15 }}>
+                Tap trung vao doanh thu, xu ly don, duyet seller va ton kho de nhom admin thao tac nhanh hon trong mot giao dien gon, dam va ro rang.
+              </Typography>
+            </Box>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignSelf="flex-start">
+              <Button variant="contained" startIcon={<TrendingUp />} sx={{ borderRadius: 999, px: 2.5, py: 1.1, textTransform: "none", fontWeight: 700, color: "#ffffff", background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
+                Lam moi bao cao
+              </Button>
+              <Button variant="outlined" startIcon={<NotificationsActive />} sx={{ borderRadius: 999, px: 2.5, py: 1.1, textTransform: "none", fontWeight: 700, color: "#fff7ed", borderColor: "rgba(255,255,255,0.16)" }}>
+                Xem canh bao
+              </Button>
+            </Stack>
+          </Stack>
+
+          <Grid container spacing={2.2} sx={{ mt: 1.5 }}>
+            {overviewCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Grid size={{ xs: 12, sm: 6, xl: 3 }} key={card.title}>
+                  <Paper elevation={0} sx={{ borderRadius: "24px", border: "1px solid rgba(255,255,255,0.08)", p: 2.2, height: "100%", background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))", color: "#ffffff" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+                      <Box>
+                        <Typography sx={{ color: "rgba(255,255,255,0.6)", fontSize: 12.5, textTransform: "uppercase", letterSpacing: 0.8 }}>{card.title}</Typography>
+                        <Typography fontSize={28} fontWeight={800} sx={{ mt: 0.8, color: "#ffffff" }}>{card.value}</Typography>
+                        <Typography sx={{ mt: 0.8, color: "#fdba74", fontSize: 13 }}>{card.note}</Typography>
+                      </Box>
+                      <Avatar variant="rounded" sx={{ width: 52, height: 52, borderRadius: "18px", backgroundColor: "rgba(249,115,22,0.14)", color: "#fb923c" }}>
+                        <Icon />
+                      </Avatar>
+                    </Stack>
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
         </Box>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            startIcon={<NotificationsActiveIcon />}
-            sx={{ borderRadius: 999, textTransform: "none" }}
-          >
-            Xem cảnh báo
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            sx={{ borderRadius: 999, textTransform: "none" }}
-          >
-            Làm mới
-          </Button>
-        </Stack>
-      </Box>
+      </Paper>
 
-      {/* Overview cards */}
-      <Grid container spacing={2} mb={4}>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
-              background:
-                "radial-gradient(circle at top left, rgba(59,130,246,0.08), transparent 55%)",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
+      <Grid container spacing={2.2}>
+        <Grid size={{ xs: 12, xl: 8 }}>
+          <Paper elevation={0} sx={{ ...cardSx, p: 3 }}>
+            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={2}>
               <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}
-                >
-                  Tổng doanh thu
-                </Typography>
-                <Typography variant="h6" fontWeight={700} mt={0.6}>
-                  {formatCurrency(overview.totalRevenue)}
-                </Typography>
+                <Typography fontSize={22} fontWeight={800} sx={{ color: "#ffffff" }}>Doanh thu 6 thang</Typography>
+                <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.7)", fontSize: 14 }}>Bieu do nhanh de theo doi nhom san pham fitness dang ban tot.</Typography>
               </Box>
-              <PaymentIcon />
+              <Chip icon={<NorthEast sx={{ color: "#fb923c !important" }} />} label="Tang truong on dinh" variant="outlined" sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.28)" }} />
             </Stack>
-          </Paper>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
-              background:
-                "radial-gradient(circle at top left, rgba(16,185,129,0.08), transparent 55%)",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}
-                >
-                  Tổng đơn hàng
-                </Typography>
-                <Typography variant="h6" fontWeight={700} mt={0.6}>
-                  {overview.totalOrders.toLocaleString()} đơn
-                </Typography>
-              </Box>
-              <AssignmentIcon />
-            </Stack>
-          </Paper>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
-              background:
-                "radial-gradient(circle at top left, rgba(59,130,246,0.08), transparent 55%)",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}
-                >
-                  Người dùng / Nhà bán
-                </Typography>
-                <Typography variant="h6" fontWeight={700} mt={0.6}>
-                  {overview.totalUsers} người dùng • {overview.totalSellers} nhà
-                  bán
-                </Typography>
-              </Box>
-              <GroupIcon />
-            </Stack>
-          </Paper>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
-              background:
-                "radial-gradient(circle at top left, rgba(234,179,8,0.1), transparent 55%)",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textTransform: "uppercase", letterSpacing: 0.6 }}
-                >
-                  Yêu cầu rút tiền / Số dư hệ thống
-                </Typography>
-                <Typography variant="body2" fontWeight={600} mt={0.5}>
-                  {overview.pendingPayouts} yêu cầu chờ duyệt
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Số dư: {formatCurrency(overview.systemBalance)}
-                </Typography>
-              </Box>
-              <StorefrontIcon />
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Charts row */}
-      <Grid container spacing={2} mb={4}>
-        {/* Revenue chart */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Typography variant="h6" fontWeight={600}>
-              Tổng quan doanh thu
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Doanh thu theo từng tháng
-            </Typography>
-            <Box mt={2} sx={{ width: "100%", height: 260 }}>
+            <Box sx={{ mt: 2.5, height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyRevenue}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <RechartsTooltip
-                    formatter={(v: any) => formatCurrency(Number(v))}
-                  />
-                  <Bar dataKey="revenue" radius={[6, 6, 0, 0]} />
+                  <XAxis dataKey="month" tick={{ fill: "rgba(255,255,255,0.75)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "rgba(255,255,255,0.75)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip cursor={{ fill: "rgba(249,115,22,0.08)" }} contentStyle={{ background: "#111111", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 16, color: "white" }} />
+                  <Bar dataKey="revenue" radius={[12, 12, 0, 0]} fill="#f97316" />
                 </BarChart>
               </ResponsiveContainer>
             </Box>
           </Paper>
         </Grid>
 
-        {/* Orders status chart */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Typography variant="h6" fontWeight={600}>
-              Đơn hàng theo trạng thái
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Tỷ lệ đơn theo từng trạng thái
-            </Typography>
-            <Box mt={2} sx={{ width: "100%", height: 260 }}>
+        <Grid size={{ xs: 12, xl: 4 }}>
+          <Paper elevation={0} sx={{ ...cardSx, p: 3, height: "100%" }}>
+            <Typography fontSize={22} fontWeight={800} sx={{ color: "#ffffff" }}>Trang thai don hang</Typography>
+            <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.7)", fontSize: 14 }}>Ty le xu ly hien tai tren toan he thong.</Typography>
+            <Box sx={{ mt: 1, height: 250 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={orderStatusData}
-                    dataKey="count"
-                    nameKey="status"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={85}
-                    label
-                  >
-                    {orderStatusData.map((entry, index) => (
-                      <Cell
-                        key={entry.status}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
+                  <Pie data={orderMix} dataKey="value" innerRadius={56} outerRadius={88} paddingAngle={3}>
+                    {orderMix.map((item) => <Cell key={item.name} fill={item.color} />)}
                   </Pie>
-                  <Legend />
-                  <RechartsTooltip />
+                  <RechartsTooltip contentStyle={{ background: "#111111", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 16, color: "white" }} />
                 </PieChart>
               </ResponsiveContainer>
             </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Middle row: Alerts + Quick actions */}
-      <Grid container spacing={2} mb={4}>
-        {/* Alerts */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={1.5}
-            >
-              <Typography variant="h6" fontWeight={600}>
-                Cảnh báo & Rủi ro
-              </Typography>
-              <Chip
-                size="small"
-                icon={<NotificationsActiveIcon fontSize="small" />}
-                label={`${alerts.length} cảnh báo`}
-                color="warning"
-                variant="outlined"
-              />
-            </Stack>
-            <Stack spacing={1.5}>
-              {alerts.map((a, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    p: 1.5,
-                    borderRadius: 2,
-                    border: "1px dashed rgba(248,113,113,0.7)",
-                    background:
-                      "radial-gradient(circle at top left, rgba(248,113,113,0.08), transparent 60%)",
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between">
-                    <Typography variant="body2" fontWeight={600}>
-                      {a.title}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {a.time}
-                    </Typography>
+            <Stack spacing={1}>
+              {orderMix.map((item) => (
+                <Stack key={item.name} direction="row" justifyContent="space-between" alignItems="center">
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: 999, backgroundColor: item.color }} />
+                    <Typography fontSize={14} sx={{ color: "#ffffff" }}>{item.name}</Typography>
                   </Stack>
-                  <Chip
-                    size="small"
-                    label={a.type}
-                    color="error"
-                    variant="outlined"
-                    sx={{ borderRadius: 999, mt: 0.5 }}
-                  />
-                </Box>
-              ))}
-            </Stack>
-          </Paper>
-        </Grid>
-
-        {/* Quick actions */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Typography variant="h6" fontWeight={600} mb={1}>
-              Thao tác nhanh
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              mb={2}
-              display="block"
-            >
-              Các thao tác quản trị thường dùng.
-            </Typography>
-            <Stack spacing={1.5}>
-              <Stack direction="row" spacing={1.5}>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<StorefrontIcon />}
-                  sx={{ borderRadius: 999, textTransform: "none", flex: 1 }}
-                >
-                  Duyệt seller mới
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<AssignmentIcon />}
-                  sx={{ borderRadius: 999, textTransform: "none", flex: 1 }}
-                >
-                  Duyệt sản phẩm
-                </Button>
-              </Stack>
-              <Stack direction="row" spacing={1.5}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<PaymentIcon />}
-                  sx={{ borderRadius: 999, textTransform: "none", flex: 1 }}
-                >
-                  Duyệt rút tiền
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<LocalShippingIcon />}
-                  sx={{ borderRadius: 999, textTransform: "none", flex: 1 }}
-                >
-                  Theo dõi đơn bất thường
-                </Button>
-              </Stack>
-              <Button
-                variant="text"
-                size="small"
-                sx={{ alignSelf: "flex-start", textTransform: "none" }}
-              >
-                Xem toàn bộ trang quản trị &rarr;
-              </Button>
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Bottom row: Recent tables */}
-      <Grid container spacing={2}>
-        {/* Recent orders */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Box
-              mb={1.5}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="h6" fontWeight={600}>
-                Đơn hàng gần đây
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {recentOrders.length} đơn gần nhất
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 1.5 }} />
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Mã đơn</StyledTableCell>
-                    <StyledTableCell>Khách hàng</StyledTableCell>
-                    <StyledTableCell>Nhà bán</StyledTableCell>
-                    <StyledTableCell align="right">Tổng tiền</StyledTableCell>
-                    <StyledTableCell align="center">Trạng thái</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {recentOrders.map((o) => (
-                    <StyledTableRow key={o.id}>
-                      <StyledTableCell>{o.id}</StyledTableCell>
-                      <StyledTableCell>{o.customer}</StyledTableCell>
-                      <StyledTableCell>{o.seller}</StyledTableCell>
-                      <StyledTableCell align="right">
-                        {formatCurrency(o.total)}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        <Chip
-                          size="small"
-                          label={o.status}
-                          variant="outlined"
-                          sx={{ borderRadius: 999, fontSize: 11 }}
-                          color={
-                            o.status === "Đã giao"
-                              ? "success"
-                              : o.status === "Đang giao"
-                              ? "primary"
-                              : "warning"
-                          }
-                        />
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Grid>
-
-        {/* Recent sellers & payouts */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-              mb: 2,
-            }}
-          >
-            <Box
-              mb={1.5}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="h6" fontWeight={600}>
-                Nhà bán mới
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {recentSellers.length} seller mới
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 1.5 }} />
-            <Stack spacing={1.5}>
-              {recentSellers.map((s) => (
-                <Stack
-                  key={s.id}
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>
-                      {s.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {s.id} • {s.joined}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    size="small"
-                    label={s.status}
-                    variant={
-                      s.status === "Đang hoạt động" ? "outlined" : "filled"
-                    }
-                    color={
-                      s.status === "Đang hoạt động" ? "success" : "warning"
-                    }
-                    sx={{ borderRadius: 999 }}
-                  />
+                  <Typography fontSize={14} fontWeight={700} sx={{ color: "#ffffff" }}>{item.value}%</Typography>
                 </Stack>
               ))}
             </Stack>
           </Paper>
+        </Grid>
+      </Grid>
 
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.35)",
-              boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
-            }}
-          >
-            <Box
-              mb={1.5}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="h6" fontWeight={600}>
-                Yêu cầu rút tiền gần đây
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {recentPayouts.length} giao dịch
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 1.5 }} />
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Mã yêu cầu</StyledTableCell>
-                    <StyledTableCell>Nhà bán</StyledTableCell>
-                    <StyledTableCell align="right">Số tiền</StyledTableCell>
-                    <StyledTableCell align="center">Trạng thái</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {recentPayouts.map((p) => (
-                    <StyledTableRow key={p.id}>
-                      <StyledTableCell>{p.id}</StyledTableCell>
-                      <StyledTableCell>{p.seller}</StyledTableCell>
-                      <StyledTableCell align="right">
-                        {formatCurrency(p.amount)}
-                      </StyledTableCell>
-                      <StyledTableCell align="center">
-                        <Chip
-                          size="small"
-                          label={p.status}
-                          variant="outlined"
-                          sx={{ borderRadius: 999, fontSize: 11 }}
-                          color={
-                            p.status === "Hoàn tất"
-                              ? "success"
-                              : p.status === "Chờ duyệt"
-                              ? "warning"
-                              : "default"
-                          }
-                        />
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+      <Grid container spacing={2.2}>
+        <Grid size={{ xs: 12, lg: 5 }}>
+          <Paper elevation={0} sx={{ ...cardSx, p: 3, height: "100%" }}>
+            <Typography fontSize={22} fontWeight={800} sx={{ color: "#ffffff" }}>Canh bao van hanh</Typography>
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              {alerts.map((alert, index) => (
+                <Paper key={alert.title} elevation={0} sx={{ borderRadius: "22px", p: 2, border: "1px solid rgba(255,255,255,0.08)", background: index === 0 ? "linear-gradient(180deg, rgba(249,115,22,0.14), rgba(255,255,255,0.03))" : "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))", color: "#ffffff" }}>
+                  <Stack direction="row" spacing={1.2} alignItems="flex-start">
+                    <Avatar sx={{ width: 38, height: 38, backgroundColor: "rgba(249,115,22,0.14)", color: "#fb923c" }}><WarningAmber fontSize="small" /></Avatar>
+                    <Box>
+                      <Typography fontWeight={700} fontSize={15.5} sx={{ color: "#ffffff" }}>{alert.title}</Typography>
+                      <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.7)", fontSize: 13.5 }}>{alert.detail}</Typography>
+                      <Chip label={alert.level} size="small" sx={{ mt: 1.2, backgroundColor: "rgba(249,115,22,0.12)", color: "#fdba74" }} />
+                    </Box>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Paper>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 3.5 }}>
+          <Paper elevation={0} sx={{ ...cardSx, p: 3, height: "100%" }}>
+            <Typography fontSize={22} fontWeight={800} sx={{ color: "#ffffff" }}>Nhip do he thong</Typography>
+            <Stack spacing={2.2} sx={{ mt: 2 }}>
+              {quickStats.map((item, index) => (
+                <Box key={item.label}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="baseline">
+                    <Typography fontSize={14.5} sx={{ color: "rgba(255,255,255,0.78)" }}>{item.label}</Typography>
+                    <Typography fontSize={24} fontWeight={800} sx={{ color: "#ffffff" }}>{item.value}</Typography>
+                  </Stack>
+                  <LinearProgress variant="determinate" value={72 - index * 14} sx={{ mt: 1, height: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.08)", "& .MuiLinearProgress-bar": { borderRadius: 999, background: "linear-gradient(90deg, #f97316, #fb923c)" } }} />
+                  <Typography sx={{ mt: 0.8, color: "#fdba74", fontSize: 12.5 }}>{item.helper}</Typography>
+                </Box>
+              ))}
+            </Stack>
+            <Divider sx={{ my: 2.5, borderColor: "rgba(255,255,255,0.08)" }} />
+            <Stack direction="row" spacing={1.2} alignItems="center">
+              <Avatar sx={{ width: 40, height: 40, backgroundColor: "rgba(249,115,22,0.14)", color: "#fb923c" }}><DirectionsRun /></Avatar>
+              <Box>
+                <Typography fontWeight={700} sx={{ color: "#ffffff" }}>Muc tieu hom nay</Typography>
+                <Typography fontSize={13.5} sx={{ color: "rgba(255,255,255,0.68)" }}>Duyet san pham moi truoc 17:00 va dong bo ton kho chieu.</Typography>
+              </Box>
+            </Stack>
+          </Paper>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 3.5 }}>
+          <Paper elevation={0} sx={{ ...cardSx, p: 3, height: "100%" }}>
+            <Typography fontSize={22} fontWeight={800} sx={{ color: "#ffffff" }}>Hoat dong gan day</Typography>
+            <Stack spacing={1.4} sx={{ mt: 2 }}>
+              {recentOrders.map((order) => (
+                <Paper key={order.id} elevation={0} sx={{ borderRadius: "20px", p: 1.6, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#ffffff" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={2}>
+                    <Box>
+                      <Typography fontWeight={700} sx={{ color: "#ffffff" }}>{order.id}</Typography>
+                      <Typography fontSize={13.5} sx={{ color: "rgba(255,255,255,0.72)" }}>{order.customer}</Typography>
+                      <Typography fontSize={13.5} sx={{ color: "#fdba74", mt: 0.5 }}>{order.total} VND</Typography>
+                    </Box>
+                    <Chip size="small" label={order.status} sx={{ backgroundColor: order.status === "Hoan tat" ? "rgba(34,197,94,0.14)" : "rgba(249,115,22,0.14)", color: order.status === "Hoan tat" ? "#86efac" : "#fdba74" }} />
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+            <Divider sx={{ my: 2.5, borderColor: "rgba(255,255,255,0.08)" }} />
+            <Typography fontSize={18} fontWeight={800} sx={{ color: "#ffffff" }}>Danh muc ban tot</Typography>
+            <Stack spacing={1.1} sx={{ mt: 1.6 }}>
+              {topCategories.map((item) => (
+                <Stack key={item.name} direction="row" justifyContent="space-between" alignItems="center">
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Groups2 sx={{ fontSize: 18, color: "#fb923c" }} />
+                    <Typography fontSize={14.5} sx={{ color: "#ffffff" }}>{item.name}</Typography>
+                  </Stack>
+                  <Typography fontSize={14.5} fontWeight={700} sx={{ color: "#ffffff" }}>{item.value}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2.2, color: "rgba(255,255,255,0.6)" }}>
+              <AccessTime sx={{ fontSize: 16 }} />
+              <Typography fontSize={12.5} sx={{ color: "rgba(255,255,255,0.6)" }}>Cap nhat luc 09:45 hom nay</Typography>
+            </Stack>
           </Paper>
         </Grid>
       </Grid>

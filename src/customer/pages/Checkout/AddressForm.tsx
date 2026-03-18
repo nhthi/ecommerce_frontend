@@ -1,4 +1,4 @@
-import { Box, Button, Grid, MenuItem, TextField } from "@mui/material";
+﻿import { Box, Button, Grid, MenuItem, TextField } from "@mui/material";
 import { useFormik } from "formik";
 import React, { useEffect, useState } from "react";
 import * as Yup from "yup";
@@ -6,7 +6,6 @@ import axios from "axios";
 import { useAppDispatch } from "../../../state/Store";
 import { createAddress } from "../../../state/customer/addressSlice";
 
-// 🧩 Kiểu dữ liệu cho tỉnh/thành - quận/huyện - phường/xã
 interface Ward {
   code: number;
   name: string;
@@ -36,6 +35,43 @@ const AddressFormSchema = Yup.object().shape({
   note: Yup.string(),
 });
 
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "18px",
+    color: "white",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    "& fieldset": {
+      borderColor: "rgba(255,255,255,0.1)",
+    },
+    "&:hover fieldset": {
+      borderColor: "rgba(249,115,22,0.35)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#f97316",
+    },
+    "&.Mui-disabled": {
+      backgroundColor: "rgba(255,255,255,0.02)",
+    },
+  },
+  "& .MuiInputLabel-root": {
+    color: "rgba(255,255,255,0.62)",
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#fdba74",
+  },
+  "& .MuiFormHelperText-root": {
+    color: "rgba(255,255,255,0.45)",
+    marginLeft: "6px",
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "rgba(255,255,255,0.38)",
+    opacity: 1,
+  },
+  "& .MuiSvgIcon-root": {
+    color: "rgba(255,255,255,0.55)",
+  },
+};
+
 const AddressForm = ({ onClose }: { onClose: () => void }) => {
   const dispatch = useAppDispatch();
 
@@ -43,7 +79,6 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
 
-  // --- Fetch danh sách tỉnh ---
   useEffect(() => {
     axios
       .get("https://provinces.open-api.vn/api/p/")
@@ -68,17 +103,14 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
     },
   });
 
-  // --- Khi chọn tỉnh => load quận ---
   useEffect(() => {
     if (formik.values.province) {
       const selectedProvince = provinces.find(
-        (p) => p.name === formik.values.province
+        (p) => p.name === formik.values.province,
       );
       if (selectedProvince) {
         axios
-          .get(
-            `https://provinces.open-api.vn/api/p/${selectedProvince.code}?depth=2`
-          )
+          .get(`https://provinces.open-api.vn/api/p/${selectedProvince.code}?depth=2`)
           .then((res) => setDistricts(res.data.districts || []))
           .catch((err) => console.error("Error fetching districts", err));
       }
@@ -88,17 +120,14 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
     }
   }, [formik.values.province, provinces]);
 
-  // --- Khi chọn quận => load phường ---
   useEffect(() => {
     if (formik.values.district) {
       const selectedDistrict = districts.find(
-        (d) => d.name === formik.values.district
+        (d) => d.name === formik.values.district,
       );
       if (selectedDistrict) {
         axios
-          .get(
-            `https://provinces.open-api.vn/api/d/${selectedDistrict.code}?depth=2`
-          )
+          .get(`https://provinces.open-api.vn/api/d/${selectedDistrict.code}?depth=2`)
           .then((res) => setWards(res.data.wards || []))
           .catch((err) => console.error("Error fetching wards", err));
       }
@@ -109,19 +138,25 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
   return (
     <Box
       sx={{
-        // maxWidth: 560,
-        bgcolor: "background.paper",
-        borderRadius: 3,
-        boxShadow: 8,
-        p: 4,
+        bgcolor: "#111111",
+        color: "white",
+        borderRadius: "28px",
+        border: "1px solid rgba(249,115,22,0.16)",
+        boxShadow: "0 28px 80px rgba(0,0,0,0.45)",
+        p: { xs: 3, sm: 4 },
       }}
     >
-      <p className="text-xl font-semibold text-center pb-1 text-slate-900">
-        Thông tin giao hàng
-      </p>
-      <p className="text-xs text-center text-slate-500 mb-4">
-        Vui lòng điền chính xác địa chỉ để đơn hàng được giao nhanh chóng.
-      </p>
+      <div className="mb-6 space-y-2 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+          New address
+        </p>
+        <h2 className="text-3xl font-black tracking-tight text-white">
+          Thêm địa chỉ giao hàng
+        </h2>
+        <p className="mx-auto max-w-lg text-sm leading-6 text-neutral-400">
+          Điền thông tin giao hàng rõ ràng để đơn được xử lý nhanh và đúng địa chỉ.
+        </p>
+      </div>
 
       <form onSubmit={formik.handleSubmit}>
         <Grid container spacing={2}>
@@ -129,18 +164,14 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
             <TextField
               fullWidth
               name="receiverName"
-              label="Họ và tên người nhận"
-              placeholder="Ví dụ: Nguyễn Văn A"
+              label="Người nhận"
+              placeholder="Nguyễn Văn A"
               value={formik.values.receiverName}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={
-                formik.touched.receiverName &&
-                Boolean(formik.errors.receiverName)
-              }
-              helperText={
-                formik.touched.receiverName && formik.errors.receiverName
-              }
+              error={formik.touched.receiverName && Boolean(formik.errors.receiverName)}
+              helperText={formik.touched.receiverName && formik.errors.receiverName}
+              sx={fieldSx}
             />
           </Grid>
 
@@ -149,20 +180,16 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               fullWidth
               name="phoneNumber"
               label="Số điện thoại"
-              placeholder="Ví dụ: 0987 654 321"
+              placeholder="0987654321"
               value={formik.values.phoneNumber}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={
-                formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)
-              }
-              helperText={
-                formik.touched.phoneNumber && formik.errors.phoneNumber
-              }
+              error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+              helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+              sx={fieldSx}
             />
           </Grid>
 
-          {/* --- Tỉnh / Thành phố --- */}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               select
@@ -174,6 +201,7 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               onBlur={formik.handleBlur}
               error={formik.touched.province && Boolean(formik.errors.province)}
               helperText={formik.touched.province && formik.errors.province}
+              sx={fieldSx}
             >
               {provinces.map((province) => (
                 <MenuItem key={province.code} value={province.name}>
@@ -183,7 +211,6 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
             </TextField>
           </Grid>
 
-          {/* --- Quận / Huyện --- */}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               select
@@ -196,6 +223,7 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               error={formik.touched.district && Boolean(formik.errors.district)}
               helperText={formik.touched.district && formik.errors.district}
               disabled={!formik.values.province}
+              sx={fieldSx}
             >
               {districts.map((district) => (
                 <MenuItem key={district.code} value={district.name}>
@@ -205,7 +233,6 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
             </TextField>
           </Grid>
 
-          {/* --- Phường / Xã --- */}
           <Grid size={{ xs: 12 }}>
             <TextField
               select
@@ -218,6 +245,7 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               error={formik.touched.ward && Boolean(formik.errors.ward)}
               helperText={formik.touched.ward && formik.errors.ward}
               disabled={!formik.values.district}
+              sx={fieldSx}
             >
               {wards.map((ward) => (
                 <MenuItem key={ward.code} value={ward.name}>
@@ -227,61 +255,55 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
             </TextField>
           </Grid>
 
-          {/* --- Địa chỉ chi tiết --- */}
           <Grid size={{ xs: 12 }}>
             <TextField
               fullWidth
               name="streetDetail"
               label="Số nhà, tên đường"
-              placeholder="Ví dụ: 123 Lê Lợi"
+              placeholder="123 Lê Lợi"
               value={formik.values.streetDetail}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={
-                formik.touched.streetDetail &&
-                Boolean(formik.errors.streetDetail)
-              }
-              helperText={
-                formik.touched.streetDetail && formik.errors.streetDetail
-              }
+              error={formik.touched.streetDetail && Boolean(formik.errors.streetDetail)}
+              helperText={formik.touched.streetDetail && formik.errors.streetDetail}
+              sx={fieldSx}
             />
           </Grid>
 
-          {/* --- Ghi chú --- */}
           <Grid size={{ xs: 12 }}>
             <TextField
               fullWidth
               multiline
               rows={3}
               name="note"
-              label="Ghi chú giao hàng (nếu có)"
-              placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."
+              label="Ghi chú"
+              placeholder="Gọi trước khi giao, giao giờ hành chính..."
               value={formik.values.note}
               onChange={formik.handleChange}
+              sx={fieldSx}
             />
           </Grid>
 
-          {/* --- Nút submit --- */}
           <Grid size={{ xs: 12 }}>
             <Button
               fullWidth
               type="submit"
               variant="contained"
               sx={{
-                py: "12px",
-                fontWeight: 600,
+                py: "13px",
+                fontWeight: 800,
+                fontSize: "0.98rem",
                 borderRadius: "999px",
                 textTransform: "none",
-                background:
-                  "linear-gradient(135deg, rgb(56,189,248), rgb(37,99,235))",
-                boxShadow: "0 10px 25px rgba(37,99,235,0.4)",
+                color: "#111111",
+                background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                boxShadow: "0 14px 35px rgba(249,115,22,0.35)",
                 "&:hover": {
-                  background:
-                    "linear-gradient(135deg, rgb(59,130,246), rgb(30,64,175))",
+                  background: "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
                 },
               }}
             >
-              Xác nhận địa chỉ giao hàng
+              Lưu địa chỉ giao hàng
             </Button>
           </Grid>
         </Grid>

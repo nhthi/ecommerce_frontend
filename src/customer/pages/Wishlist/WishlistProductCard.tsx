@@ -5,6 +5,7 @@ import { Close, ShoppingCartOutlined } from "@mui/icons-material";
 import { addProductToWishlist } from "../../../state/customer/wishlistSlice";
 import { useAppDispatch } from "../../../state/Store";
 import { useNavigate } from "react-router-dom";
+import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
 
 interface Props {
   item: Product;
@@ -13,6 +14,7 @@ interface Props {
 const WishlistProductCard: React.FC<Props> = ({ item }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
   const handleRemoveFromWishlist = async (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -22,75 +24,91 @@ const WishlistProductCard: React.FC<Props> = ({ item }) => {
     }
   };
 
-  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    console.log("Thêm vào giỏ hàng:", item.title);
-    // TODO: gọi API addToCart sau
+  const handleOpenProduct = () => {
+    navigate(
+      `/product-details/${item.category?.categoryId}/${item.title}/${item.id}`
+    );
   };
 
   return (
     <div
-      onClick={() =>
-        navigate(
-          `/product-details/${item.category?.name}/${item.title}/${item.id}`
-        )
-      }
-      className="relative group bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer w-full max-w-[270px]"
+      onClick={handleOpenProduct}
+      className="group relative overflow-hidden rounded-[1.6rem] border border-orange-500/12 bg-[#141414] shadow-[0_18px_50px_rgba(0,0,0,0.18)] transition hover:-translate-y-1 hover:border-orange-400/28 cursor-pointer"
     >
-      {/* Nút xóa */}
-      <div className="absolute top-2 right-2 z-10">
-        <Tooltip title="Xóa khỏi danh sách yêu thích" arrow>
+      <div className="absolute right-3 top-3 z-10">
+        <Tooltip title="Bo khoi wishlist" arrow>
           <IconButton
             size="small"
             onClick={handleRemoveFromWishlist}
-            className="bg-white/80 hover:bg-white"
+            sx={{
+              backgroundColor: "rgba(0,0,0,0.62)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.08)",
+              "&:hover": { backgroundColor: "rgba(249,115,22,0.9)", color: "#050505" },
+            }}
           >
-            <Close fontSize="small" className="text-gray-600" />
+            <Close fontSize="small" />
           </IconButton>
         </Tooltip>
       </div>
 
-      {/* Ảnh sản phẩm */}
-      <div className="w-full aspect-[3/4] overflow-hidden">
+      <div className="relative aspect-[4/4.6] overflow-hidden bg-black">
         <img
           src={item.images[0]}
           alt={item.title}
-          className="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-500"
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+        {item.discountPercent ? (
+          <div className="absolute left-3 top-3 rounded-md bg-orange-500 px-2 py-1 text-[10px] font-bold text-black shadow">
+            -{item.discountPercent}%
+          </div>
+        ) : null}
       </div>
 
-      {/* Nội dung */}
-      <div className="p-4 space-y-2">
-        <p className="font-medium text-gray-800 truncate">{item.title}</p>
+      <div className="space-y-3 p-4">
+        <p className="line-clamp-2 min-h-[44px] text-sm font-semibold leading-6 text-white">
+          {item.title}
+        </p>
 
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-primary-color">
-            {item.sellingPrice ? item.sellingPrice.toLocaleString() : 0}₫
+        <div className="flex items-end gap-2">
+          <span className="text-lg font-black text-orange-400">
+            {formatCurrencyVND(item.sellingPrice || 0)}
           </span>
-          <span className="text-sm line-through text-gray-400">
-            ${item.mrpPrice ? item.mrpPrice.toLocaleString() : 0}₫
-          </span>
-          <span className="text-xs text-green-600 font-medium">
-            -{item.discountPercent}%
-          </span>
+          {item.mrpPrice ? (
+            <span className="pb-0.5 text-xs text-slate-500 line-through">
+              {formatCurrencyVND(item.mrpPrice)}
+            </span>
+          ) : null}
         </div>
 
-        {/* Nút hành động */}
+        <p className="text-xs uppercase tracking-[0.14em] text-slate-400">
+          {item.category?.name || "Fitness"}
+        </p>
+
         <Button
-          onClick={handleAddToCart}
-          variant="outlined"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenProduct();
+          }}
+          variant="contained"
           fullWidth
           startIcon={<ShoppingCartOutlined />}
           sx={{
-            borderRadius: "12px",
+            borderRadius: "999px",
             textTransform: "none",
-            fontWeight: 500,
-            mt: 1,
-            borderColor: "#2196f3",
-            "&:hover": { backgroundColor: "#2196f3", color: "#fff" },
+            fontWeight: 800,
+            py: 1.1,
+            background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+            color: "#050505",
+            boxShadow: "none",
+            "&:hover": {
+              background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+              boxShadow: "none",
+            },
           }}
         >
-          Thêm vào giỏ hàng
+          Xem chi tiết
         </Button>
       </div>
     </div>

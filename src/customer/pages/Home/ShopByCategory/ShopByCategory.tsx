@@ -3,70 +3,60 @@ import ShopByCategoryCard from "./ShopByCategoryCard";
 
 const categories = [
   {
-    name: "Điện thoại & Tablet",
-    image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
-    link: "/category/dien-thoai-tablet",
+    name: "Tập tại nhà",
+    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=tap%20tai%20nha",
   },
   {
-    name: "Laptop & PC",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    link: "/category/laptop-pc",
+    name: "Tăng cơ",
+    image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=tang%20co%20fitness",
   },
   {
-    name: "Thời trang nữ",
-    image:
-      "https://pos.nvncdn.com/650b61-144700/art/artCT/20240529_nFx1vLTb.webp",
-    link: "/category/thoi-trang-nam",
+    name: "Đốt mỡ",
+    image: "https://images.unsplash.com/photo-1596357395104-55f35eb85d5b?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=dot%20mo%20fitness",
   },
   {
-    name: "Thời trang nam",
-    image:
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38?auto=format&fit=crop&w=800&q=80",
-    link: "/category/thoi-trang-nu",
+    name: "Phục hồi",
+    image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=phuc%20hoi%20co%20bap",
   },
   {
-    name: "Nhà cửa & Đời sống",
-    image:
-      "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=800&q=80",
-    link: "/category/nha-cua-doi-song",
+    name: "Yoga",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=yoga%20fitness",
   },
   {
-    name: "Mẹ & Bé",
-    image:
-      "https://carewithlove.com.vn/wp-content/uploads/2015/08/dodanhbe.jpg",
-    link: "/category/me-be",
+    name: "Cardio",
+    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=cardio%20fitness",
   },
   {
-    name: "Làm đẹp & Sức khỏe",
-    image:
-      "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?auto=format&fit=crop&w=800&q=80",
-    link: "/category/lam-dep-suc-khoe",
+    name: "Người mới bắt đầu",
+    image: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=nguoi%20moi%20tap%20gym",
   },
   {
-    name: "Thiết bị gia dụng",
-    image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
-    link: "/category/thiet-bi-gia-dung",
+    name: "Combo phòng gym mini",
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+    link: "/search?keyword=combo%20gym%20tai%20nha",
   },
 ];
 
 const ShopByCategory: React.FC = () => {
   return (
-    <section className="py-14 bg-white">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 px-6 lg:px-20 mb-8">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#0097e6]">
-            Mua sắm theo danh mục 🔍
-          </h2>
-          <p className="text-gray-500 text-sm md:text-base mt-1">
-            Chọn nhanh ngành hàng bạn quan tâm từ các nhà bán đa dạng.
-          </p>
-        </div>
+    <section className="rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-8 md:px-6">
+      <div className="mb-7">
+        <h2 className="text-3xl font-black text-white">
+          Mua theo mục tiêu tập luyện
+        </h2>
+        <p className="mt-2 text-sm text-slate-300">
+          Chọn nhanh danh mục phù hợp để tìm dụng cụ sát nhu cầu hơn, không bị lan man.
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 px-6 lg:px-20">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
         {categories.map((cat, index) => (
           <ShopByCategoryCard
             key={cat.link || index}

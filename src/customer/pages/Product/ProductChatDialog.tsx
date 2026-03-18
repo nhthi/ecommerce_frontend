@@ -1,5 +1,4 @@
-// src/components/chat/ProductChatDialog.tsx
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -36,7 +35,6 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
   const { messages, loading } = useAppSelector((state) => state.chatbot);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Khi đóng popup thì reset chat
   useEffect(() => {
     if (!open) {
       dispatch(resetChat());
@@ -44,7 +42,6 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
     }
   }, [open, dispatch]);
 
-  // Auto scroll xuống cuối khi có message mới
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -55,15 +52,12 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    // Thêm message user vào Redux
     dispatch(addUserMessage(trimmed));
-
-    // Gửi lên backend kèm context sản phẩm
     dispatch(
       sendChatMessage({
         message: trimmed,
         context: productId ? { productId } : undefined,
-      })
+      }),
     );
 
     setInput("");
@@ -83,23 +77,53 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
       fullWidth
       maxWidth="sm"
       PaperProps={{
-        sx: { borderRadius: 3 },
-        onClick: (e: React.MouseEvent) => e.stopPropagation(), // tránh click “lọt” xuống card
+        sx: {
+          borderRadius: "26px",
+          border: "1px solid rgba(249,115,22,0.16)",
+          background:
+            "radial-gradient(circle at top, rgba(249,115,22,0.14), transparent 28%), linear-gradient(180deg, #171717 0%, #101010 100%)",
+          color: "white",
+          boxShadow: "0 28px 80px rgba(0,0,0,0.5)",
+        },
+        onClick: (e: React.MouseEvent) => e.stopPropagation(),
       }}
     >
       <DialogTitle
         sx={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
-          pr: 1,
+          gap: 2,
+          px: 3,
+          pt: 3,
+          pb: 2,
         }}
       >
-        <span>
-          Hỏi đáp về sản phẩm
-          {productTitle ? `: ${productTitle}` : ""}
-        </span>
-        <IconButton onClick={onClose} size="small">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
+            Hỗ trợ sản phẩm
+          </p>
+          <h3 className="mt-2 text-2xl font-black tracking-tight text-white">
+            Hỏi nhanh về sản phẩm
+          </h3>
+          <p className="mt-1 text-sm leading-6 text-neutral-400">
+            {productTitle
+              ? productTitle
+              : "Đặt câu hỏi về kích thước, bảo hành, vật liệu hoặc cách sử dụng."}
+          </p>
+        </div>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          sx={{
+            color: "rgba(255,255,255,0.7)",
+            backgroundColor: "rgba(255,255,255,0.04)",
+            "&:hover": {
+              backgroundColor: "rgba(249,115,22,0.12)",
+              color: "#fdba74",
+            },
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -109,39 +133,27 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
           display: "flex",
           flexDirection: "column",
           gap: 1.5,
-          height: 380,
+          height: 430,
+          px: 3,
+          pb: 3,
         }}
       >
-        {/* Vùng hiển thị chat */}
         <div
           ref={scrollRef}
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            paddingRight: 4,
-          }}
+          className="flex-1 space-y-3 overflow-y-auto rounded-[1.4rem] border border-white/8 bg-black/20 p-3"
         >
           {messages.map((msg, index) => (
             <div
               key={index}
-              style={{
-                display: "flex",
-                justifyContent:
-                  msg.sender === "user" ? "flex-end" : "flex-start",
-                marginBottom: 8,
-              }}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                style={{
-                  maxWidth: "80%",
-                  padding: "8px 12px",
-                  borderRadius: 12,
-                  fontSize: 14,
-                  backgroundColor:
-                    msg.sender === "user" ? "#0097e6" : "#f1f2f6",
-                  color: msg.sender === "user" ? "#fff" : "#2f3542",
-                  whiteSpace: "pre-wrap",
-                }}
+                className={[
+                  "max-w-[82%] rounded-[1.2rem] px-4 py-3 text-[14px] leading-6",
+                  msg.sender === "user"
+                    ? "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111] font-semibold"
+                    : "border border-white/8 bg-[#1b1b1b] text-neutral-200",
+                ].join(" ")}
               >
                 {msg.text}
               </div>
@@ -149,28 +161,21 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
           ))}
 
           {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <CircularProgress size={20} />
+            <div className="flex justify-start">
+              <div className="rounded-full border border-white/8 bg-[#1b1b1b] px-4 py-2">
+                <CircularProgress size={18} sx={{ color: "#fb923c" }} />
+              </div>
             </div>
           )}
 
           {!messages.length && !loading && (
-            <div style={{ fontSize: 13, color: "#888" }}>
-              👋 Hãy đặt câu hỏi về sản phẩm (chất liệu, kích thước, bảo hành,
-              sử dụng, v.v.)
+            <div className="rounded-[1.2rem] border border-dashed border-white/10 bg-white/[0.02] px-4 py-4 text-sm leading-6 text-neutral-400">
+              Đặt câu hỏi ngắn gọn như: sản phẩm này phù hợp cho mục đích nào, vật liệu là gì, có bảo hành hay không.
             </div>
           )}
         </div>
 
-        {/* Ô nhập + nút gửi */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            marginTop: 4,
-          }}
-        >
+        <div className="flex items-center gap-2 pt-1">
           <TextField
             fullWidth
             size="small"
@@ -178,9 +183,46 @@ const ProductChatDialog: React.FC<ProductChatDialogProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "999px",
+                color: "white",
+                backgroundColor: "rgba(255,255,255,0.03)",
+                "& fieldset": {
+                  borderColor: "rgba(255,255,255,0.1)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(249,115,22,0.35)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#f97316",
+                },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: "rgba(255,255,255,0.4)",
+                opacity: 1,
+              },
+            }}
           />
-          <IconButton onClick={handleSend} disabled={loading || !input.trim()}>
-            {loading ? <CircularProgress size={20} /> : <SendIcon />}
+          <IconButton
+            onClick={handleSend}
+            disabled={loading || !input.trim()}
+            sx={{
+              width: 44,
+              height: 44,
+              color: "#111111",
+              background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+              boxShadow: "0 14px 30px rgba(249,115,22,0.28)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
+              },
+              "&.Mui-disabled": {
+                background: "rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.35)",
+              },
+            }}
+          >
+            {loading ? <CircularProgress size={18} sx={{ color: "inherit" }} /> : <SendIcon />}
           </IconButton>
         </div>
       </DialogContent>

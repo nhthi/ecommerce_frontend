@@ -1,8 +1,5 @@
-// src/state/customer/chatbotSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { api } from "../../config/Api";
-
-// ======== TYPES ========
 
 export interface ChatContext {
   productId?: number;
@@ -29,29 +26,18 @@ interface ChatbotState {
   error: string | null;
 }
 
-// ======== THUNK ========
-
 export const sendChatMessage = createAsyncThunk<
-  ChatReponse, // reply từ backend
-  ChatRequest, // payload
+  ChatReponse,
+  ChatRequest,
   { rejectValue: string }
->(
-  "chatbot/sendChatMessage",
-  async (request: ChatRequest, { rejectWithValue }) => {
-    try {
-      console.log("send: ", request);
-
-      const response = await api.post("/api/chatbot", request);
-
-      console.log(response.data);
-      return response.data;
-    } catch (err: any) {
-      return rejectWithValue(err.message);
-    }
+>("chatbot/sendChatMessage", async (request: ChatRequest, { rejectWithValue }) => {
+  try {
+    const response = await api.post("/api/chatbot", request);
+    return response.data;
+  } catch (err: any) {
+    return rejectWithValue(err.message);
   }
-);
-
-// ======== SLICE ========
+});
 
 const initialState: ChatbotState = {
   messages: [],
@@ -99,7 +85,7 @@ const chatbotSlice = createSlice({
       })
       .addCase(sendChatMessage.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Có lỗi khi gửi tin nhắn";
+        state.error = action.payload || "Khong the gui tin nhan luc nay.";
         state.messages.push({
           text: state.error,
           sender: "bot",
@@ -109,8 +95,5 @@ const chatbotSlice = createSlice({
   },
 });
 
-// ======== EXPORTS ========
-
-export const { addUserMessage, addBotMessage, resetChat } =
-  chatbotSlice.actions;
+export const { addUserMessage, addBotMessage, resetChat } = chatbotSlice.actions;
 export default chatbotSlice.reducer;

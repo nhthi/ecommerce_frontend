@@ -4,13 +4,11 @@ import { useAppSelector } from "../../../state/Store";
 const PricingCart = () => {
   const { cart } = useAppSelector((store) => store);
 
-  // Dữ liệu an toàn (fallback nếu chưa có cart)
   const totalMrp = cart.cart?.totalMrpPrice || 0;
   const totalSelling = cart.cart?.totalSellingPrice || 0;
   const totalCouponPrice = cart.cart?.totalCouponPrice || 0;
 
   const discount = totalMrp - totalSelling;
-  const shipping = 0;
   const couponPercent = cart.cart?.coupon
     ? Number(cart.cart?.coupon?.discountPercentage)
     : 0;
@@ -19,54 +17,62 @@ const PricingCart = () => {
     : 0;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="px-5 pt-4 pb-2 border-b border-slate-100">
-        <p className="text-sm font-semibold text-slate-800">Tóm tắt đơn hàng</p>
-        <p className="text-xs text-slate-500">
-          Kiểm tra lại chi tiết trước khi thanh toán.
+    <div className="p-5 text-neutral-200">
+      <div className="border-b border-white/8 pb-4">
+        <p className="text-lg font-black uppercase tracking-tight text-white">
+          Tổng kết đơn hàng
+        </p>
+        <p className="mt-1 text-sm leading-6 text-neutral-400">
+          Kiểm tra lại giá trị đơn trước khi qua bước tiếp theo.
         </p>
       </div>
 
-      {/* Thông tin giá */}
-      <div className="space-y-3 p-5 border-b border-slate-100 text-sm text-slate-700">
-        <div className="flex justify-between items-center">
-          <span>Tạm tính</span>
-          <span>{totalMrp.toLocaleString()}₫</span>
-        </div>
-
-        <div className="flex justify-between items-center">
-          <span>Giảm giá sản phẩm</span>
-          <span className="text-emerald-600">
-            -{discount > 0 ? discount.toLocaleString() : 0}₫
+      <div className="space-y-3.5 py-5 text-[15px]">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-neutral-400">Tạm tính</span>
+          <span className="font-semibold text-white">
+            {totalMrp.toLocaleString()}đ
           </span>
         </div>
 
-        <div className="flex justify-between items-center">
-          <span>Phí vận chuyển</span>
-          <span className="text-emerald-600 font-medium">Miễn phí</span>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-neutral-400">Giảm giá sản phẩm</span>
+          <span className="font-semibold text-emerald-300">
+            -{discount > 0 ? discount.toLocaleString() : 0}đ
+          </span>
         </div>
 
-        <div className="flex justify-between items-center">
-          <span>Mã giảm giá</span>
-          <span className="text-emerald-600">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-neutral-400">Vận chuyển</span>
+          <span className="font-semibold text-emerald-300">Miễn phí</span>
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-neutral-400">Coupon</span>
+          <span className="font-semibold text-emerald-300">
             {cart.cart?.coupon
-              ? `- ${couponPercent}% ( ${couponValue.toLocaleString()}₫ )`
-              : "- 0₫"}
+              ? `- ${couponPercent}% (${couponValue.toLocaleString()}đ)`
+              : "- 0đ"}
           </span>
         </div>
 
-        <div className="flex justify-between items-center">
-          <span>Phí nền tảng</span>
-          <span className="text-emerald-600 font-medium">Miễn phí</span>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-neutral-400">Phí nền tảng</span>
+          <span className="font-semibold text-emerald-300">Miễn phí</span>
         </div>
       </div>
 
-      {/* Tổng tiền */}
-      <div className="flex justify-between items-center px-5 py-4 font-semibold text-base sm:text-lg text-slate-900">
-        <span>Tổng cộng</span>
-        <span className="text-sky-600">
-          {totalCouponPrice.toLocaleString()}₫
+      <div className="flex items-end justify-between gap-4 border-t border-white/8 pt-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+            Tổng thanh toán
+          </p>
+          <p className="mt-1 text-sm text-neutral-400">
+            Đã tính khuyến mãi và coupon.
+          </p>
+        </div>
+        <span className="text-3xl font-black tracking-tight text-orange-400">
+          {totalCouponPrice.toLocaleString()}đ
         </span>
       </div>
     </div>

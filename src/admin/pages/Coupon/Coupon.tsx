@@ -1,17 +1,13 @@
-import { Add, Check, Close, Delete } from "@mui/icons-material";
+import { Add, Check, Close, DeleteOutline, LocalOffer } from "@mui/icons-material";
 import {
   Box,
   Button,
   Chip,
-  Divider,
-  FormControl,
   IconButton,
-  InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
-  styled,
   Table,
   TableBody,
   TableCell,
@@ -20,207 +16,155 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Tooltip,
 } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchAllCoupons } from "../../../state/admin/adminCouponSlice";
 import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
 
-const accountStatuses = [
-  { status: "PENDING_VERIFICATION", title: "Chờ xác minh", description: "" },
-  { status: "ACTIVE", title: "Đang hoạt động", description: "" },
-  { status: "SUSPENDED", title: "Tạm khóa", description: "" },
-  { status: "DEACTIVATED", title: "Ngừng kích hoạt", description: "" },
-  { status: "BANNED", title: "Cấm vĩnh viễn", description: "" },
-  { status: "CLOSED", title: "Đã đóng", description: "" },
-];
-
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
-    background: "linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc)",
-    color: theme.palette.common.white,
-    fontWeight: 600,
-    fontSize: 13,
+    backgroundColor: "#171717",
+    color: "#fed7aa",
+    borderBottomColor: "rgba(249,115,22,0.22)",
+    fontWeight: 700,
+    fontSize: 12,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   [`&.${tableCellClasses.body}`]: {
+    color: "rgba(255,255,255,0.92)",
     fontSize: 14,
-    borderBottomColor: "rgba(148, 163, 184, 0.25)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
   },
-}));
+});
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
-    transform: "translateY(-1px)",
-    transition: "all 0.15s ease-in-out",
-  },
-  transition: "all 0.15s ease-in-out",
-}));
+const StyledTableRow = styled(TableRow)({
+  "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
+});
+
+const panelSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  overflow: "hidden",
+};
 
 const Coupon = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { coupon } = useAppSelector((store) => store);
-  const [accountStatus, setAccountStatus] = useState("ACTIVE");
-
-  const handleChange = (event: any) => {
-    setAccountStatus(event.target.value);
-  };
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     dispatch(fetchAllCoupons());
   }, [dispatch]);
 
+  const filteredCoupons = coupon.coupons?.filter((item) => {
+    if (statusFilter === "all") return true;
+    return statusFilter === "active" ? item.active : !item.active;
+  }) || [];
+
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid rgba(148, 163, 184, 0.25)",
-        boxShadow: "0 18px 45px rgba(15, 23, 42, 0.13)",
-        p: 0,
-      }}
-    >
-      {/* Header */}
-      <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          gap={2}
-        >
+    <Paper elevation={0} sx={panelSx}>
+      <Box sx={{ px: 3, py: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <Stack direction={{ xs: "column", lg: "row" }} justifyContent="space-between" spacing={2}>
           <Box>
-            <Typography variant="h6" fontWeight={700}>
-              Quản lý mã giảm giá
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Quản lý mã giảm giá hệ thống: thời gian, giá trị và trạng thái.
+            <Typography fontSize={26} fontWeight={800} color="white">Ma giam gia</Typography>
+            <Typography sx={{ mt: 0.7, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
+              Quan ly coupon theo gia tri don, han su dung va trang thai kich hoat.
             </Typography>
           </Box>
-
-          <Stack direction="row" spacing={2} alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel id="account-status-label">
-                Trạng thái tài khoản
-              </InputLabel>
-              <Select
-                labelId="account-status-label"
-                id="account-status-select"
-                value={accountStatus}
-                label="Trạng thái tài khoản"
-                onChange={handleChange}
-              >
-                {accountStatuses.map((status) => (
-                  <MenuItem key={status.status} value={status.status}>
-                    {status.title}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} alignItems="center">
+            <Select
+              size="small"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              sx={{
+                minWidth: 180,
+                color: "white",
+                borderRadius: "16px",
+                ".MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+                "& .MuiSvgIcon-root": { color: "#fb923c" },
+              }}
+            >
+              <MenuItem value="all">Tat ca</MenuItem>
+              <MenuItem value="active">Dang hoat dong</MenuItem>
+              <MenuItem value="inactive">Ngung hoat dong</MenuItem>
+            </Select>
             <Button
               variant="contained"
               startIcon={<Add />}
               onClick={() => navigate("/admin/add-coupon")}
-              sx={{ borderRadius: 999, textTransform: "none" }}
+              sx={{ borderRadius: 999, textTransform: "none", px: 2.5, background: "linear-gradient(135deg, #f97316, #ea580c)" }}
             >
-              Thêm mã giảm giá
+              Tao coupon moi
             </Button>
           </Stack>
-        </Box>
+        </Stack>
       </Box>
-
-      <Divider />
-
-      {/* Table */}
       <TableContainer>
-        <Table sx={{ minWidth: 900 }} aria-label="coupon table">
+        <Table sx={{ minWidth: 980 }}>
           <TableHead>
             <TableRow>
-              <StyledTableCell>ID</StyledTableCell>
-              <StyledTableCell>Tên</StyledTableCell>
-              <StyledTableCell>Mã giảm giá</StyledTableCell>
-              <StyledTableCell>Ngày bắt đầu</StyledTableCell>
-              <StyledTableCell>Ngày kết thúc</StyledTableCell>
-              <StyledTableCell align="right">
-                Giá trị đơn tối thiểu
-              </StyledTableCell>
-              <StyledTableCell align="right">
-                Giá trị đơn tối đa
-              </StyledTableCell>
-              <StyledTableCell align="right">% Giảm</StyledTableCell>
-              <StyledTableCell align="center">Trạng thái</StyledTableCell>
-              <StyledTableCell align="center">Xóa</StyledTableCell>
+              <StyledTableCell>Ten</StyledTableCell>
+              <StyledTableCell>Ma</StyledTableCell>
+              <StyledTableCell>Bat dau</StyledTableCell>
+              <StyledTableCell>Ket thuc</StyledTableCell>
+              <StyledTableCell align="right">Don toi thieu</StyledTableCell>
+              <StyledTableCell align="right">Don toi da</StyledTableCell>
+              <StyledTableCell align="center">Giam</StyledTableCell>
+              <StyledTableCell align="center">Trang thai</StyledTableCell>
+              <StyledTableCell align="right">Tac vu</StyledTableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
-            {coupon.coupons && coupon.coupons.length > 0 ? (
-              coupon.coupons.map((row) => {
-                const isActive = row.active;
-
-                return (
-                  <StyledTableRow key={row.id}>
-                    <StyledTableCell>{row.id}</StyledTableCell>
-                    <StyledTableCell>{row.name}</StyledTableCell>
-                    <StyledTableCell>{row.code}</StyledTableCell>
-                    <StyledTableCell>{row.validityStartDate}</StyledTableCell>
-                    <StyledTableCell>{row.validityEndDate}</StyledTableCell>
-                    <StyledTableCell align="right">
-                      {formatCurrencyVND(row.minimumOrderValue)}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {formatCurrencyVND(row.maximumOrderValue)}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.discountPercentage}%
-                    </StyledTableCell>
-
-                    <StyledTableCell align="center">
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        label={isActive ? "Đang hoạt động" : "Không hoạt động"}
-                        color={isActive ? "success" : "default"}
-                        icon={
-                          isActive ? (
-                            <Check fontSize="small" />
-                          ) : (
-                            <Close fontSize="small" />
-                          )
-                        }
-                        sx={{ borderRadius: 999, fontSize: 11 }}
-                      />
-                    </StyledTableCell>
-
-                    <StyledTableCell align="center">
-                      <Tooltip title="Xóa mã giảm giá">
-                        <IconButton size="small">
-                          <Delete color="error" fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                );
-              })
-            ) : (
+            {filteredCoupons.length ? filteredCoupons.map((row) => (
+              <StyledTableRow key={row.id}>
+                <StyledTableCell>
+                  <Stack direction="row" spacing={1.2} alignItems="center">
+                    <LocalOffer sx={{ color: "#fb923c" }} />
+                    <Box>
+                      <Typography fontWeight={700}>{row.name}</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}>ID #{row.id}</Typography>
+                    </Box>
+                  </Stack>
+                </StyledTableCell>
+                <StyledTableCell>{row.code}</StyledTableCell>
+                <StyledTableCell>{row.validityStartDate}</StyledTableCell>
+                <StyledTableCell>{row.validityEndDate}</StyledTableCell>
+                <StyledTableCell align="right">{formatCurrencyVND(row.minimumOrderValue)}</StyledTableCell>
+                <StyledTableCell align="right">{formatCurrencyVND(row.maximumOrderValue)}</StyledTableCell>
+                <StyledTableCell align="center">
+                  <Chip size="small" label={`${row.discountPercentage}%`} sx={{ color: "#fff7ed", backgroundColor: "rgba(249,115,22,0.12)" }} />
+                </StyledTableCell>
+                <StyledTableCell align="center">
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={row.active ? "Dang hoat dong" : "Ngung hoat dong"}
+                    icon={row.active ? <Check fontSize="small" /> : <Close fontSize="small" />}
+                    sx={{
+                      borderRadius: 999,
+                      color: row.active ? "#86efac" : "#d4d4d8",
+                      borderColor: row.active ? "rgba(34,197,94,0.35)" : "rgba(161,161,170,0.25)",
+                      backgroundColor: row.active ? "rgba(34,197,94,0.08)" : "rgba(161,161,170,0.08)",
+                    }}
+                  />
+                </StyledTableCell>
+                <StyledTableCell align="right">
+                  <IconButton size="small" sx={{ color: "#fca5a5" }}>
+                    <DeleteOutline fontSize="small" />
+                  </IconButton>
+                </StyledTableCell>
+              </StyledTableRow>
+            )) : (
               <TableRow>
-                <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Hiện chưa có mã giảm giá nào.
-                  </Typography>
+                <TableCell colSpan={9} align="center" sx={{ py: 8, color: "rgba(255,255,255,0.6)" }}>
+                  Chua co coupon nao.
                 </TableCell>
               </TableRow>
             )}

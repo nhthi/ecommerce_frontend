@@ -1,16 +1,14 @@
 import {
+  Avatar,
   Box,
   Button,
   Chip,
-  Divider,
   FormControl,
-  IconButton,
   InputLabel,
-  MenuItem,
   Menu,
+  MenuItem,
   Paper,
   Select,
-  styled,
   Table,
   TableBody,
   TableCell,
@@ -19,89 +17,69 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Tooltip,
 } from "@mui/material";
-import { Edit, KeyboardArrowDown } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import { KeyboardArrowDown, Storefront } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
-import {
-  fetchAllSellers,
-  updateSellerStatus,
-} from "../../../state/admin/adminUserSlice";
+import { fetchAllSellers, updateSellerStatus } from "../../../state/admin/adminUserSlice";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
 
-// trạng thái tài khoản (filter)
 const accountStatuses = [
-  { status: "all", title: "Tất cả", description: "" },
-  { status: "PENDING_VERIFICATION", title: "Chờ xác minh", description: "" },
-  { status: "ACTIVE", title: "Đang hoạt động", description: "" },
-  { status: "BANNED", title: "Bị khóa", description: "" },
+  { status: "all", title: "Tat ca" },
+  { status: "PENDING_VERIFICATION", title: "Cho xac minh" },
+  { status: "ACTIVE", title: "Dang hoat dong" },
+  { status: "BANNED", title: "Bi khoa" },
 ];
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
-    background: "linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc)",
-    color: theme.palette.common.white,
-    fontWeight: 600,
-    fontSize: 13,
+    backgroundColor: "#171717",
+    color: "#fed7aa",
+    borderBottomColor: "rgba(249,115,22,0.22)",
+    fontWeight: 700,
+    fontSize: 12,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   [`&.${tableCellClasses.body}`]: {
+    color: "rgba(255,255,255,0.92)",
     fontSize: 14,
-    borderBottomColor: "rgba(148, 163, 184, 0.25)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
   },
-}));
+});
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
-    transform: "translateY(-1px)",
-    transition: "all 0.15s ease-in-out",
-  },
-  transition: "all 0.15s ease-in-out",
-}));
+const StyledTableRow = styled(TableRow)({
+  "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
+});
 
-// màu chip theo trạng thái
-const getAccountStatusChipProps = (status: string) => {
-  switch (status) {
-    case "ACTIVE":
-      return { color: "success" as const, variant: "outlined" as const };
-    case "PENDING_VERIFICATION":
-      return { color: "warning" as const, variant: "outlined" as const };
-    case "BANNED":
-      return { color: "error" as const, variant: "outlined" as const };
-    default:
-      return { color: "default" as const, variant: "outlined" as const };
-  }
+const panelSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  overflow: "hidden",
+};
+
+const getChipSx = (status: string) => {
+  if (status === "ACTIVE") return { color: "#86efac", borderColor: "rgba(34,197,94,0.35)", backgroundColor: "rgba(34,197,94,0.08)" };
+  if (status === "PENDING_VERIFICATION") return { color: "#fdba74", borderColor: "rgba(249,115,22,0.35)", backgroundColor: "rgba(249,115,22,0.08)" };
+  return { color: "#fca5a5", borderColor: "rgba(239,68,68,0.35)", backgroundColor: "rgba(239,68,68,0.08)" };
 };
 
 const SellerTable = () => {
   const dispatch = useAppDispatch();
   const { adminUser } = useAppSelector((store) => store);
-
   const [accountStatus, setAccountStatus] = useState("all");
   const [loading, setLoading] = React.useState(false);
-
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
-
-  const handleChangeFilterStatus = (event: any) => {
-    setAccountStatus(event.target.value);
-  };
 
   useEffect(() => {
     dispatch(fetchAllSellers(accountStatus));
   }, [accountStatus, dispatch]);
 
-  const handleOpenStatusMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    sellerId: number
-  ) => {
+  const handleOpenStatusMenu = (event: React.MouseEvent<HTMLButtonElement>, sellerId: number) => {
     setMenuAnchor(event.currentTarget);
     setSelectedSellerId(sellerId);
   };
@@ -113,181 +91,110 @@ const SellerTable = () => {
 
   const handleChangeSellerStatus = async (status: string) => {
     if (!selectedSellerId) return;
-
     setLoading(true);
     await dispatch(updateSellerStatus({ id: selectedSellerId, status }));
     await dispatch(fetchAllSellers(accountStatus));
     setLoading(false);
-
     handleCloseStatusMenu();
   };
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid rgba(148, 163, 184, 0.25)",
-        boxShadow: "0 18px 45px rgba(15, 23, 42, 0.13)",
-      }}
-    >
-      {loading && <CustomLoading message="Đang cập nhật..." />}
-
-      {/* Header */}
-      <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          gap={2}
-        >
+    <Paper elevation={0} sx={panelSx}>
+      {loading && <CustomLoading message="Dang cap nhat seller..." />}
+      <Box sx={{ px: 3, py: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <Box display="flex" flexWrap="wrap" justifyContent="space-between" gap={2} alignItems="center">
           <Box>
-            <Typography variant="h6" fontWeight={700}>
-              Quản lý Seller
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Danh sách các seller trên hệ thống và trạng thái tài khoản.
+            <Typography fontSize={26} fontWeight={800} color="white">Seller</Typography>
+            <Typography sx={{ mt: 0.7, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
+              Theo doi nha ban, xac minh ho so va xu ly tai khoan can canh bao.
             </Typography>
           </Box>
-
           <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel id="seller-account-status-label">
-              Trạng thái tài khoản
-            </InputLabel>
-
+            <InputLabel sx={{ color: "rgba(255,255,255,0.62)" }}>Loc trang thai</InputLabel>
             <Select
-              labelId="seller-account-status-label"
-              id="seller-account-status-select"
               value={accountStatus}
-              label="Trạng thái tài khoản"
-              onChange={handleChangeFilterStatus}
+              label="Loc trang thai"
+              onChange={(event) => setAccountStatus(event.target.value)}
+              sx={{
+                color: "white",
+                borderRadius: "16px",
+                ".MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+                "& .MuiSvgIcon-root": { color: "#fb923c" },
+              }}
             >
               {accountStatuses.map((status) => (
-                <MenuItem key={status.status} value={status.status}>
-                  {status.title}
-                </MenuItem>
+                <MenuItem key={status.status} value={status.status}>{status.title}</MenuItem>
               ))}
             </Select>
           </FormControl>
         </Box>
-
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ mt: 1, display: "block" }}
-        >
-          {adminUser.seller?.length || 0} seller được tìm thấy
-        </Typography>
       </Box>
-
-      <Divider />
-
-      {/* Table */}
       <TableContainer>
-        <Table sx={{ minWidth: 1000 }}>
+        <Table sx={{ minWidth: 1040 }}>
           <TableHead>
             <TableRow>
-              <StyledTableCell>ID</StyledTableCell>
-              <StyledTableCell>Tên Seller</StyledTableCell>
+              <StyledTableCell>Seller</StyledTableCell>
               <StyledTableCell>Email</StyledTableCell>
-              <StyledTableCell>Số điện thoại</StyledTableCell>
-              <StyledTableCell>MST (GSTIN)</StyledTableCell>
-              <StyledTableCell>Tên doanh nghiệp</StyledTableCell>
-              <StyledTableCell align="center">
-                Trạng thái tài khoản
-              </StyledTableCell>
-              <StyledTableCell align="center">Thay đổi</StyledTableCell>
+              <StyledTableCell>So dien thoai</StyledTableCell>
+              <StyledTableCell>Doanh nghiep</StyledTableCell>
+              <StyledTableCell>MST</StyledTableCell>
+              <StyledTableCell align="center">Trang thai</StyledTableCell>
+              <StyledTableCell align="right">Tac vu</StyledTableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
-            {adminUser.seller && adminUser.seller.length > 0 ? (
-              adminUser.seller.map((row) => {
-                const chipProps = getAccountStatusChipProps(
-                  row.accountStatus || ""
-                );
-                return (
-                  <StyledTableRow key={row.id}>
-                    <StyledTableCell>{row.id}</StyledTableCell>
-
-                    <StyledTableCell>{row.sellerName}</StyledTableCell>
-
-                    <StyledTableCell>{row.email}</StyledTableCell>
-                    <StyledTableCell>{row.mobile}</StyledTableCell>
-                    <StyledTableCell>{row.gstin}</StyledTableCell>
-                    <StyledTableCell>
-                      {row.businessDetails?.businessName}
-                    </StyledTableCell>
-
-                    {/* Status chip */}
-                    <StyledTableCell align="center">
-                      <Chip
-                        size="small"
-                        label={
-                          row.accountStatus === "ACTIVE"
-                            ? "Đang hoạt động"
-                            : row.accountStatus === "PENDING_VERIFICATION"
-                            ? "Chờ xác minh"
-                            : row.accountStatus === "BANNED"
-                            ? "Bị khóa"
-                            : row.accountStatus
-                        }
-                        {...chipProps}
-                        sx={{ borderRadius: 999, fontSize: 11 }}
-                      />
-                    </StyledTableCell>
-
-                    {/* Change status button */}
-                    <StyledTableCell align="center">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        endIcon={<KeyboardArrowDown />}
-                        onClick={(e) => handleOpenStatusMenu(e, row.id || 0)}
-                        sx={{
-                          borderRadius: 999,
-                          textTransform: "none",
-                          px: 2,
-                          fontSize: 13,
-                        }}
-                      >
-                        Thay đổi
-                      </Button>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                );
-              })
-            ) : (
+            {adminUser.seller?.length ? adminUser.seller.map((row) => (
+              <StyledTableRow key={row.id}>
+                <StyledTableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Avatar sx={{ bgcolor: "rgba(249,115,22,0.14)", color: "#fb923c" }}>
+                      <Storefront />
+                    </Avatar>
+                    <Box>
+                      <Typography fontWeight={700}>{row.sellerName}</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}>ID #{row.id}</Typography>
+                    </Box>
+                  </Box>
+                </StyledTableCell>
+                <StyledTableCell>{row.email}</StyledTableCell>
+                <StyledTableCell>{row.mobile || "-"}</StyledTableCell>
+                <StyledTableCell>{row.businessDetails?.businessName || "-"}</StyledTableCell>
+                <StyledTableCell>{row.gstin || "-"}</StyledTableCell>
+                <StyledTableCell align="center">
+                  <Chip size="small" variant="outlined" label={accountStatuses.find((item) => item.status === row.accountStatus)?.title || row.accountStatus} sx={{ borderRadius: 999, ...getChipSx(row.accountStatus || "") }} />
+                </StyledTableCell>
+                <StyledTableCell align="right">
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    endIcon={<KeyboardArrowDown />}
+                    onClick={(e) => handleOpenStatusMenu(e, row.id || 0)}
+                    sx={{ textTransform: "none", borderRadius: 999, px: 2, color: "#fff7ed", borderColor: "rgba(255,255,255,0.16)" }}
+                  >
+                    Doi trang thai
+                  </Button>
+                </StyledTableCell>
+              </StyledTableRow>
+            )) : (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Hiện chưa có seller nào.
-                  </Typography>
+                <TableCell colSpan={7} align="center" sx={{ py: 8, color: "rgba(255,255,255,0.6)" }}>
+                  Chua co seller nao.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-
-        {/* Menu đổi trạng thái */}
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={handleCloseStatusMenu}
-        >
-          {accountStatuses
-            .filter((s) => s.status !== "all")
-            .map((s) => (
-              <MenuItem
-                key={s.status}
-                onClick={() => handleChangeSellerStatus(s.status)}
-              >
-                {s.title}
-              </MenuItem>
-            ))}
-        </Menu>
       </TableContainer>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseStatusMenu}
+        PaperProps={{ sx: { backgroundColor: "#171717", color: "white", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "18px", mt: 1 } }}
+      >
+        {accountStatuses.filter((item) => item.status !== "all").map((item) => (
+          <MenuItem key={item.status} onClick={() => handleChangeSellerStatus(item.status)}>{item.title}</MenuItem>
+        ))}
+      </Menu>
     </Paper>
   );
 };

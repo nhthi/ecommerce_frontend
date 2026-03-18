@@ -2,118 +2,86 @@ import React, { useEffect, useState } from "react";
 import UserAddressCard from "./UserAddressCard";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { Address as AddressType } from "../../../types/UserType";
-import { Alert, Snackbar, Typography } from "@mui/material";
-import {
-  deleteAddress,
-  setDefaultAddress,
-} from "../../../state/customer/addressSlice";
-import { fetchUserProfile } from "../../../state/AuthSlice";
+import { Alert, Snackbar } from "@mui/material";
+import { deleteAddress, setDefaultAddress } from "../../../state/customer/addressSlice";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
 
 const Address = () => {
   const { auth } = useAppSelector((store) => store);
   const dispatch = useAppDispatch();
-  const [addresses, setAddresses] = useState<AddressType[]>(
-    auth.user?.addresses || []
-  );
+  const [addresses, setAddresses] = useState<AddressType[]>(auth.user?.addresses || []);
   const [loading, setLoading] = useState(false);
-  // Chỉ lấy các địa chỉ có isActive = true
   const activeAddresses = addresses.filter((addr) => addr.active === true);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({
-    open: false,
-    message: "",
-    severity: "success",
-  });
-  // Hàm xử lý xóa (nhận từ UserAddressCard)
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({ open: false, message: "", severity: "success" });
+
   const handleDelete = async (id: number) => {
     try {
       setLoading(true);
       await dispatch(deleteAddress(id));
       setAddresses((prev) => prev.filter((addr) => addr.id !== id));
-      setSnackbar({
-        open: true,
-        message: "Xóa địa chỉ thành công!",
-        severity: "success",
-      });
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Lỗi khi xóa địa chỉ!",
-        severity: "error",
-      });
+      setSnackbar({ open: true, message: "Xóa địa chỉ thành công.", severity: "success" });
+    } catch {
+      setSnackbar({ open: true, message: "Không thể xóa địa chỉ lúc này.", severity: "error" });
     } finally {
       setLoading(false);
     }
   };
+
   const handleSetDefaultAddress = async (id: number) => {
     try {
       setLoading(true);
       await dispatch(setDefaultAddress(id)).unwrap();
-      setAddresses((prev) =>
-        prev.map((addr) => ({
-          ...addr,
-          default: addr.id === id, // chỉ 1 địa chỉ mặc định
-        }))
-      );
-      setSnackbar({
-        open: true,
-        message: "Đặt làm địa chỉ mặc định thành công!",
-        severity: "success",
-      });
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Không thể đặt địa chỉ mặc định!",
-        severity: "error",
-      });
+      setAddresses((prev) => prev.map((addr) => ({ ...addr, default: addr.id === id })));
+      setSnackbar({ open: true, message: "Đã đặt địa chỉ mặc định.", severity: "success" });
+    } catch {
+      setSnackbar({ open: true, message: "Không thể đặt địa chỉ mặc định.", severity: "error" });
     } finally {
       setLoading(false);
     }
   };
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
+
   useEffect(() => {
-    if (auth.user?.addresses) {
-      setAddresses(auth.user.addresses);
-    }
+    if (auth.user?.addresses) setAddresses(auth.user.addresses);
   }, [auth.user]);
+
   return (
-    <div className="space-y-3">
-      {loading && <CustomLoading message="Đang xử lý" />}
-      <Typography variant="h6" className="mb-3 font-semibold">
-        Địa chỉ của bạn
-      </Typography>
+    <div className="space-y-5">
+      {loading && <CustomLoading message="Đang xử lý..." />}
+
+      <div>
+        <h1 className="text-3xl font-black text-white">Địa chỉ</h1>
+        <p className="mt-2 text-base leading-7 text-slate-300">
+          Nơi lưu các địa chỉ nhận hàng để đặt mua nhanh hơn ở những lần sau.
+        </p>
+      </div>
 
       {activeAddresses.length > 0 ? (
-        activeAddresses.map((item) => (
-          <UserAddressCard
-            key={item.id}
-            item={item}
-            onDelete={handleDelete}
-            onSetDefault={handleSetDefaultAddress}
-          />
-        ))
+        <div className="space-y-4">
+          {activeAddresses.map((item) => (
+            <UserAddressCard
+              key={item.id}
+              item={item}
+              onDelete={handleDelete}
+              onSetDefault={handleSetDefaultAddress}
+            />
+          ))}
+        </div>
       ) : (
-        <Typography variant="body2" color="text.secondary">
+        <div className="rounded-[1.8rem] border border-dashed border-orange-500/15 bg-black/20 px-6 py-16 text-center text-slate-400 text-lg">
           Bạn chưa có địa chỉ nào đang hoạt động.
-        </Typography>
+        </div>
       )}
-      {/* Snackbar hiển thị thông báo */}
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert
-          onClose={handleCloseSnackbar}
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", borderRadius: "0.8rem" }}
         >
           {snackbar.message}
         </Alert>

@@ -7,8 +7,6 @@ import { Product } from "../../../../types/ProductType";
 import { formatCurrencyVND } from "../../../../utils/formatCurrencyVND";
 import { useNavigate } from "react-router-dom";
 
-const primary = "#0097e6";
-
 const DealCard: React.FC<Product> = ({
   title,
   images,
@@ -20,15 +18,15 @@ const DealCard: React.FC<Product> = ({
   id,
 }) => {
   const navigate = useNavigate();
+
   return (
     <motion.div
-      whileHover={{ scale: 1.04, y: -4 }}
-      transition={{ type: "spring", stiffness: 220, damping: 18 }}
-      className="bg-white rounded-2xl shadow-sm hover:shadow-xl overflow-hidden cursor-pointer border border-gray-100 flex flex-col"
+      whileHover={{ scale: 1.02, y: -4 }}
+      transition={{ type: "spring", stiffness: 220, damping: 20 }}
+      className="overflow-hidden rounded-[1.6rem] border border-orange-500/15 bg-[#171717] shadow-sm"
     >
-      {/* Ảnh sản phẩm */}
       <div
-        className="relative overflow-hidden bg-[#f5faff]"
+        className="relative cursor-pointer overflow-hidden bg-black"
         onClick={() =>
           navigate(`/product-details/${category?.categoryId}/${title}/${id}`)
         }
@@ -36,58 +34,58 @@ const DealCard: React.FC<Product> = ({
         <img
           alt={title}
           src={images[0]}
-          className="w-full aspect-[5/5] object-cover transition-transform duration-500 group-hover:scale-110"
+          className="aspect-square w-full object-cover transition-transform duration-500 hover:scale-105"
         />
 
-        {/* Nhãn giảm giá */}
-        <div className="absolute top-2 left-2 bg-[#ff4757] text-white text-[10px] font-semibold px-2 py-1 rounded-md shadow">
-          {-discountPercent}%
+        <div className="absolute left-3 top-3 rounded-md bg-orange-500 px-2 py-1 text-[10px] font-bold text-black shadow">
+          -{discountPercent}%
         </div>
 
-        {/* Tag */}
-
-        <div className="absolute bottom-2 left-2 bg-white/90 text-[9px] px-2 py-0.5 rounded-full text-[#ff4757] font-semibold flex items-center gap-1">
+        <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-[10px] font-semibold text-orange-300 backdrop-blur-sm">
           <LocalOfferIcon sx={{ fontSize: 12 }} />
-          {"Bán chạy"}
+          Giá tốt
         </div>
       </div>
 
-      {/* Nội dung */}
-      <div className="px-3 pt-2 pb-3 flex flex-col gap-1">
-        <p className="text-[13px] font-semibold text-gray-800 line-clamp-2">
+      <div className="flex flex-col gap-2 px-4 pb-4 pt-3">
+        <p className="line-clamp-2 min-h-[42px] text-sm font-semibold text-white">
           {title}
         </p>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-[14px] font-bold text-[#ff4757]">
+          <span className="text-base font-black text-orange-400">
             {formatCurrencyVND(sellingPrice)}
           </span>
           {formatCurrencyVND(mrpPrice) && (
-            <span className="text-[10px] text-gray-400 line-through">
+            <span className="text-xs text-slate-500 line-through">
               {formatCurrencyVND(mrpPrice)}
             </span>
           )}
         </div>
 
-        <p className="text-[10px] text-gray-500">
-          Nhà bán:{" "}
-          <span className="font-medium text-gray-700">
-            {seller?.businessDetails.businessName}
+        <p className="text-[11px] text-slate-400">
+          Thuong hieu: {" "}
+          <span className="font-medium text-slate-200">
+            {seller?.businessDetails.businessName || "NHTHI Fit"}
           </span>
         </p>
 
         <IconButton
-          className="!mt-1 !w-full !py-1.5 !rounded-full"
+          onClick={() =>
+            navigate(`/product-details/${category?.categoryId}/${title}/${id}`)
+          }
+          className="!mt-1 !w-full !rounded-full !py-2"
           sx={{
-            backgroundColor: primary,
-            color: "white",
+            backgroundColor: "#f97316",
+            color: "#050505",
             fontSize: 11,
-            "&:hover": { backgroundColor: "#00a8ff" },
+            fontWeight: 700,
+            "&:hover": { backgroundColor: "#fb923c" },
             gap: 1,
           }}
         >
           <ShoppingBagIcon sx={{ fontSize: 16 }} />
-          <span className="text-sm">Mua ngay</span>
+          <span className="text-sm font-bold">Xem chi tiết</span>
         </IconButton>
       </div>
     </motion.div>

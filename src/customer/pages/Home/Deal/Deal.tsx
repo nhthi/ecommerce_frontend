@@ -10,50 +10,38 @@ const Deal = ({ products }: { products: Product[] }) => {
     dots: false,
     arrows: false,
     infinite: true,
-    speed: 4000, // tốc độ trượt
+    speed: 4000,
     slidesToShow: 5,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 0, // chạy liên tục
+    autoplaySpeed: 0,
     cssEase: "linear",
     pauseOnHover: true,
     responsive: [
-      {
-        breakpoint: 1280,
-        settings: { slidesToShow: 4 },
-      },
-      {
-        breakpoint: 1024,
-        settings: { slidesToShow: 3 },
-      },
-      {
-        breakpoint: 768,
-        settings: { slidesToShow: 2 },
-      },
-      {
-        breakpoint: 480,
-        settings: { slidesToShow: 1.6 },
-      },
+      { breakpoint: 1280, settings: { slidesToShow: 4 } },
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 768, settings: { slidesToShow: 2 } },
+      { breakpoint: 480, settings: { slidesToShow: 1.4 } },
     ],
   };
 
   return (
-    <section className="py-10 bg-gradient-to-r from-[#e1f5fe] to-[#f0faff]">
-      <div className="flex items-center justify-between px-4 md:px-20 mb-4">
+    <section className="rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-8 md:px-6">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-[#0097e6]">
-            Ưu đãi nổi bật từ nhà bán uy tín ⚡
+          <h2 className="text-2xl font-black text-white">
+            Sản phẩm đang có giá tốt
           </h2>
-          <p className="text-gray-500 text-xs md:text-sm mt-1">
-            Săn deal hot từ các shop được đánh giá cao trên hệ thống.
+          <p className="mt-1 text-sm text-slate-300">
+            Tập trung vào các sản phẩm có giá dễ tiếp cận, phù hợp cho người mới bắt đầu.
           </p>
         </div>
-        <button className="hidden md:inline-flex text-xs px-3 py-1 rounded-full border border-[#0097e6] text-[#0097e6] hover:bg-[#0097e6] hover:text-white transition-all">
-          Xem tất cả
-        </button>
+        <span className="hidden rounded-full border border-orange-500/25 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-400 md:inline-flex">
+          Cập nhật liên tục
+        </span>
       </div>
 
-      <div className="px-2 md:px-16">
+      <div className="px-1 md:px-0">
         <Slider {...settings}>
           {products.map((deal, index) => (
             <div key={index} className="px-1.5">

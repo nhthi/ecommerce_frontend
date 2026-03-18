@@ -1,7 +1,15 @@
 import * as React from "react";
-import { styled } from "@mui/material/styles";
 import { vi } from "date-fns/locale";
 import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Menu,
+  MenuItem,
+  Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -9,95 +17,68 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Button,
-  Menu,
-  MenuItem,
-  Collapse,
-  Box,
-  IconButton,
   Typography,
-  Chip,
-  Stack,
-  Divider,
-  Tooltip,
 } from "@mui/material";
-import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import { ExpandMore, LocalShipping, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
+import { format } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
-import {
-  fetchSellerOrders,
-  getAllOrders,
-  updateOrderStatus,
-} from "../../../state/seller/sellerOrderSlice";
+import { fetchSellerOrders, getAllOrders, updateOrderStatus } from "../../../state/seller/sellerOrderSlice";
 import { OrderStatus } from "../../../types/OrderType";
 import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
-import { format } from "date-fns";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
 
-// =================== STYLED COMPONENTS ===================
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
+const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
-    background: "linear-gradient(90deg, #0052d4, #4364f7, #6fb1fc)",
-    color: theme.palette.common.white,
-    fontWeight: 600,
-    fontSize: 13,
+    backgroundColor: "#171717",
+    color: "#fed7aa",
+    borderBottomColor: "rgba(249,115,22,0.22)",
+    fontWeight: 700,
+    fontSize: 12,
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   [`&.${tableCellClasses.body}`]: {
+    color: "rgba(255,255,255,0.92)",
     fontSize: 14,
-    borderBottomColor: "rgba(148, 163, 184, 0.3)",
+    borderBottomColor: "rgba(255,255,255,0.06)",
   },
-}));
+});
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-  "&:hover": {
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
-    transform: "translateY(-1px)",
-    transition: "all 0.15s ease-in-out",
-  },
-  transition: "all 0.15s ease-in-out",
-}));
+const StyledTableRow = styled(TableRow)({
+  "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
+});
 
-// =================== ORDER STATUS COLORS ===================
-interface OrderStatusColor {
-  value: OrderStatus;
-  color: string;
-}
+const panelSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  overflow: "hidden",
+};
 
-const orderStatusColors: OrderStatusColor[] = [
-  { value: OrderStatus.PENDING, color: "#FFC107" },
-  { value: OrderStatus.PLACED, color: "#1E90FF" },
-  { value: OrderStatus.CONFIRMED, color: "#32CD32" },
-  { value: OrderStatus.CANCELLED, color: "#FF0000" },
-  { value: OrderStatus.SHIPPED, color: "#9370DB" },
-  { value: OrderStatus.ARRIVING, color: "#87CEFA" },
-  { value: OrderStatus.DELIVERED, color: "#008000" },
-];
+const orderStatusColors: Record<string, { color: string; label: string }> = {
+  PENDING: { color: "#fdba74", label: "Cho xu ly" },
+  PLACED: { color: "#fb923c", label: "Da dat" },
+  CONFIRMED: { color: "#facc15", label: "Da xac nhan" },
+  CANCELLED: { color: "#f87171", label: "Da huy" },
+  SHIPPED: { color: "#93c5fd", label: "Da gui" },
+  ARRIVING: { color: "#c4b5fd", label: "Sap giao" },
+  DELIVERED: { color: "#86efac", label: "Hoan tat" },
+};
 
-// =================== MAIN COMPONENT ===================
 export default function OrderTable() {
   const dispatch = useAppDispatch();
   const { sellerOrder } = useAppSelector((store) => store);
   const [loading, setLoading] = React.useState(false);
-  const [menuState, setMenuState] = React.useState<{
-    anchorEl: HTMLElement | null;
-    orderId: number | null;
-  }>({ anchorEl: null, orderId: null });
-
+  const [menuState, setMenuState] = React.useState<{ anchorEl: HTMLElement | null; orderId: number | null }>({ anchorEl: null, orderId: null });
   const [openRow, setOpenRow] = React.useState<number | null>(null);
 
-  const handleClickMenuStatus = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    orderId: number
-  ) => {
+  React.useEffect(() => {
+    dispatch(getAllOrders());
+  }, [dispatch]);
+
+  const handleClickMenuStatus = (event: React.MouseEvent<HTMLButtonElement>, orderId: number) => {
     setMenuState({ anchorEl: event.currentTarget, orderId });
   };
 
@@ -105,10 +86,7 @@ export default function OrderTable() {
     setMenuState({ anchorEl: null, orderId: null });
   };
 
-  const handleUpdateOrderStatus = async (
-    orderId: number,
-    value: OrderStatus
-  ) => {
+  const handleUpdateOrderStatus = async (orderId: number, value: OrderStatus) => {
     setLoading(true);
     await dispatch(updateOrderStatus({ orderId, orderStatus: value }));
     await dispatch(fetchSellerOrders());
@@ -116,336 +94,146 @@ export default function OrderTable() {
     handleCloseMenuStatus();
   };
 
-  React.useEffect(() => {
-    dispatch(getAllOrders());
-  }, [dispatch]);
-
-  const getStatusColor = (status: OrderStatus) =>
-    orderStatusColors.find((s) => s.value === status)?.color || "#64748b";
-
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid rgba(148, 163, 184, 0.25)",
-        boxShadow: "0 18px 45px rgba(15, 23, 42, 0.13)",
-      }}
-    >
-      {loading && <CustomLoading message="Đang cập nhật đơn hàng..." />}
-
-      <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>
-          Quản lý đơn hàng
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Xem trạng thái, chi tiết sản phẩm và cập nhật tiến trình đơn hàng.
+    <Paper elevation={0} sx={panelSx}>
+      {loading && <CustomLoading message="Dang cap nhat don hang..." />}
+      <Box sx={{ px: 3, py: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <Typography fontSize={26} fontWeight={800} color="white">Don hang</Typography>
+        <Typography sx={{ mt: 0.7, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
+          Xem nhanh thanh toan, chi tiet san pham va cap nhat trang thai van chuyen.
         </Typography>
       </Box>
-
-      <Divider />
-
       <TableContainer>
-        <Table sx={{ minWidth: 1000 }} aria-label="order table">
+        <Table sx={{ minWidth: 1080 }}>
           <TableHead>
             <TableRow>
               <StyledTableCell />
-              <StyledTableCell>Order ID</StyledTableCell>
-              <StyledTableCell>Khách hàng</StyledTableCell>
-              <StyledTableCell>Người bán</StyledTableCell>
-
-              <StyledTableCell align="right">Tổng</StyledTableCell>
-              <StyledTableCell align="right">Thanh toán</StyledTableCell>
-              <StyledTableCell align="right">Trạng thái</StyledTableCell>
-              <StyledTableCell align="center">Chỉnh sửa</StyledTableCell>
+              <StyledTableCell>Don hang</StyledTableCell>
+              <StyledTableCell>Khach hang</StyledTableCell>
+              <StyledTableCell>Seller</StyledTableCell>
+              <StyledTableCell>Thanh toan</StyledTableCell>
+              <StyledTableCell align="right">Tong</StyledTableCell>
+              <StyledTableCell align="center">Trang thai</StyledTableCell>
+              <StyledTableCell align="right">Tac vu</StyledTableCell>
             </TableRow>
           </TableHead>
-
           <TableBody>
-            {sellerOrder.orders && sellerOrder.orders.length > 0 ? (
-              sellerOrder.orders.map((order) => (
+            {sellerOrder.orders?.length ? sellerOrder.orders.map((order) => {
+              const status = orderStatusColors[order.orderStatus] || { color: "#d4d4d8", label: order.orderStatus };
+              return (
                 <React.Fragment key={order.id}>
-                  {/* ============ MAIN ROW ============ */}
                   <StyledTableRow>
                     <StyledTableCell>
-                      <IconButton
+                      <Button
                         size="small"
-                        onClick={() =>
-                          setOpenRow(openRow === order.id ? null : order.id)
-                        }
+                        onClick={() => setOpenRow(openRow === order.id ? null : order.id)}
+                        sx={{ minWidth: 0, color: "#fb923c" }}
                       >
-                        {openRow === order.id ? (
-                          <KeyboardArrowUp />
-                        ) : (
-                          <KeyboardArrowDown />
-                        )}
-                      </IconButton>
+                        {openRow === order.id ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                      </Button>
                     </StyledTableCell>
-
                     <StyledTableCell>
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        #{order.id}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {format(new Date(order.orderDate), "dd/MM/yyyy HH:mm", {
-                          locale: vi,
-                        })}
-                      </Typography>
-                    </StyledTableCell>
-
-                    <StyledTableCell>
-                      <Typography variant="body2" fontWeight={500}>
-                        {order.user.fullName}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {order.shippingAddress?.phoneNumber}
+                      <Typography fontWeight={700}>#{order.id}</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}>
+                        {format(new Date(order.orderDate), "dd/MM/yyyy HH:mm", { locale: vi })}
                       </Typography>
                     </StyledTableCell>
                     <StyledTableCell>
-                      <Typography variant="body2" fontWeight={500}>
-                        {(order as any).seller.businessDetails.businessName ||
-                          "unknown"}
-                      </Typography>
+                      <Typography fontWeight={700}>{order.user.fullName}</Typography>
+                      <Typography sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}>{order.shippingAddress?.phoneNumber}</Typography>
                     </StyledTableCell>
-                    <StyledTableCell align="right">
-                      <Typography variant="body1" fontWeight={700}>
-                        {formatCurrencyVND(order.totalPrice)}
-                      </Typography>
-                    </StyledTableCell>
-
-                    <StyledTableCell align="right">
-                      <Stack alignItems="flex-end" spacing={0.5}>
-                        <Typography variant="body2">
-                          {order.paymentMethod}
-                        </Typography>
-                        <Chip
-                          size="small"
-                          variant="outlined"
-                          label={order.paymentStatus}
-                          sx={{
-                            borderRadius: 999,
-                            fontSize: 11,
-                            height: 22,
-                            borderColor:
-                              order.paymentStatus === "PAID"
-                                ? "success.main"
-                                : "warning.main",
-                            color:
-                              order.paymentStatus === "PAID"
-                                ? "success.main"
-                                : "warning.main",
-                          }}
-                        />
-                      </Stack>
-                    </StyledTableCell>
-
-                    <StyledTableCell align="right">
+                    <StyledTableCell>{(order as any).seller?.businessDetails?.businessName || "Khong ro"}</StyledTableCell>
+                    <StyledTableCell>
+                      <Typography>{order.paymentMethod}</Typography>
                       <Chip
                         size="small"
-                        variant="outlined"
-                        label={order.orderStatus}
+                        label={order.paymentStatus}
                         sx={{
+                          mt: 0.7,
                           borderRadius: 999,
-                          minWidth: 120,
-                          fontWeight: 600,
-                          borderColor: getStatusColor(order.orderStatus),
-                          color: getStatusColor(order.orderStatus),
-                          backgroundColor: "transparent",
+                          color: order.paymentStatus === "PAID" ? "#86efac" : "#fdba74",
+                          border: "1px solid",
+                          borderColor: order.paymentStatus === "PAID" ? "rgba(34,197,94,0.35)" : "rgba(249,115,22,0.35)",
+                          backgroundColor: order.paymentStatus === "PAID" ? "rgba(34,197,94,0.08)" : "rgba(249,115,22,0.08)",
                         }}
                       />
                     </StyledTableCell>
-
+                    <StyledTableCell align="right" sx={{ fontWeight: 700 }}>{formatCurrencyVND(order.totalPrice)}</StyledTableCell>
                     <StyledTableCell align="center">
-                      <Tooltip title="Cập nhật trạng thái đơn hàng">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={(e) => handleClickMenuStatus(e, order.id)}
-                          sx={{
-                            borderRadius: 999,
-                            textTransform: "none",
-                            fontSize: 13,
-                            px: 2.2,
-                          }}
-                        >
-                          Update
-                        </Button>
-                      </Tooltip>
+                      <Chip size="small" label={status.label} variant="outlined" sx={{ borderRadius: 999, color: status.color, borderColor: `${status.color}55`, backgroundColor: `${status.color}14` }} />
+                    </StyledTableCell>
+                    <StyledTableCell align="right">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<LocalShipping />}
+                        onClick={(e) => handleClickMenuStatus(e, order.id)}
+                        sx={{ textTransform: "none", borderRadius: 999, px: 2, color: "#fff7ed", borderColor: "rgba(255,255,255,0.16)" }}
+                      >
+                        Cap nhat
+                      </Button>
                       <Menu
                         anchorEl={menuState.anchorEl}
                         open={menuState.orderId === order.id}
                         onClose={handleCloseMenuStatus}
+                        PaperProps={{ sx: { backgroundColor: "#171717", color: "white", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "18px", mt: 1 } }}
                       >
-                        {orderStatusColors.map((item) => (
-                          <MenuItem
-                            key={item.value}
-                            onClick={() =>
-                              handleUpdateOrderStatus(order.id, item.value)
-                            }
-                          >
-                            <Box
-                              sx={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: "50%",
-                                mr: 1,
-                                backgroundColor: item.color,
-                              }}
-                            />
-                            {item.value}
+                        {Object.entries(orderStatusColors).map(([key, item]) => (
+                          <MenuItem key={key} onClick={() => handleUpdateOrderStatus(order.id, key as OrderStatus)}>
+                            <Box sx={{ width: 8, height: 8, borderRadius: 999, backgroundColor: item.color, mr: 1.2 }} />
+                            {item.label}
                           </MenuItem>
                         ))}
                       </Menu>
                     </StyledTableCell>
                   </StyledTableRow>
-
-                  {/* ============ COLLAPSIBLE DETAIL ROW ============ */}
-                  <StyledTableRow>
-                    <TableCell colSpan={7} sx={{ p: 0, border: 0 }}>
-                      <Collapse
-                        in={openRow === order.id}
-                        timeout="auto"
-                        unmountOnExit
-                      >
-                        <Box sx={{ px: 4, pb: 3, pt: 1.5 }}>
-                          <Stack
-                            direction={{ xs: "column", md: "row" }}
-                            spacing={3}
-                            alignItems="flex-start"
-                          >
-                            {/* Products */}
+                  <TableRow>
+                    <TableCell colSpan={8} sx={{ p: 0, border: 0, backgroundColor: "#0d0d0d" }}>
+                      <Collapse in={openRow === order.id} timeout="auto" unmountOnExit>
+                        <Box sx={{ px: 3.5, pb: 3, pt: 1.5 }}>
+                          <Stack direction={{ xs: "column", xl: "row" }} spacing={2.5}>
                             <Box flex={2}>
-                              <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
-                                gutterBottom
-                              >
-                                Products
-                              </Typography>
-                              <Stack spacing={1.5}>
+                              <Typography fontWeight={800} fontSize={18}>San pham trong don</Typography>
+                              <Stack spacing={1.2} sx={{ mt: 1.5 }}>
                                 {order.orderItems.map((item) => (
-                                  <Box
-                                    key={item.id}
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 2,
-                                      p: 1.2,
-                                      borderRadius: 2,
-                                      border:
-                                        "1px dashed rgba(148,163,184,0.7)",
-                                      background:
-                                        "radial-gradient(circle at top, #f9fafb, #e5e7eb)",
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        width: 72,
-                                        height: 72,
-                                        borderRadius: 2,
-                                        overflow: "hidden",
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      <img
-                                        src={item.product.images[0]}
-                                        alt={item.product.title}
-                                        width={72}
-                                        height={72}
-                                        style={{
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    </Box>
-                                    <Box>
-                                      <Typography
-                                        variant="subtitle2"
-                                        fontWeight={600}
-                                      >
-                                        {item.product.title}
-                                      </Typography>
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        Color: {item.product.color} • Size:{" "}
-                                        {item.size.name}
-                                      </Typography>
-                                      <Typography
-                                        variant="body2"
-                                        sx={{ mt: 0.5 }}
-                                      >
-                                        <strong>Price:</strong>{" "}
-                                        {formatCurrencyVND(item.sellingPrice)} x{" "}
-                                        {item.quantity}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
+                                  <Paper key={item.id} elevation={0} sx={{ p: 1.5, borderRadius: "20px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)" }}>
+                                    <Stack direction="row" spacing={1.4} alignItems="center">
+                                      <Avatar variant="rounded" src={item.product.images[0]} sx={{ width: 64, height: 64, borderRadius: "16px" }} />
+                                      <Box>
+                                        <Typography fontWeight={700}>{item.product.title}</Typography>
+                                        <Typography sx={{ color: "rgba(255,255,255,0.58)", fontSize: 13.5 }}>
+                                          Mau {item.product.color} � Size {item.size.name}
+                                        </Typography>
+                                        <Typography sx={{ mt: 0.4, color: "#fdba74", fontSize: 13.5 }}>
+                                          {formatCurrencyVND(item.sellingPrice)} x {item.quantity}
+                                        </Typography>
+                                      </Box>
+                                    </Stack>
+                                  </Paper>
                                 ))}
                               </Stack>
                             </Box>
-
-                            {/* Shipping + Info */}
-                            <Box flex={1.4}>
-                              <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
-                                gutterBottom
-                              >
-                                Shipping Address
-                              </Typography>
-                              <Typography variant="body2">
-                                {order.shippingAddress.receiverName} -{" "}
-                                {order.shippingAddress.phoneNumber}
-                              </Typography>
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                              >
-                                {order.shippingAddress.streetDetail},{" "}
-                                {order.shippingAddress.ward},{" "}
-                                {order.shippingAddress.district},{" "}
-                                {order.shippingAddress.province}
-                              </Typography>
-
-                              <Divider sx={{ my: 2 }} />
-
-                              <Typography
-                                variant="subtitle1"
-                                fontWeight="bold"
-                                gutterBottom
-                              >
-                                Order Info
-                              </Typography>
-                              <Typography variant="body2">
-                                <strong>Order Date:</strong>{" "}
-                                {format(
-                                  new Date(order.orderDate),
-                                  "dd/MM/yyyy HH:mm",
-                                  { locale: vi }
-                                )}
-                              </Typography>
-                              <Typography variant="body2">
-                                <strong>Total:</strong>{" "}
-                                {formatCurrencyVND(order.totalPrice)}
-                              </Typography>
+                            <Box flex={1.2}>
+                              <Typography fontWeight={800} fontSize={18}>Giao hang</Typography>
+                              <Paper elevation={0} sx={{ mt: 1.5, p: 1.8, borderRadius: "20px", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)" }}>
+                                <Typography fontWeight={700}>{order.shippingAddress.receiverName}</Typography>
+                                <Typography sx={{ mt: 0.5, color: "rgba(255,255,255,0.68)", fontSize: 13.5 }}>{order.shippingAddress.phoneNumber}</Typography>
+                                <Typography sx={{ mt: 1, color: "rgba(255,255,255,0.68)", fontSize: 13.5 }}>
+                                  {order.shippingAddress.streetDetail}, {order.shippingAddress.ward}, {order.shippingAddress.district}, {order.shippingAddress.province}
+                                </Typography>
+                              </Paper>
                             </Box>
                           </Stack>
                         </Box>
                       </Collapse>
                     </TableCell>
-                  </StyledTableRow>
+                  </TableRow>
                 </React.Fragment>
-              ))
-            ) : (
+              );
+            }) : (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    Hiện chưa có đơn hàng nào.
-                  </Typography>
+                <TableCell colSpan={8} align="center" sx={{ py: 8, color: "rgba(255,255,255,0.6)" }}>
+                  Chua co don hang nao.
                 </TableCell>
               </TableRow>
             )}

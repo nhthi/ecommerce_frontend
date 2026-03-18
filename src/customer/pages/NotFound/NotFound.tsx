@@ -1,164 +1,59 @@
-import React from "react";
-import { motion } from "framer-motion";
+﻿import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Home, Search } from "@mui/icons-material";
+import { ArrowLeft, HomeOutlined } from "@mui/icons-material";
 
 export default function NotFound() {
-  const particles = Array.from({ length: 18 });
-
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-[#74b9ff] via-[#a29bfe] to-[#6c5ce7] text-white">
-      {/* Glow blobs */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-20 -left-20 h-60 w-60 rounded-full bg-white/15 blur-2xl"
-        animate={{ y: [0, 15, 0], x: [0, 8, 0], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-[#a29bfe]/25 blur-2xl"
-        animate={{ y: [0, -15, 0], x: [0, -10, 0], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
-      />
+    <div className="min-h-screen bg-[#0b0b0b] px-4 py-10">
+      <div className="mx-auto flex min-h-[80vh] max-w-4xl items-center justify-center">
+        <div className="w-full rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.14),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] px-6 py-12 shadow-[0_28px_80px_rgba(0,0,0,0.45)] sm:px-10 sm:py-14">
+          
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+              404 ERROR
+            </p>
 
-      {/* Subtle star field */}
-      <div aria-hidden className="absolute inset-0">
-        {particles.map((_, i) => (
-          <motion.span
-            key={i}
-            className="absolute h-[3px] w-[3px] rounded-full bg-white/60"
-            style={{
-              top: `${(i * 97) % 100}%`,
-              left: `${(i * 53) % 100}%`,
-            }}
-            animate={{ opacity: [0.2, 0.7, 0.2], scale: [1, 1.4, 1] }}
-            transition={{
-              repeat: Infinity,
-              duration: 4 + (i % 6),
-              delay: i * 0.15,
-            }}
-          />
-        ))}
-      </div>
+            <h1 className="mt-4 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+              Trang không tồn tại
+            </h1>
 
-      {/* Content */}
-      <main className="relative mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center sm:py-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-10"
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/80 backdrop-blur">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-white" />
-            Oops! Trang bạn tìm kiếm không tồn tại 💫
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-neutral-400 sm:text-base">
+              Đường dẫn bạn vừa mở không còn hoạt động hoặc đã được thay đổi.
+              Hãy quay lại trang chủ hoặc trở về trang trước để tiếp tục.
+            </p>
+
+            {/* Gợi ý */}
+            <div className="mx-auto mt-8 max-w-md rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-5 py-4">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                Gợi ý
+              </p>
+              <p className="mt-2 text-base leading-7 text-neutral-300">
+                Nếu bạn đang tìm sản phẩm, hãy quay lại trang chủ để xem danh mục,
+                blog và các bộ sưu tập fitness mới nhất.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link
+                to="/"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] px-6 py-3 text-sm font-extrabold text-[#111111] shadow-[0_16px_35px_rgba(249,115,22,0.35)] transition hover:translate-y-[-1px]"
+              >
+                <HomeOutlined sx={{ fontSize: 18 }} />
+                Về trang chủ
+              </Link>
+
+              <button
+                onClick={() => window.history.back()}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-500/30 px-6 py-3 text-sm font-bold text-orange-200 transition hover:bg-orange-500/10"
+              >
+                <ArrowLeft sx={{ fontSize: 18 }} />
+                Quay lại
+              </button>
+            </div>
           </div>
-        </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.05 }}
-          className="text-7xl font-black tracking-tight md:text-8xl"
-        >
-          <span className="bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent drop-shadow-md">
-            404
-          </span>
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-4 max-w-xl text-balance text-white/90"
-        >
-          Trang bạn đang tìm không tồn tại hoặc đã được di chuyển. Hãy thử tìm
-          kiếm hoặc quay lại trang chủ nhé.
-        </motion.p>
-
-        {/* Search */}
-        <motion.form
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          action="/search"
-          method="get"
-          className="mt-8 flex w-full items-center gap-2 rounded-2xl border border-white/20 bg-white/10 p-2 backdrop-blur-md md:p-3"
-        >
-          <Search className="mx-2 size-5 shrink-0 opacity-80" />
-          <input
-            type="text"
-            name="q"
-            placeholder="Tìm nội dung..."
-            className="flex-1 bg-transparent outline-none placeholder:text-white/60"
-            aria-label="Search"
-          />
-          <button
-            type="submit"
-            className="rounded-xl px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 transition hover:bg-white/20"
-          >
-            Tìm kiếm
-          </button>
-        </motion.form>
-
-        {/* Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 flex flex-wrap items-center justify-center gap-3"
-        >
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-[#6c5ce7] shadow-lg shadow-indigo-500/20 transition hover:scale-[1.03]"
-          >
-            <Home className="size-4" /> Về trang chủ
-          </Link>
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-transparent px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
-          >
-            <ArrowLeft className="size-4" /> Quay lại
-          </button>
-        </motion.div>
-
-        {/* Divider */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.25 }}
-          className="mt-10 h-px w-40 origin-left bg-gradient-to-r from-white/70 to-transparent"
-        />
-
-        {/* Tips */}
-        <motion.ul
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-6 grid w-full grid-cols-1 gap-3 text-left text-sm text-white/80 sm:grid-cols-3"
-        >
-          {[
-            "Kiểm tra lại đường dẫn URL",
-            "Dùng thanh tìm kiếm ở trên",
-            "Liên hệ hỗ trợ nếu cần",
-          ].map((t, i) => (
-            <li
-              key={i}
-              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 backdrop-blur-sm hover:bg-white/15 transition"
-            >
-              • {t}
-            </li>
-          ))}
-        </motion.ul>
-      </main>
-
-      {/* Footer watermark */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
-        <span className="select-none text-xs text-white/50">
-          — Lost in space with{" "}
-          <span className="text-white font-semibold">Beki</span> —
-        </span>
+        </div>
       </div>
     </div>
   );

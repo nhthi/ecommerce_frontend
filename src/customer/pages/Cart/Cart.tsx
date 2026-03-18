@@ -24,7 +24,7 @@ const Cart = () => {
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      setErrorMessage("Vui lòng nhập mã giảm giá.");
+      setErrorMessage("Vui long nhap ma giam gia.");
       return;
     }
 
@@ -35,7 +35,7 @@ const Cart = () => {
           apply: "true",
           code: couponCode,
           orderValue: Number(cart.cart?.totalSellingPrice),
-        })
+        }),
       ).unwrap();
       setErrorMessage("");
     } catch (error) {
@@ -51,7 +51,7 @@ const Cart = () => {
         apply: "false",
         code: cart.cart?.coupon ? cart.cart?.coupon.code : "code",
         orderValue: Number(cart.cart?.totalSellingPrice),
-      })
+      }),
     );
   };
 
@@ -62,91 +62,115 @@ const Cart = () => {
   const isEmpty = !cart.cart?.cartItems || cart.cart.cartItems.length === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 pt-10 px-4 sm:px-8 lg:px-24 xl:px-48">
-      {loading && <CustomLoading message="Đang áp dụng mã giảm giá..." />}
+    <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-16 xl:px-24">
+      {loading && <CustomLoading message="Dang ap dung ma giam gia..." />}
 
-      {/* Tiêu đề */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900">
-          Giỏ hàng của bạn
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Xem lại sản phẩm, áp dụng mã giảm giá và tiến hành thanh toán.
-        </p>
+      <div className="mx-auto max-w-7xl">
+        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.22),_transparent_32%),linear-gradient(180deg,_#171717_0%,_#0f0f0f_100%)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl space-y-3">
+              <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+                Giỏ hàng
+              </span>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+                  Giỏ hàng sẵn sàng để chốt đơn
+                </h1>
+                <p className="max-w-xl text-sm leading-6 text-neutral-300 sm:text-base">
+                  Kiểm tra lại dụng cụ, mã giảm giá và tổng tiền trước khi qua bước thanh toán.
+                </p>
+              </div>
+            </div>
+
+            {!isEmpty && (
+              <div className="grid grid-cols-2 gap-3 text-sm text-neutral-300 sm:w-auto">
+                <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
+                    Số món
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-white">
+                    {cart.cart?.cartItems?.length || 0}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
+                    Tổng tạm tính
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-orange-400">
+                    {(cart.cart?.totalSellingPrice || 0).toLocaleString()}d
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Giỏ hàng trống */}
       {isEmpty ? (
-        <div className="max-w-6xl mx-auto flex flex-col items-center justify-center h-[70vh] text-center">
-          <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-            <ShoppingCart sx={{ fontSize: 40, color: "#9ca3af" }} />
+        <div className="mx-auto mt-8 flex max-w-4xl flex-col items-center justify-center rounded-[2rem] border border-orange-500/12 bg-[#121212] px-6 py-16 text-center shadow-[0_20px_60px_rgba(0,0,0,0.32)] sm:px-10">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-orange-500/20 bg-orange-500/10 text-orange-400">
+            <ShoppingCart sx={{ fontSize: 38 }} />
           </div>
-          <h2 className="text-2xl font-semibold mt-4 text-slate-900">
-            Giỏ hàng của bạn đang trống
+          <h2 className="mt-6 text-3xl font-black uppercase tracking-tight text-white">
+            Giỏ hàng đang trống
           </h2>
-          <p className="text-slate-500 mt-2 max-w-md">
-            Có vẻ như bạn chưa thêm sản phẩm nào vào giỏ. Hãy khám phá bộ sưu
-            tập và chọn món bạn yêu thích nhé!
+          <p className="mt-3 max-w-xl text-base leading-7 text-neutral-400">
+            Bạn chưa có sản phẩm nào trong giỏ. Quay lại trang chủ để chọn thêm tạ, găng tay, bộ dây kháng lực hoặc phụ kiện tập luyện.
           </p>
           <Button
             variant="contained"
+            onClick={() => navigate("/")}
             sx={{
-              mt: 3,
+              mt: 4,
               px: 4,
-              py: 1.5,
-              borderRadius: 999,
+              py: 1.4,
+              borderRadius: "999px",
               textTransform: "none",
-              fontWeight: 600,
-              background:
-                "linear-gradient(135deg, rgb(56,189,248), rgb(37,99,235))",
-              boxShadow: "0 18px 35px rgba(37,99,235,0.45)",
+              fontWeight: 800,
+              fontSize: "0.98rem",
+              color: "#111111",
+              background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+              boxShadow: "0 16px 36px rgba(249,115,22,0.35)",
               "&:hover": {
-                background:
-                  "linear-gradient(135deg, rgb(59,130,246), rgb(30,64,175))",
-                boxShadow: "0 20px 40px rgba(30,64,175,0.55)",
+                background: "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
               },
             }}
-            onClick={() => navigate("/")}
           >
-            Tiếp tục mua sắm
+            Quay lại mua hàng
           </Button>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Danh sách sản phẩm */}
-          <div className="lg:col-span-2 space-y-4">
+        <div className="mx-auto mt-8 grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="space-y-4 lg:col-span-2">
             {cart.cart?.cartItems?.map((item) => (
               <CartItem item={item} key={item.id} />
             ))}
           </div>
 
-          {/* Cột bên phải: mã giảm giá + tổng tiền + wishlist */}
-          <div className="col-span-1 space-y-4">
-            {/* Mã giảm giá */}
-            <div className="border border-slate-200 rounded-2xl bg-white/90 shadow-sm px-5 py-4 space-y-4">
-              <div className="flex gap-2 items-center">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                  <LocalOffer color="primary" sx={{ fontSize: "18px" }} />
+          <div className="space-y-4 lg:sticky lg:top-24">
+            <div className="rounded-[1.8rem] border border-orange-500/12 bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500/12 text-orange-400">
+                  <LocalOffer sx={{ fontSize: 20 }} />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                <div className="space-y-1">
+                  <p className="text-lg font-black uppercase tracking-tight text-white">
                     Mã giảm giá
                   </p>
-                  <p className="text-xs text-slate-500">
-                    Nhập mã khuyến mãi nếu bạn có.
+                  <p className="text-sm leading-6 text-neutral-400">
+                    Nhập coupon nếu bạn đang có ưu đãi cho đơn hàng này.
                   </p>
                 </div>
               </div>
 
               {cart.cart?.coupon ? (
-                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-xl px-4 py-2 shadow-sm">
+                <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-orange-500/25 bg-orange-500/10 px-4 py-3">
                   <div>
-                    <span className="font-semibold text-emerald-700">
+                    <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">
                       {cart.cart.coupon.code}
-                    </span>
-                    <p className="text-xs text-emerald-800 mt-0.5">
-                      {cart.cart.coupon.name} – Giảm{" "}
-                      {cart.cart.coupon.discountPercentage}%
+                    </p>
+                    <p className="mt-1 text-sm text-neutral-300">
+                      {cart.cart.coupon.name} - Giam {cart.cart.coupon.discountPercentage}%
                     </p>
                   </div>
                   <Button
@@ -154,37 +178,63 @@ const Cart = () => {
                     size="small"
                     sx={{
                       textTransform: "none",
-                      fontSize: "0.75rem",
-                      color: "#b91c1c",
-                      borderRadius: 999,
+                      minWidth: 0,
+                      px: 1.8,
+                      py: 0.8,
+                      borderRadius: "999px",
+                      fontWeight: 700,
+                      color: "#fdba74",
+                      backgroundColor: "rgba(249,115,22,0.08)",
                       "&:hover": {
-                        backgroundColor: "#fee2e2",
+                        backgroundColor: "rgba(249,115,22,0.16)",
                       },
                     }}
                   >
-                    Xóa mã
+                    Bo ma
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center justify-between gap-2">
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <TextField
-                    placeholder="Nhập mã giảm giá"
+                    placeholder="Nhap ma giam gia"
                     size="small"
                     variant="outlined"
                     value={couponCode}
                     onChange={handleChangeCouponCode}
                     fullWidth
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "999px",
+                        color: "white",
+                        backgroundColor: "rgba(255,255,255,0.03)",
+                        "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
+                        "&:hover fieldset": { borderColor: "rgba(249,115,22,0.35)" },
+                        "&.Mui-focused fieldset": { borderColor: "#f97316" },
+                      },
+                      "& .MuiInputBase-input::placeholder": {
+                        color: "rgba(255,255,255,0.45)",
+                        opacity: 1,
+                      },
+                    }}
                   />
                   <Button
                     size="small"
                     variant="contained"
                     onClick={handleApplyCoupon}
                     sx={{
+                      whiteSpace: "nowrap",
                       textTransform: "none",
-                      borderRadius: 999,
-                      fontSize: "0.8rem",
-                      px: 2.5,
-                      py: 0.8,
+                      borderRadius: "999px",
+                      px: 2.8,
+                      fontWeight: 800,
+                      color: "#111111",
+                      background:
+                        "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                      boxShadow: "0 14px 30px rgba(249,115,22,0.3)",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
+                      },
                     }}
                   >
                     Áp dụng
@@ -195,61 +245,60 @@ const Cart = () => {
               {errorMessage && (
                 <Typography
                   variant="body2"
-                  color="error"
-                  sx={{ mt: 0.5, fontSize: "0.8rem" }}
+                  sx={{ mt: 1.5, fontSize: "0.88rem", color: "#fca5a5" }}
                 >
                   {errorMessage}
                 </Typography>
               )}
             </div>
 
-            {/* Tổng tiền */}
-            <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-sm overflow-hidden">
+            <div className="overflow-hidden rounded-[1.8rem] border border-orange-500/12 bg-[#121212] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
               <PricingCart />
-              <div className="p-5">
+              <div className="p-5 pt-0">
                 <Button
                   onClick={() => navigate("/checkout")}
                   fullWidth
                   variant="contained"
                   sx={{
-                    py: "11px",
-                    borderRadius: 999,
+                    py: "12px",
+                    borderRadius: "999px",
                     textTransform: "none",
-                    fontWeight: 600,
+                    fontWeight: 800,
+                    fontSize: "0.98rem",
+                    color: "#111111",
                     background:
-                      "linear-gradient(135deg, rgb(16,185,129), rgb(59,130,246))",
-                    boxShadow: "0 18px 35px rgba(16,185,129,0.45)",
+                      "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                    boxShadow: "0 18px 35px rgba(249,115,22,0.35)",
                     "&:hover": {
                       background:
-                        "linear-gradient(135deg, rgb(5,150,105), rgb(37,99,235))",
-                      boxShadow: "0 20px 40px rgba(5,150,105,0.55)",
+                        "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
                     },
                   }}
                 >
-                  Thanh toán ngay
+                  Sang bước thanh toán
                 </Button>
               </div>
             </div>
 
-            {/* Wishlist */}
-            <div className="rounded-2xl border border-slate-200 bg-white/90 shadow-sm">
-              <div className="flex justify-between items-center px-5 py-3">
+            <div className="rounded-[1.8rem] border border-white/8 bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    Thêm từ danh sách yêu thích
+                  <p className="text-lg font-black uppercase tracking-tight text-white">
+                    Wishlist
                   </p>
-                  <p className="text-xs text-slate-500">
-                    Xem lại các sản phẩm bạn đã thả tim để thêm vào giỏ.
+                  <p className="mt-1 text-sm leading-6 text-neutral-400">
+                    Xem lại các món bạn đã lưu và đưa vào giỏ khi sẵn sàng.
                   </p>
                 </div>
                 <IconButton
-                  color="primary"
+                  onClick={() => navigate("/wishlist")}
                   size="small"
                   sx={{
-                    borderRadius: 999,
-                    backgroundColor: "rgba(59,130,246,0.06)",
+                    borderRadius: "999px",
+                    color: "#fb923c",
+                    backgroundColor: "rgba(249,115,22,0.12)",
                     "&:hover": {
-                      backgroundColor: "rgba(59,130,246,0.12)",
+                      backgroundColor: "rgba(249,115,22,0.2)",
                     },
                   }}
                 >

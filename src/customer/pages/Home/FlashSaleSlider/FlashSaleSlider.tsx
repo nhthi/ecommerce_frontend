@@ -5,50 +5,44 @@ import { Product } from "../../../../types/ProductType";
 import { formatCurrencyVND } from "../../../../utils/formatCurrencyVND";
 import { useNavigate } from "react-router-dom";
 
-const primary = "#0097e6";
-
 export default function FlashDealSlider({
   flashDeals,
 }: {
   flashDeals: Product[];
 }) {
-  const items = [...flashDeals, ...flashDeals]; // nhân đôi để chạy vòng
+  const items = [...flashDeals, ...flashDeals];
   const navigate = useNavigate();
+
   return (
-    <section className="py-16 bg-gradient-to-r from-[#e1f5fe] to-[#f0faff]">
-      {/* HEADER */}
-      <div className="text-center mb-10">
+    <section className="rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-10 md:px-6">
+      <div className="mb-8 text-center">
         <Chip
           icon={<Bolt />}
-          label="FLASH SALE"
+          label="FLASH DEAL"
           sx={{
-            fontSize: "1rem",
-            backgroundColor: primary,
-            color: "white",
-            fontWeight: 600,
+            fontSize: "0.9rem",
+            backgroundColor: "#f97316",
+            color: "#050505",
+            fontWeight: 800,
             px: 1,
           }}
         />
-        <h2 className="text-3xl font-bold mt-4" style={{ color: primary }}>
-          Khuyến mãi nổi bật 🔥
+        <h2 className="mt-4 text-3xl font-black text-white">
+          Sản phẩm đang giảm giá nhanh
         </h2>
       </div>
 
-      {/* SLIDER XUYÊN MÀN HÌNH */}
       <div className="relative w-full overflow-hidden">
         <motion.div
-          className="flex gap-6 px-8"
+          className="flex gap-5 px-1"
           animate={{ x: ["0%", "-50%"] }}
-          transition={{
-            duration: 20, // tốc độ
-            repeat: Infinity, // chạy mãi
-            ease: "linear",
-          }}
+          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
         >
           {items.map((deal, i) => (
-            <div
+            <button
               key={i}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl p-4 w-[260px] flex-shrink-0 cursor-pointer transition-transform hover:-translate-y-1"
+              type="button"
+              className="w-[260px] flex-shrink-0 rounded-[1.6rem] border border-orange-500/15 bg-[#171717] p-4 text-left transition hover:-translate-y-1"
               onClick={() =>
                 navigate(
                   `/product-details/${deal.category?.categoryId}/${deal.title}/${deal.id}`
@@ -59,31 +53,33 @@ export default function FlashDealSlider({
                 <img
                   src={deal.images[0]}
                   alt={deal.title}
-                  className="rounded-xl h-[180px] w-full object-cover"
+                  className="h-[180px] w-full rounded-[1.2rem] object-cover"
                 />
-                <span className="absolute top-3 left-3 bg-[#0097e6] text-white text-xs px-2 py-1 rounded-md shadow">
+                <span className="absolute left-3 top-3 rounded-md bg-orange-500 px-2 py-1 text-xs font-bold text-black shadow">
                   {deal.discountPercent}%
                 </span>
               </div>
-              <h3 className="font-semibold mt-3 line-clamp-2">{deal.title}</h3>
-              <p className="text-[#0097e6] font-bold mt-1">
+              <h3 className="mt-3 line-clamp-2 font-semibold text-white">{deal.title}</h3>
+              <p className="mt-1 font-black text-orange-400">
                 {formatCurrencyVND(deal.sellingPrice)}
               </p>
               <Button
                 variant="outlined"
                 size="small"
                 sx={{
-                  mt: 1,
-                  borderColor: primary,
-                  color: primary,
-                  "&:hover": { backgroundColor: `${primary}15` },
+                  mt: 1.5,
+                  borderColor: "#f97316",
+                  color: "#fb923c",
+                  borderRadius: "999px",
+                  fontWeight: 700,
+                  "&:hover": { backgroundColor: "rgba(249,115,22,0.08)", borderColor: "#fb923c" },
                 }}
                 fullWidth
                 startIcon={<LocalOffer />}
               >
-                Mua ngay
+                Xem deal
               </Button>
-            </div>
+            </button>
           ))}
         </motion.div>
       </div>

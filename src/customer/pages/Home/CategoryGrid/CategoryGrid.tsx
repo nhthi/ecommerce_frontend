@@ -1,84 +1,91 @@
-import React, { useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
+import React from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
   {
-    title: "Thời trang nam",
-    img: "https://cdn.pixabay.com/photo/2024/11/08/05/28/man-9182458_1280.jpg",
+    title: "Tạ và bánh tạ",
+    desc: "Combo để tập cơ bản tại nhà, dễ nâng cấp theo mục tiêu.",
+    img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=ta%20fitness",
   },
   {
-    title: "Thời trang nữ",
-    img: "https://cdn.pixabay.com/photo/2021/07/27/01/50/ao-dai-6495619_1280.jpg",
+    title: "Máy cardio",
+    desc: "Máy chạy bộ, xe đạp tập và thiết bị đốt mỡ để tập luyện mỗi ngày.",
+    img: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=may%20cardio",
   },
   {
-    title: "Phụ kiện cao cấp",
-    img: "https://cdn.pixabay.com/photo/2018/08/30/12/20/luxuryshoe-3642033_1280.jpg",
+    title: "Phụ kiện tập",
+    desc: "Dây kháng lực, thảm tập, găng tay và các phụ kiện cần thiết.",
+    img: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=phu%20kien%20tap%20gym",
   },
   {
-    title: "Áo dài Việt",
-    img: "https://cdn.pixabay.com/photo/2022/05/22/16/47/lonely-girl-in-ao-dai-7213916_1280.jpg",
+    title: "Ghế và giàn tập",
+    desc: "Thiết bị phù hợp cho không gian phòng gym mini tại nhà.",
+    img: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=ghe%20tap%20gym",
   },
   {
-    title: "Suit sang trọng",
-    img: "https://cdn.pixabay.com/photo/2017/08/27/05/33/suit-2685226_1280.jpg",
+    title: "Yoga & Mobility",
+    desc: "Thảm, bóng, dây và phụ kiện hỗ trợ phục hồi sau tập.",
+    img: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=yoga%20fitness",
   },
   {
-    title: "Bộ sưu tập mới",
-    img: "https://cdn.pixabay.com/photo/2022/08/31/15/18/scene-7423627_1280.jpg",
+    title: "Setup phòng gym mini",
+    desc: "Gợi ý combo nhanh cho người muốn mua trọn bộ tiện lợi.",
+    img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80",
+    to: "/search?keyword=combo%20gym%20tai%20nha",
   },
 ];
 
 const CategoryGrid = () => {
-  useEffect(() => {
-    AOS.init({ duration: 900, once: true, easing: "ease-out-cubic" });
-  }, []);
+  const navigate = useNavigate();
 
   return (
-    <div className="px-5 lg:px-20 py-16 bg-gradient-to-b from-gray-50 to-[#f3f9ff] relative overflow-hidden">
-      {/* Hiệu ứng nền nhẹ */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')] opacity-10 pointer-events-none" />
+    <section>
+      <div className="mb-8 max-w-2xl">
+        <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-400">
+          Bộ sưu tập
+        </p>
+        <h2 className="mt-2 text-3xl font-black text-white md:text-4xl">
+          Nhóm sản phẩm được xem nhiều trên trang chủ
+        </h2>
+      </div>
 
-      <h2
-        className="text-4xl font-bold text-center mb-12 text-[#0097e6]"
-        data-aos="fade-up"
-      >
-        🏷️ Bộ sưu tập nổi bật
-      </h2>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {categories.map((cat, index) => (
-          <div
-            key={index}
-            className="relative group overflow-hidden rounded-3xl shadow-md hover:shadow-2xl transition-all duration-500"
-            data-aos="zoom-in-up"
+          <motion.button
+            key={cat.title}
+            type="button"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+            onClick={() => navigate(cat.to)}
+            className="group relative overflow-hidden rounded-[2rem] border border-orange-500/15 bg-black text-left"
           >
-            {/* Hình ảnh */}
             <img
               src={cat.img}
               alt={cat.title}
-              className="object-cover w-full h-[260px] md:h-[300px] transform group-hover:scale-110 transition-transform duration-700 ease-out"
+              className="h-[320px] w-full object-cover transition duration-700 group-hover:scale-105 group-hover:opacity-80"
             />
-
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-all duration-500"></div>
-
-            {/* Chữ */}
-            <div className="absolute bottom-6 left-6 text-white transition-all duration-500 transform group-hover:translate-y-[-10px]">
-              <h3 className="text-xl font-bold mb-1 drop-shadow-lg">
-                {cat.title}
-              </h3>
-              <p className="text-sm opacity-90">Khám phá ngay →</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-6">
+              <h3 className="text-2xl font-black text-white">{cat.title}</h3>
+              <p className="mt-3 max-w-[90%] text-sm leading-6 text-slate-200">
+                {cat.desc}
+              </p>
+              <span className="mt-5 inline-flex rounded-full border border-orange-400/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+                Xem nhóm này
+              </span>
             </div>
-          </div>
+          </motion.button>
         ))}
       </div>
-
-      <p className="text-center text-gray-600 mt-12 italic" data-aos="fade-up">
-        “Thời trang là cách bạn thể hiện bản thân — hãy bắt đầu hành trình phong
-        cách hôm nay 👗👔”
-      </p>
-    </div>
+    </section>
   );
 };
 

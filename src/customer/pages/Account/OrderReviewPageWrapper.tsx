@@ -21,24 +21,11 @@ const OrderReviewPageWrapper = () => {
         setLoading(false);
       }
     };
-
     fetchOrder();
   }, [orderId]);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-[80vh]">
-        <CircularProgress />
-      </div>
-    );
-
-  if (!order)
-    return (
-      <div className="text-center mt-20 text-gray-500">
-        Không tìm thấy đơn hàng.
-      </div>
-    );
-
+  if (loading) return <div className="flex h-[80vh] items-center justify-center"><CircularProgress sx={{ color: "#f97316" }} /></div>;
+  if (!order) return <div className="mt-20 text-center text-lg text-slate-400">Không tìm thấy đơn hàng.</div>;
   return <OrderReviewPage order={order} />;
 };
 

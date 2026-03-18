@@ -2,111 +2,158 @@ import React, { useState } from "react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import { Button } from "@mui/material";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-100 to-blue-200 px-4">
-      <div className="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
-        {/* Cột hình ảnh / giới thiệu (ẩn trên mobile) */}
-        <div className="hidden md:flex flex-col justify-center gap-4">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
-            <img
-              className="w-full h-full object-cover object-center"
-              src="https://file.hstatic.net/200000503583/article/high-fashion-la-gi-21_15eb1f9733ae4344977098b5bdcaf03f_2048x2048.jpg"
-              alt="Thời trang cao cấp"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/30 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 text-slate-50">
-              <h2 className="text-xl font-semibold mb-1">
-                Thời trang & phong cách
-              </h2>
-              <p className="text-sm text-slate-200/80">
-                Đăng nhập hoặc đăng ký để bắt đầu mua sắm và quản lý đơn hàng
-                của bạn một cách nhanh chóng, an toàn.
+    <div className="min-h-screen bg-[#050505] px-4 py-8 text-white lg:px-8">
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-[1280px] items-stretch overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[#0d0d0d] shadow-[0_30px_120px_rgba(0,0,0,0.45)] lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative hidden min-h-full overflow-hidden lg:block">
+          <img
+            className="h-full w-full object-cover"
+            src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80"
+            alt="Fitness training"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.82)_0%,rgba(0,0,0,0.55)_45%,rgba(249,115,22,0.28)_100%)]" />
+          <div className="absolute inset-0 flex flex-col justify-between p-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-lg shadow-orange-500/20">
+                <FitnessCenterIcon />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+                  Fitness Store
+                </p>
+                <h1 className="text-2xl font-black tracking-[0.18em] text-white">
+                  NHTHI FIT
+                </h1>
+              </div>
+            </div>
+
+            <div className="max-w-[520px]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+                Access your account
               </p>
+              <h2 className="mt-4 max-w-[460px] text-5xl font-black leading-[0.98] text-white">
+                Đăng nhập để mua nhanh và theo dõi lịch sử đơn hàng.
+              </h2>
+              <p className="mt-6 max-w-[440px] text-base leading-7 text-slate-200">
+                Tài khoản giúp bạn lưu sản phẩm yêu thích, nhận OTP đăng nhập nhanh và tiếp tục xem các gợi ý tập luyện phù hợp.
+              </p>
+
+              <div className="mt-8 grid max-w-[460px] grid-cols-2 gap-3">
+                <div className="rounded-[1.4rem] border border-white/10 bg-black/25 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+                    Đăng nhập OTP
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Không cần nhớ mật khẩu, chỉ xác thực qua email.
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-black/25 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+                    Đồng bộ nhanh
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Lưu thông tin mua hàng, wishlist và các mục đã xem.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-400/20 bg-black/25 px-4 py-2 text-sm font-semibold text-orange-200 backdrop-blur-sm">
+              Bắt đầu trong vài giây
+              <ArrowOutwardIcon sx={{ fontSize: 16 }} />
             </div>
           </div>
-          <p className="text-sm text-slate-400 px-1">
-            Bảo mật bằng OTP – không cần mật khẩu, chỉ cần email là có thể đăng
-            nhập.
-          </p>
         </div>
 
-        {/* Cột form */}
-        <div className="flex flex-col items-center">
-          {/* Toggle Đăng nhập / Đăng ký */}
-          <div className="mb-4 flex items-center gap-2 bg-slate-900/60 border border-slate-700 rounded-full p-1 shadow-lg">
-            <Button
-              className="w-30"
-              size="small"
-              onClick={() => setIsLogin(true)}
-              sx={{
-                // flex: 1,
-                borderRadius: "999px",
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.9rem",
-                ...(isLogin
-                  ? {
-                      background:
-                        "linear-gradient(135deg, rgb(56,189,248), rgb(37,99,235))",
-                      color: "#fff",
-                      boxShadow: "0 14px 30px rgba(37,99,235,0.6)",
-                    }
-                  : {
-                      color: "rgb(148,163,184)",
-                    }),
-              }}
-            >
-              Đăng nhập
-            </Button>
-            <Button
-              size="small"
-              onClick={() => setIsLogin(false)}
-              sx={{
-                flex: 1,
-                borderRadius: "999px",
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.9rem",
-                ...(isLogin
-                  ? {
-                      color: "rgb(148,163,184)",
-                    }
-                  : {
-                      background:
-                        "linear-gradient(135deg, rgb(16,185,129), rgb(59,130,246))",
-                      color: "#fff",
-                      boxShadow: "0 14px 30px rgba(16,185,129,0.6)",
-                    }),
-              }}
-            >
-              Đăng ký
-            </Button>
-          </div>
+        <div className="flex min-h-full flex-col justify-center px-5 py-8 sm:px-8 lg:px-12">
+          <div className="mx-auto w-full max-w-[480px]">
+            <div className="mb-8 lg:hidden">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-black">
+                  <FitnessCenterIcon />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+                    Fitness Store
+                  </p>
+                  <h1 className="text-xl font-black tracking-[0.16em] text-white">
+                    NHTHI FIT
+                  </h1>
+                </div>
+              </div>
+            </div>
 
-          {/* Form: Login / Register */}
-          <div className="w-full">
+            <div className="mb-6 inline-flex rounded-full border border-orange-500/15 bg-[#141414] p-1">
+              <Button
+                size="small"
+                onClick={() => setIsLogin(true)}
+                sx={{
+                  minWidth: 140,
+                  borderRadius: "999px",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  px: 2.5,
+                  py: 1,
+                  ...(isLogin
+                    ? {
+                        background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                        color: "#050505",
+                      }
+                    : {
+                        color: "#cbd5e1",
+                      }),
+                }}
+              >
+                Đăng nhập
+              </Button>
+              <Button
+                size="small"
+                onClick={() => setIsLogin(false)}
+                sx={{
+                  minWidth: 140,
+                  borderRadius: "999px",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  px: 2.5,
+                  py: 1,
+                  ...(isLogin
+                    ? {
+                        color: "#cbd5e1",
+                      }
+                    : {
+                        background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                        color: "#050505",
+                      }),
+                }}
+              >
+                Đăng ký
+              </Button>
+            </div>
+
             {isLogin ? <LoginForm /> : <RegisterForm />}
-          </div>
 
-          {/* Text chuyển trang */}
-          <div className="flex items-center gap-1 justify-center my-4">
-            <p className="text-sm text-slate-300">
-              {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}
-            </p>
-            <Button
-              size="small"
-              onClick={() => setIsLogin(!isLogin)}
-              sx={{
-                textTransform: "none",
-                fontSize: "0.85rem",
-              }}
-            >
-              {isLogin ? "Tạo tài khoản" : "Đăng nhập ngay"}
-            </Button>
+            <div className="mt-6 flex items-center gap-1 justify-center">
+              <p className="text-sm text-slate-400">
+                {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}
+              </p>
+              <Button
+                size="small"
+                onClick={() => setIsLogin(!isLogin)}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: "#fb923c",
+                }}
+              >
+                {isLogin ? "Tạo tài khoản" : "Đăng nhập ngay"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

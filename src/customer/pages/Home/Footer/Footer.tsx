@@ -11,215 +11,105 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import EmailIcon from "@mui/icons-material/Email";
 import LocalPhoneIcon from "@mui/icons-material/LocalPhone";
 import FacebookIcon from "@mui/icons-material/Facebook";
-import Groups3Icon from "@mui/icons-material/Groups3";
-import BusinessIcon from "@mui/icons-material/Business";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 
 const Footer = () => {
-  // Thông tin giả dùng để hiển thị — bạn có thể sửa bất kỳ dòng nào
   const company = {
-    name: "Beki Marketplace",
-    address: "Số 123 Lý Tự Trọng, Phường Hòa Khánh, TP. Đà Nẵng",
-    taxId: "MST: 010-9876-543",
-    supportEmail: "support@beki-marketplace.vn",
-    salesEmail: "sales@beki-marketplace.vn",
-    phone: "028 3941 2200",
-    hotline: "1900 1234",
-    hours: "T2–T7: 08:00 - 20:00 (CN: 09:00 - 17:00)",
+    name: "NHTHI Fit",
+    address: "TP. Hồ Chí Minh, Việt Nam",
+    supportEmail: "support@nhthifit.vn",
+    salesEmail: "hello@nhthifit.vn",
+    phone: "1900 6868",
+    hours: "Thứ 2 - Thứ 7: 08:30 - 20:30",
   };
 
-  const partners = [
-    {
-      name: "FinTrust",
-      logo: "https://cellphones.com.vn/sforum/wp-content/uploads/2021/10/okiu.jpg",
-    },
-    {
-      name: "Giao hàng nhanh",
-      logo: "https://play-lh.googleusercontent.com/R6Kzs8sI4-yEqn-o1TVl70l7Adv3M3OHdvT5ZI1knjAfih7zM50XU3UZX0UJy1G2DnM",
-    },
-    {
-      name: "Giao hàng tiết kiệm",
-      logo: "https://blog.abit.vn/wp-content/uploads/2020/05/giao-hang-tiet-kiem16-1.png",
-    },
-    {
-      name: "BrandHub",
-      logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzHMVvHBYAuko_X6HDacSxi_BItDFU4H5G2A&s",
-    },
-    {
-      name: "Momo",
-      logo: "https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png",
-    },
-
-    {
-      name: "VN Pay",
-      logo: "https://yt3.googleusercontent.com/JM1m2wng0JQUgSg9ZSEvz7G4Rwo7pYb4QBYip4PAhvGRyf1D_YTbL2DdDjOy0qOXssJPdz2r7Q=s900-c-k-c0x00ffffff-no-rj",
-    },
+  const quickLinks = [
+    { label: "Câu hỏi thường gặp", href: "/search?keyword=faq" },
+    { label: "Quy định đổi hàng", href: "/search?keyword=quy%20dinh%20doi%20hang" },
+    { label: "Chính sách thanh toán", href: "/search?keyword=chinh%20sach%20thanh%20toan" },
+    { label: "Blog tập luyện", href: "/search?keyword=tap%20luyen%20fitness" },
   ];
 
   return (
-    <Box className="bg-gray-50 text-gray-800 mt-12">
-      <Divider sx={{ mb: 4 }} />
+    <Box className="mt-0 bg-[#050505] text-white">
+      <Divider sx={{ borderColor: "rgba(249,115,22,0.14)" }} />
 
-      <Box className="flex flex-wrap justify-around px-8 md:px-16 lg:px-24 py-10 gap-10">
-        {/* Column 1: Company & Address */}
-        <Box className="flex flex-col gap-y-3 max-w-sm" data-aos="fade-up">
-          <Typography className="flex items-center gap-2 text-xl font-semibold pl-2">
-            <BusinessIcon color="primary" />
-            <span>{company.name}</span>
+      <Box className="mx-auto grid max-w-[1280px] gap-10 px-6 py-12 md:grid-cols-3 lg:px-16">
+        <Box className="flex flex-col gap-4">
+          <Typography className="flex items-center gap-3 text-2xl font-black text-white">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-black">
+              <FitnessCenterIcon />
+            </span>
+            {company.name}
           </Typography>
-
-          <Typography variant="body2" color="textSecondary">
-            <strong>Địa chỉ:</strong> {company.address}
+          <Typography className="max-w-sm text-sm leading-7 text-slate-300">
+            Bán dụng cụ fitness, chia sẻ blog tập luyện và gợi ý setup phòng gym tại nhà theo nhu cầu thực tế.
           </Typography>
-
-          <Typography variant="body2" color="textSecondary">
-            <strong>{company.taxId}</strong>
-          </Typography>
-
-          <Box className="mt-3">
-            <Typography variant="subtitle2" className="font-semibold mb-1">
-              Giờ hỗ trợ khách hàng
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {company.hours}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" className="mt-1">
-              <strong>Hotline:</strong> {company.hotline} — <strong>VP:</strong>{" "}
-              {company.phone}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Column 2: Quick links & policies */}
-        <Box
-          className="flex flex-col gap-y-3"
-          data-aos="fade-up"
-          data-aos-delay="120"
-        >
-          <Typography className="text-xl font-semibold border-l-[4px] border-primary pl-2">
-            Hỗ trợ & Chính sách
-          </Typography>
-
-          <Box className="flex flex-col gap-y-2">
-            <Link href="/help-center" underline="hover">
-              Trung tâm trợ giúp
-            </Link>
-            <Link href="/shipping-policy" underline="hover">
-              Chính sách vận chuyển
-            </Link>
-            <Link href="/return-policy" underline="hover">
-              Chính sách đổi trả
-            </Link>
-            <Link href="/seller-policy" underline="hover">
-              Hướng dẫn người bán
-            </Link>
-            <Link href="/privacy" underline="hover">
-              Chính sách bảo mật
-            </Link>
-            <Link href="/terms" underline="hover">
-              Điều khoản & Điều kiện
-            </Link>
-          </Box>
-        </Box>
-
-        {/* Column 3: Contact & Team */}
-        <Box
-          className="flex flex-col gap-y-3"
-          data-aos="fade-up"
-          data-aos-delay="240"
-        >
-          <Typography className="text-xl font-semibold border-l-[4px] border-primary pl-2">
-            Liên hệ nhanh
-          </Typography>
-
-          <Typography className="flex items-center gap-x-2">
-            <EmailIcon color="primary" />
-            <Link href={`mailto:${company.supportEmail}`} underline="hover">
-              {company.supportEmail}
-            </Link>
-          </Typography>
-
-          <Typography className="flex items-center gap-x-2">
-            <LocalPhoneIcon color="primary" />
-            <span>{company.hotline}</span>
-          </Typography>
-
-          <Typography className="text-xl font-semibold border-l-[4px] border-primary pl-2 mt-3">
-            Nhóm phát triển
-          </Typography>
-          <Typography className="flex items-center gap-x-2">
-            <Groups3Icon color="primary" />
-            <Link href="/dev-profile" underline="hover">
-              Xem đội ngũ
-            </Link>
+          <Typography className="text-sm text-slate-400">
+            {company.address}
           </Typography>
         </Box>
-      </Box>
 
-      {/* Partners */}
-      <Box className="px-6 md:px-16 lg:px-24 py-6">
-        <Typography className="text-center text-sm text-gray-600 mb-4">
-          Đối tác vận chuyển & thanh toán
-        </Typography>
-        <Box className="flex items-center justify-center gap-6 flex-wrap">
-          {partners.map((p, i) => (
-            <Box key={i} className="p-2 rounded-md bg-white/70 shadow-sm">
-              <img src={p.logo} alt={p.name} style={{ height: 36 }} />
-            </Box>
+        <Box className="flex flex-col gap-3">
+          <Typography className="text-lg font-black text-white">
+            Hỗ trợ
+          </Typography>
+          {quickLinks.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              underline="hover"
+              color="inherit"
+              className="text-sm text-slate-300 hover:text-orange-400"
+            >
+              {item.label}
+            </Link>
           ))}
         </Box>
-      </Box>
 
-      {/* Social Icons */}
-      <Box className="bg-primary py-4">
-        <Box className="flex items-center justify-center gap-x-6">
-          <Tooltip title="Facebook">
-            <IconButton
-              href="https://facebook.com/beki.marketplace"
-              target="_blank"
-              sx={{
-                backgroundColor: "white",
-                color: "primary.main",
-                "&:hover": { backgroundColor: "primary.main", color: "white" },
-              }}
-            >
-              <FacebookIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Instagram">
-            <IconButton
-              href="https://instagram.com/beki.marketplace"
-              target="_blank"
-              sx={{
-                backgroundColor: "white",
-                color: "primary.main",
-                "&:hover": { backgroundColor: "primary.main", color: "white" },
-              }}
-            >
-              <InstagramIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Email">
-            <IconButton
-              href={`mailto:${company.salesEmail}`}
-              target="_blank"
-              sx={{
-                backgroundColor: "white",
-                color: "primary.main",
-                "&:hover": { backgroundColor: "primary.main", color: "white" },
-              }}
-            >
-              <EmailIcon />
-            </IconButton>
-          </Tooltip>
+        <Box className="flex flex-col gap-3">
+          <Typography className="flex items-center gap-2 text-lg font-black text-white">
+            <VerifiedUserIcon sx={{ color: "#fb923c" }} />
+            Liên hệ
+          </Typography>
+          <Typography className="flex items-center gap-2 text-sm text-slate-300">
+            <EmailIcon sx={{ fontSize: 18, color: "#fb923c" }} />
+            {company.supportEmail}
+          </Typography>
+          <Typography className="flex items-center gap-2 text-sm text-slate-300">
+            <LocalPhoneIcon sx={{ fontSize: 18, color: "#fb923c" }} />
+            {company.phone}
+          </Typography>
+          <Typography className="text-sm text-slate-400">
+            {company.hours}
+          </Typography>
         </Box>
       </Box>
 
-      {/* Copyright */}
-      <Box className="bg-primary text-white text-center py-3 text-sm tracking-wide">
-        © {new Date().getFullYear()} {company.name}. All rights reserved. — ĐKKD
-        giả (ví dụ) &middot; {company.taxId}
+      <Box className="border-t border-orange-500/10 px-6 py-5 lg:px-16">
+        <Box className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-4 md:flex-row">
+          <Box className="flex items-center gap-3">
+            <Tooltip title="Facebook">
+              <IconButton sx={{ color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" }}>
+                <FacebookIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Instagram">
+              <IconButton sx={{ color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" }}>
+                <InstagramIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Email">
+              <IconButton sx={{ color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" }}>
+                <EmailIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Typography className="text-sm text-slate-500">
+            © {new Date().getFullYear()} {company.name}. Bảo lưu mọi quyền.
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

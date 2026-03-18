@@ -1,4 +1,4 @@
-import {
+﻿import {
   Alert,
   Box,
   Button,
@@ -12,13 +12,7 @@ import {
 import React, { useState } from "react";
 import AddressCard from "./AddressCard";
 import AddressForm from "./AddressForm";
-import {
-  Add,
-  AttachMoney,
-  CreditCard,
-  LocalAtm,
-  Money,
-} from "@mui/icons-material";
+import { Add, CreditCard, LocalAtm } from "@mui/icons-material";
 import PricingCart from "../Cart/PricingCart";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { Address } from "../../../types/UserType";
@@ -34,11 +28,11 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  maxWidth: 600,
+  maxWidth: 680,
   width: "95%",
-  bgcolor: "background.paper",
-  borderRadius: 3,
-  boxShadow: 24,
+  bgcolor: "transparent",
+  borderRadius: 0,
+  boxShadow: "none",
   p: 0,
 };
 
@@ -46,12 +40,14 @@ const paymentGatewayList = [
   {
     value: "COD",
     label: "Thanh toán khi nhận hàng",
-    icon: <LocalAtm fontSize="large" className="text-indigo-500" />,
+    description: "Kiểm hàng và thanh toán khi shipper giao đơn.",
+    icon: <LocalAtm fontSize="large" className="text-orange-400" />,
   },
   {
     value: "SEPAY",
-    label: "Thanh toán Online",
-    icon: <CreditCard fontSize="large" className="text-indigo-500" />,
+    label: "Chuyển khoản QR",
+    description: "Quét mã QR và hệ thống tự xác nhận đơn.",
+    icon: <CreditCard fontSize="large" className="text-orange-400" />,
   },
 ];
 
@@ -69,7 +65,7 @@ const Checkout = () => {
     severity: "error",
   });
 
-  const [remainingTime, setRemainingTime] = useState(180); // 3 phút = 180s
+  const [remainingTime, setRemainingTime] = useState(180);
   const [paymentStatus, setPaymentStatus] = useState<
     "PENDING" | "SUCCESS" | "EXPIRED"
   >("PENDING");
@@ -78,7 +74,7 @@ const Checkout = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const { auth, address } = useAppSelector((store) => store);
+  const { auth, address, cart } = useAppSelector((store) => store);
   const addresses: Address[] = auth.user?.addresses
     ? [...auth.user.addresses]
     : [];
@@ -109,7 +105,7 @@ const Checkout = () => {
     if (!selectedId) {
       setSnackbar({
         open: true,
-        message: "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán!",
+        message: "Vui lòng ch?n d?a ch? giao hàng tru?c khi thanh toán.",
         severity: "error",
       });
       return;
@@ -129,12 +125,12 @@ const Checkout = () => {
       setLoading(true);
       const res = await dispatch(createOrder(req)).unwrap();
       if (paymentGateway === "SEPAY") {
-        setSepayInfo(res); // mở modal QR
+        setSepayInfo(res);
       }
       if (paymentGateway === "COD") {
         setSnackbar({
           open: true,
-          message: "Đặt hàng thành công. Thanh toán khi nhận hàng 🚚",
+          message: "Ð?t hàng thành công. B?n s? thanh toán khi nh?n hàng.",
           severity: "success",
         });
 
@@ -146,6 +142,7 @@ const Checkout = () => {
       setLoading(false);
     }
   };
+
   React.useEffect(() => {
     if (!sepayInfo) return;
 
@@ -183,11 +180,9 @@ const Checkout = () => {
           clearInterval(interval);
 
           setTimeout(() => {
-            // const orderId = sepayInfo.
             setSepayInfo(null);
-
             navigate("/ordersuccess");
-          }, 3000); // chờ 2s cho user thấy success
+          }, 3000);
         }
 
         if (res.status === "EXPIRED") {
@@ -201,155 +196,218 @@ const Checkout = () => {
 
     return () => clearInterval(interval);
   }, [sepayInfo, paymentStatus]);
+
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100 pt-10 px-4 sm:px-8 md:px-16 lg:px-28">
-        {loading && <CustomLoading message="Đang xử lý..." />}
+      <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-16 xl:px-24">
+        {loading && <CustomLoading message="Ðang x? lý don hàng..." />}
 
-        <div className="max-w-6xl mx-auto mb-6">
-          <h1 className="text-2xl font-semibold text-slate-900">Thanh toán</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Chọn địa chỉ giao hàng và phương thức thanh toán để hoàn tất đơn
-            hàng.
-          </p>
+        <div className="mx-auto max-w-7xl">
+          <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.2),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#0f0f0f_100%)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-3">
+                <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+                  Checkout
+                </span>
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+                    Hoàn tất đơn hàng
+                  </h1>
+                  <p className="max-w-xl text-sm leading-6 text-neutral-300 sm:text-base">
+                    Chọn địa chỉ giao hàng, cách thanh toán và kiểm tra tổng tiền trước khi xác nhận.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm text-neutral-300">
+                <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
+                    Địa chỉ
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-white">
+                    {activeAddresses.length}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
+                    Tổng đơn
+                  </p>
+                  <p className="mt-2 text-2xl font-black text-orange-400">
+                    {(cart.cart?.totalCouponPrice || 0).toLocaleString()}d
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-6 lg:space-y-0 lg:grid grid-cols-3 lg:gap-8">
-          {/* Cột trái: Địa chỉ */}
-          <div className="col-span-2 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-semibold text-slate-900 text-lg">
-                Địa chỉ giao hàng
-              </h2>
+        <div className="mx-auto mt-8 grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="space-y-4 lg:col-span-2">
+            <div className="flex flex-col gap-3 rounded-[1.8rem] border border-orange-500/12 bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.3)] sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
+                  Giao hàng
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+                  Địa chỉ giao hang
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-neutral-400">
+                  Chọn địa chỉ bạn muốn sử dụng cho đơn này
+                </p>
+              </div>
 
               <Button
                 variant="outlined"
                 onClick={() => setOpen(true)}
                 sx={{
+                  alignSelf: "flex-start",
                   textTransform: "none",
                   borderRadius: "999px",
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
+                  px: 2.2,
+                  py: 1,
+                  fontWeight: 700,
+                  color: "#fdba74",
+                  borderColor: "rgba(249,115,22,0.3)",
+                  "&:hover": {
+                    borderColor: "#f97316",
+                    backgroundColor: "rgba(249,115,22,0.08)",
+                  },
                 }}
               >
                 <Add sx={{ fontSize: 18, mr: 0.5 }} /> Thêm địa chỉ mới
               </Button>
             </div>
 
-            <div className="text-xs sm:text-sm font-medium space-y-3">
-              <p className="text-slate-600">Địa chỉ đã lưu</p>
+            {activeAddresses.length > 0 ? (
               <div className="space-y-3">
-                {activeAddresses.length > 0 ? (
-                  [...activeAddresses]
-                    .reverse()
-                    .map((item: Address) => (
-                      <AddressCard
-                        key={item.id}
-                        item={item}
-                        selectedId={selectedId}
-                        onSelect={handleSelect}
-                      />
-                    ))
-                ) : (
-                  <div className="text-xs text-slate-500">
-                    Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ mới để tiếp tục.
-                  </div>
-                )}
+                {[...activeAddresses].reverse().map((item: Address) => (
+                  <AddressCard
+                    key={item.id}
+                    item={item}
+                    selectedId={selectedId}
+                    onSelect={handleSelect}
+                  />
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="rounded-[1.8rem] border border-dashed border-white/10 bg-[#121212] px-6 py-8 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
+                <p className="text-xl font-black tracking-tight text-white">
+                  Chưa có địa chỉ giao hàng
+                </p>
+                <p className="mt-2 text-sm leading-6 text-neutral-400">
+                  Thêm địa chỉ mới để tiếp tục sang bước thanh toán
+                </p>
+                <Button
+                  onClick={() => setOpen(true)}
+                  variant="contained"
+                  sx={{
+                    mt: 3,
+                    textTransform: "none",
+                    borderRadius: "999px",
+                    px: 3,
+                    py: 1.1,
+                    fontWeight: 800,
+                    color: "#111111",
+                    background:
+                      "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
+                    },
+                  }}
+                >
+                  Thêm địa chỉ
+                </Button>
+              </div>
+            )}
 
-            <div className="py-4 px-5 rounded-2xl border border-dashed border-slate-300 bg-white/70 flex items-center justify-between">
-              <span className="text-sm text-slate-700">
-                Bạn muốn giao đến địa chỉ khác?
-              </span>
-              <Button
-                onClick={() => setOpen(true)}
-                size="small"
-                variant="text"
-                sx={{ textTransform: "none", fontSize: "0.85rem" }}
-              >
-                Thêm địa chỉ mới
-              </Button>
-            </div>
-          </div>
-
-          {/* Cột phải: Thanh toán + tổng tiền */}
-          <div className="space-y-4">
-            {/* Phương thức thanh toán */}
-            <div className="border border-slate-200 p-5 rounded-2xl bg-white/90 shadow-sm space-y-4">
-              <h1 className="text-sky-700 font-semibold text-center">
-                Chọn phương thức thanh toán
-              </h1>
-              <Divider />
+            <div className="rounded-[1.8rem] border border-white/10 bg-[#121212] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
+                Thanh toán
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+                Phuong thức thanh toán
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-neutral-400">
+                Chọn cách thanh toán phù hợp cho đơn hàng hiện tại.
+              </p>
 
               <RadioGroup
                 aria-labelledby="payment-method"
                 name="payment-method"
                 onChange={handlePaymentChange}
                 value={paymentGateway}
-                className="space-y-4"
+                className="mt-5 space-y-3"
               >
-                {/* NHÓM 1: Thanh toán online */}
-                <div>
-                  <div className="flex justify-between flex-wrap gap-3 flex-col">
-                    {paymentGatewayList.map((item) => (
-                      <FormControlLabel
-                        key={item.value}
-                        value={item.value}
-                        labelPlacement="start"
-                        className={`w-full rounded-xl border cursor-pointer transition-all bg-white px-4 py-3
-        ${
-          paymentGateway === item.value
-            ? "border-sky-500 border-2 shadow-md"
-            : "border-slate-200 hover:border-sky-300"
-        }`}
-                        control={<Radio />}
-                        label={
-                          <div className="flex items-center gap-3">
-                            {/* Icon */}
-                            <div className="text-xl">{item.icon}</div>
-
-                            {/* Label */}
-                            <span className="text-sm font-medium text-slate-700">
-                              {item.label}
-                            </span>
-                          </div>
-                        }
+                {paymentGatewayList.map((item) => (
+                  <FormControlLabel
+                    key={item.value}
+                    value={item.value}
+                    labelPlacement="start"
+                    className={[
+                      "m-0 w-full cursor-pointer rounded-[1.5rem] border px-4 py-4 transition-all",
+                      paymentGateway === item.value
+                        ? "border-orange-500/45 bg-orange-500/10"
+                        : "border-white/10 bg-white/[0.02] hover:border-orange-500/20",
+                    ].join(" ")}
+                    control={
+                      <Radio
                         sx={{
-                          m: 0,
-                          display: "flex",
-                          justifyContent: "space-between",
+                          color: "rgba(255,255,255,0.35)",
+                          "&.Mui-checked": { color: "#f97316" },
                         }}
                       />
-                    ))}
-                  </div>
-                </div>
-                <Divider />
+                    }
+                    label={
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/20">
+                          {item.icon}
+                        </div>
+                        <div>
+                          <p className="text-base font-black tracking-tight text-white">
+                            {item.label}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-neutral-400">
+                            {item.description}
+                          </p>
+                        </div>
+                      </div>
+                    }
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  />
+                ))}
               </RadioGroup>
             </div>
-            {/* GIỎ HÀNG & NÚT THANH TOÁN */}
-            <div className="rounded-2xl border border-slate-200 bg-white/95 shadow-sm overflow-hidden">
+          </div>
+
+          <div className="space-y-4 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-[1.8rem] border border-orange-500/12 bg-[#121212] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
               <PricingCart />
-              <div className="p-5">
+              <div className="p-5 pt-0">
                 <Button
                   onClick={handleCheckout}
                   fullWidth
                   variant="contained"
                   sx={{
-                    py: "11px",
+                    py: "12px",
                     borderRadius: "999px",
                     textTransform: "none",
-                    fontWeight: 600,
+                    fontWeight: 800,
+                    fontSize: "0.98rem",
+                    color: "#111111",
                     background:
-                      "linear-gradient(135deg, rgb(16,185,129), rgb(59,130,246))",
-                    boxShadow: "0 16px 35px rgba(16,185,129,0.45)",
+                      "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                    boxShadow: "0 18px 35px rgba(249,115,22,0.35)",
                     "&:hover": {
                       background:
-                        "linear-gradient(135deg, rgb(5,150,105), rgb(37,99,235))",
+                        "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
                     },
                   }}
                 >
-                  Xác nhận & thanh toán
+                  Xác nhận và đặt hàng
                 </Button>
               </div>
             </div>
@@ -357,7 +415,6 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* MODAL thêm địa chỉ */}
       <Modal
         open={open}
         onClose={() => setOpen(false)}
@@ -369,7 +426,6 @@ const Checkout = () => {
         </Box>
       </Modal>
 
-      {/* Snackbar thông báo */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
@@ -384,75 +440,69 @@ const Checkout = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
       <Modal open={!!sepayInfo} onClose={() => setSepayInfo(null)}>
-        <Box
-          sx={{
-            ...modalStyle,
-            p: 3,
-            maxWidth: 420,
-          }}
-        >
-          {showSuccessMessage ? (
-            <>
-              <div className="flex flex-col items-center justify-center py-6 space-y-3">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/845/845646.png"
-                  alt="success"
-                  className="w-20 h-20"
-                />
-                <h3 className="text-lg font-semibold text-green-600">
-                  Thanh toán thành công 🎉
+        <Box sx={modalStyle}>
+          <div className="mx-auto w-[95%] max-w-[420px] rounded-[1.8rem] border border-orange-500/16 bg-[#111111] p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.5)]">
+            {showSuccessMessage ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-orange-500/12">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/845/845646.png"
+                    alt="success"
+                    className="h-14 w-14"
+                  />
+                </div>
+                <h3 className="mt-4 text-2xl font-black tracking-tight text-orange-300">
+                  Thanh toán thành công
                 </h3>
-                <p className="text-sm text-slate-500 text-center">
-                  Hệ thống đang chuyển bạn đến trang xác nhận đơn hàng...
+                <p className="mt-2 text-sm leading-6 text-neutral-400">
+                  Hệ thống đang chuyển bạn đến trang xác nhận đơn hàng
                 </p>
               </div>
-            </>
-          ) : (
-            <>
-              <h2 className="text-lg font-semibold text-center mb-3">
-                Quét QR để chuyển khoản
-              </h2>
+            ) : (
+              <>
+                <div className="space-y-2 text-center">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
+                    Thanh toán QR
+                  </p>
+                  <h2 className="text-2xl font-black tracking-tight text-white">
+                    Quét QR để chuyển khoản
+                  </h2>
+                </div>
 
-              <img
-                className="mx-auto w-56 h-56"
-                alt="QR Payment"
-                src={`https://qr.sepay.vn/img?acc=LOCSPAY000336637&bank=ACB&amount=${sepayInfo?.amount}&des=${sepayInfo?.paymentCode}`}
-              />
+                <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/8 bg-white p-4">
+                  <img
+                    className="mx-auto h-56 w-56"
+                    alt="QR Payment"
+                    src={`https://qr.sepay.vn/img?acc=LOCSPAY000336637&bank=ACB&amount=${sepayInfo?.amount}&des=${sepayInfo?.paymentCode}`}
+                  />
+                </div>
 
-              <Divider sx={{ my: 2 }} />
+                <Divider sx={{ my: 3, borderColor: "rgba(255,255,255,0.08)" }} />
 
-              <div className="text-sm space-y-1">
-                <p>
-                  <b>Ngân hàng:</b> {sepayInfo?.bankName}
-                </p>
-                <p>
-                  <b>Số TK:</b> {sepayInfo?.accountNumber}
-                </p>
-                <p>
-                  <b>Chủ TK:</b> {sepayInfo?.accountName}
-                </p>
-                <p className="text-red-600 font-semibold">
-                  Nội dung: {sepayInfo?.paymentCode}
-                </p>
-                <p className="font-semibold">
-                  Số tiền: {sepayInfo?.amount?.toLocaleString()} đ
-                </p>
-              </div>
+                <div className="space-y-2 text-sm text-neutral-300">
+                  <p><b className="text-white">Ngân hàng:</b> {sepayInfo?.bankName}</p>
+                  <p><b className="text-white">Số TK:</b> {sepayInfo?.accountNumber}</p>
+                  <p><b className="text-white">Chủ TK:</b> {sepayInfo?.accountName}</p>
+                  <p className="font-semibold text-orange-300">Nội dung: {sepayInfo?.paymentCode}</p>
+                  <p className="text-base font-black text-white">Số tiền: {sepayInfo?.amount?.toLocaleString()} d</p>
+                </div>
 
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Hệ thống sẽ tự động xác nhận sau khi bạn chuyển khoản.
-              </Alert>
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Hệ thống sẽ tự động xác nhận sau khi giao dịch thành công.
+                </Alert>
 
-              <p className="text-center text-sm mt-2">
-                Thời gian còn lại:{" "}
-                <b className={remainingTime <= 30 ? "text-red-600" : ""}>
-                  {Math.floor(remainingTime / 60)}:
-                  {(remainingTime % 60).toString().padStart(2, "0")}
-                </b>
-              </p>
-            </>
-          )}
+                <p className="mt-3 text-center text-sm text-neutral-400">
+                  Thời gian còn lại:{" "}
+                  <b className={remainingTime <= 30 ? "text-red-400" : "text-orange-300"}>
+                    {Math.floor(remainingTime / 60)}:
+                    {(remainingTime % 60).toString().padStart(2, "0")}
+                  </b>
+                </p>
+              </>
+            )}
+          </div>
         </Box>
       </Modal>
     </>
@@ -460,3 +510,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

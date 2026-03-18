@@ -14,7 +14,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ showSearch, setShowSearch }) => {
   const searchRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
 
-  // Ẩn search khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -38,16 +37,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ showSearch, setShowSearch }) => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 50 }}
           transition={{ duration: 0.25 }}
-          className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1 shadow-sm w-[180px] sm:w-[250px]"
+          className="flex items-center gap-2 rounded-full border border-orange-500/30 bg-[#121212] px-3 py-1 shadow-lg shadow-black/30 w-[180px] sm:w-[250px]"
         >
-          <Search className="text-gray-600" />
+          <Search sx={{ color: "#fb923c" }} />
           <TextField
             variant="standard"
             placeholder="Tìm kiếm..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             InputProps={{ disableUnderline: true }}
-            sx={{ flex: 1, input: { padding: "4px 0", fontSize: "0.9rem" } }}
+            sx={{
+              flex: 1,
+              input: { padding: "4px 0", fontSize: "0.9rem", color: "#fff" },
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && searchValue.trim()) {
                 navigate(`/search?keyword=${encodeURIComponent(searchValue)}`);
@@ -57,7 +59,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ showSearch, setShowSearch }) => {
             autoFocus
           />
           <IconButton size="small" onClick={() => setShowSearch(false)}>
-            <Close fontSize="small" />
+            <Close fontSize="small" sx={{ color: "#fff" }} />
           </IconButton>
         </motion.div>
       )}

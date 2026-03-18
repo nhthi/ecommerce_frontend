@@ -1,301 +1,127 @@
 import React, { useState } from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Divider,
-  Grid,
-  TextField,
-} from "@mui/material";
-import { Lock, Person, Email, PhoneIphone } from "@mui/icons-material";
+import { Avatar, Box, Button, Grid, Paper, Stack, TextField, Typography } from "@mui/material";
+import { AdminPanelSettings, Lock, MailOutline, Person } from "@mui/icons-material";
 import { useAppSelector } from "../../../state/Store";
+
+const cardSx = {
+  borderRadius: "30px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  color: "#ffffff",
+};
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    color: "#ffffff",
+    borderRadius: "18px",
+    "& fieldset": { borderColor: "rgba(255,255,255,0.14)" },
+    "&:hover fieldset": { borderColor: "rgba(249,115,22,0.4)" },
+    "&.Mui-focused fieldset": { borderColor: "#f97316" },
+    "&.Mui-disabled": {
+      WebkitTextFillColor: "rgba(255,255,255,0.72)",
+      color: "rgba(255,255,255,0.72)",
+    },
+  },
+  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.64)" },
+  "& .MuiInputLabel-root.Mui-focused": { color: "#fb923c" },
+  "& .MuiFormHelperText-root": { color: "rgba(255,255,255,0.46)" },
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "rgba(255,255,255,0.72)",
+  },
+};
+
+const innerCardSx = {
+  p: 2.4,
+  borderRadius: "24px",
+  backgroundColor: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#ffffff",
+};
 
 const AdminAccountPage: React.FC = () => {
   const { auth } = useAppSelector((store) => store);
-
   const user = auth.user;
-
-  const [profileForm, setProfileForm] = useState({
-    fullName: user?.fullName || "",
-    phoneNumber: user?.phoneNumber || "",
-  });
-
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const handleProfileChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setProfileForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setPasswordForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSaveProfile = () => {
-    // TODO: Gắn API cập nhật thông tin admin tại đây
-    console.log("Cập nhật thông tin:", profileForm);
-  };
-
-  const handleChangePassword = () => {
-    // TODO: Gắn API đổi mật khẩu tại đây
-    console.log("Đổi mật khẩu:", passwordForm);
-  };
-
-  const avatarLetter =
-    user?.fullName?.charAt(0)?.toUpperCase() ||
-    user?.email?.charAt(0)?.toUpperCase() ||
-    "A";
+  const [profileForm, setProfileForm] = useState({ fullName: user?.fullName || "", phoneNumber: user?.phoneNumber || "" });
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
   return (
-    <Box className="px-4 lg:px-16 py-8 bg-slate-50 min-h-[80vh]">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-800">
-          Thông tin tài khoản
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Quản lý thông tin cá nhân và bảo mật tài khoản quản trị viên.
-        </p>
-      </div>
-
-      <Grid container spacing={4}>
-        {/* Cột trái: Thông tin cơ bản */}
-        <Grid size={{ xs: 12, md: 5, lg: 4 }}>
-          <Card
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              border: "1px solid #e5e7eb",
-              background:
-                "linear-gradient(135deg, rgba(239,246,255,0.9), #ffffff)",
-            }}
-          >
-            <CardContent className="flex flex-col items-center py-6">
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  bgcolor: "#0f172a",
-                  color: "rgb(88,199,250)",
-                  fontSize: "2rem",
-                  mb: 2,
-                }}
-                src={user?.avatar || ""}
-              >
-                {avatarLetter}
+    <Box sx={{ color: "#ffffff" }} className="space-y-5">
+      <Paper elevation={0} sx={{ ...cardSx, p: { xs: 3, lg: 4 } }}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <Stack spacing={2} alignItems={{ xs: "flex-start", lg: "center" }}>
+              <Avatar sx={{ width: 92, height: 92, fontSize: 34, bgcolor: "rgba(249,115,22,0.14)", color: "#fb923c" }}>
+                {user?.fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "A"}
               </Avatar>
-              <h2 className="text-lg font-semibold text-slate-900">
-                {user?.fullName || "Quản trị viên"}
-              </h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Vai trò:{" "}
-                <span className="font-medium text-sky-600">
-                  {user?.role || "ADMIN"}
-                </span>
-              </p>
-
-              <Divider className="!my-4 w-full" />
-
-              <div className="w-full space-y-3 text-sm">
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Email fontSize="small" className="text-sky-500" />
-                  <span className="font-medium">Email:</span>
-                  <span className="truncate">{user?.email}</span>
-                </div>
-                {user?.phoneNumber && (
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <PhoneIphone fontSize="small" className="text-sky-500" />
-                    <span className="font-medium">Số điện thoại:</span>
-                    <span>{user.phoneNumber}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Lock fontSize="small" className="text-sky-500" />
-                  <span className="font-medium">Trạng thái:</span>
-                  <span className="text-emerald-600 font-semibold">
-                    Đang hoạt động
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Box>
+                <Typography fontSize={28} fontWeight={800} sx={{ color: "#ffffff" }}>{user?.fullName || "Quan tri vien"}</Typography>
+                <Typography sx={{ mt: 0.6, color: "rgba(255,255,255,0.68)", fontSize: 14.5 }}>{user?.role || "ROLE_ADMIN"}</Typography>
+              </Box>
+              <Stack spacing={1.1} width="100%">
+                <Paper elevation={0} sx={{ p: 1.5, borderRadius: "20px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#ffffff" }}>
+                  <Stack direction="row" spacing={1.2} alignItems="center"><MailOutline sx={{ color: "#fb923c" }} /><Typography sx={{ color: "#ffffff" }}>{user?.email}</Typography></Stack>
+                </Paper>
+                <Paper elevation={0} sx={{ p: 1.5, borderRadius: "20px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#ffffff" }}>
+                  <Stack direction="row" spacing={1.2} alignItems="center"><AdminPanelSettings sx={{ color: "#fb923c" }} /><Typography sx={{ color: "#ffffff" }}>Trang thai: Dang hoat dong</Typography></Stack>
+                </Paper>
+              </Stack>
+            </Stack>
+          </Grid>
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <Grid container spacing={2.2}>
+              <Grid size={{ xs: 12 }}>
+                <Paper elevation={0} sx={innerCardSx}>
+                  <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
+                    <Person sx={{ color: "#fb923c" }} />
+                    <Typography fontSize={20} fontWeight={800} sx={{ color: "#ffffff" }}>Thong tin ca nhan</Typography>
+                  </Stack>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField fullWidth label="Ho va ten" value={profileForm.fullName} onChange={(e) => setProfileForm((prev) => ({ ...prev, fullName: e.target.value }))} sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField fullWidth label="So dien thoai" value={profileForm.phoneNumber} onChange={(e) => setProfileForm((prev) => ({ ...prev, phoneNumber: e.target.value }))} sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth label="Email dang nhap" value={user?.email || ""} disabled sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <Button variant="contained" sx={{ borderRadius: 999, textTransform: "none", px: 2.8, color: "#ffffff", background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
+                        Luu thong tin
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Paper elevation={0} sx={innerCardSx}>
+                  <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: 2 }}>
+                    <Lock sx={{ color: "#fb923c" }} />
+                    <Typography fontSize={20} fontWeight={800} sx={{ color: "#ffffff" }}>Bao mat tai khoan</Typography>
+                  </Stack>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth type="password" label="Mat khau hien tai" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))} sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField fullWidth type="password" label="Mat khau moi" value={passwordForm.newPassword} onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))} sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField fullWidth type="password" label="Nhap lai mat khau moi" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))} sx={fieldSx} />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <Button variant="outlined" sx={{ borderRadius: 999, textTransform: "none", px: 2.8, color: "#fff7ed", borderColor: "rgba(249,115,22,0.35)" }}>
+                        Doi mat khau
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Grid>
         </Grid>
-
-        {/* Cột phải: Form chỉnh sửa + đổi mật khẩu */}
-        <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-          <div className="space-y-5">
-            {/* Thông tin cá nhân */}
-            <Card
-              elevation={0}
-              sx={{ borderRadius: 3, border: "1px solid #e5e7eb" }}
-            >
-              <CardHeader
-                title="Thông tin cá nhân"
-                subheader="Cập nhật tên hiển thị, số điện thoại và thông tin liên hệ."
-                sx={{
-                  "& .MuiCardHeader-title": {
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                  },
-                  "& .MuiCardHeader-subheader": {
-                    fontSize: "0.85rem",
-                  },
-                }}
-                avatar={
-                  <div className="bg-sky-100 rounded-2xl p-2">
-                    <Person className="text-sky-600" />
-                  </div>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Họ và tên"
-                      name="fullName"
-                      value={profileForm.fullName}
-                      onChange={handleProfileChange}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Số điện thoại"
-                      name="phoneNumber"
-                      value={profileForm.phoneNumber}
-                      onChange={handleProfileChange}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      label="Email đăng nhập"
-                      value={user?.email || ""}
-                      size="small"
-                      disabled
-                      helperText="Email dùng để đăng nhập, không thể thay đổi."
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Button
-                      variant="contained"
-                      onClick={handleSaveProfile}
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        px: 3,
-                        py: 1,
-                        backgroundColor: "#0ea5e9",
-                        "&:hover": { backgroundColor: "#0284c7" },
-                      }}
-                    >
-                      Lưu thay đổi
-                    </Button>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            {/* Bảo mật & đổi mật khẩu */}
-            <Card
-              elevation={0}
-              sx={{ borderRadius: 3, border: "1px solid #e5e7eb" }}
-            >
-              <CardHeader
-                title="Bảo mật & mật khẩu"
-                subheader="Đổi mật khẩu định kỳ giúp tài khoản của bạn an toàn hơn."
-                sx={{
-                  "& .MuiCardHeader-title": {
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                  },
-                  "& .MuiCardHeader-subheader": {
-                    fontSize: "0.85rem",
-                  },
-                }}
-                avatar={
-                  <div className="bg-rose-100 rounded-2xl p-2">
-                    <Lock className="text-rose-500" />
-                  </div>
-                }
-              />
-              <Divider />
-              <CardContent>
-                <Grid container spacing={3}>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField
-                      fullWidth
-                      type="password"
-                      label="Mật khẩu hiện tại"
-                      name="currentPassword"
-                      value={passwordForm.currentPassword}
-                      onChange={handlePasswordChange}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      type="password"
-                      label="Mật khẩu mới"
-                      name="newPassword"
-                      value={passwordForm.newPassword}
-                      onChange={handlePasswordChange}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      fullWidth
-                      type="password"
-                      label="Nhập lại mật khẩu mới"
-                      name="confirmPassword"
-                      value={passwordForm.confirmPassword}
-                      onChange={handlePasswordChange}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={handleChangePassword}
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        px: 3,
-                        py: 1,
-                      }}
-                    >
-                      Đổi mật khẩu
-                    </Button>
-                    <p className="text-[11px] text-slate-500 mt-2">
-                      Gợi ý: sử dụng mật khẩu tối thiểu 8 ký tự bao gồm chữ hoa,
-                      chữ thường, số và ký tự đặc biệt.
-                    </p>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </div>
-        </Grid>
-      </Grid>
+      </Paper>
     </Box>
   );
 };

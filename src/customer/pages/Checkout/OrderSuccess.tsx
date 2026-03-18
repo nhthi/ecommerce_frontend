@@ -1,4 +1,4 @@
-import { CheckCircle, LocalShipping } from "@mui/icons-material";
+﻿import { CheckCircle, LocalShipping } from "@mui/icons-material";
 import { Button, Divider } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -7,85 +7,90 @@ const OrderSuccess = () => {
   const { orderId } = useParams();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-50 via-blue-50 to-slate-100 px-4">
-      <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-        {/* Header */}
-        <div
-          className="p-6 text-center text-white"
-          style={{
-            background: "linear-gradient(135deg, #0097e6, #4fc3f7)",
-          }}
-        >
-          <div className="w-20 h-20 mx-auto rounded-full bg-white flex items-center justify-center shadow-lg">
-            <CheckCircle sx={{ fontSize: 48, color: "#0097e6" }} />
-          </div>
-
-          <h1 className="text-2xl font-semibold mt-4">Đặt hàng thành công</h1>
-          <p className="text-sm opacity-90 mt-1">
-            Cảm ơn bạn đã mua sắm tại MyShop 💙
-          </p>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-6 space-y-4 text-center">
-          {orderId && (
-            <div className="bg-sky-50 border border-sky-200 rounded-xl py-3">
-              <p className="text-xs text-slate-500">Mã đơn hàng</p>
-              <p className="text-lg font-semibold text-slate-800">#{orderId}</p>
+    <div className="min-h-screen bg-[#0b0b0b] px-4 py-10">
+      <div className="mx-auto flex min-h-[80vh] max-w-3xl items-center justify-center">
+        <div className="w-full overflow-hidden rounded-[2rem] border border-orange-500/16 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.18),_transparent_32%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] shadow-[0_28px_80px_rgba(0,0,0,0.45)]">
+          <div className="px-6 pb-8 pt-10 text-center sm:px-10">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-orange-500/20 bg-orange-500/10 shadow-[0_20px_40px_rgba(249,115,22,0.15)]">
+              <CheckCircle sx={{ fontSize: 54, color: "#fb923c" }} />
             </div>
-          )}
 
-          <div className="flex items-center justify-center gap-2 text-slate-600 text-sm">
-            <LocalShipping sx={{ color: "#0097e6" }} />
-            <span>Đơn hàng của bạn đang được xử lý và chuẩn bị giao</span>
-          </div>
+            <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
+              Ðon hàng dã xác nh?n
+            </p>
+            <h1 className="mt-3 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+              Ð?t hàng thành công
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-neutral-400 sm:text-base">
+              Don hang cua ban da duoc ghi nhan. He thong dang chuan bi xu ly va
+              ban co the theo doi trang thai trong tai khoan.
+            </p>
 
-          <p className="text-xs text-slate-400">
-            Email xác nhận đã được gửi. Vui lòng kiểm tra hộp thư của bạn.
-          </p>
+            {orderId && (
+              <div className="mx-auto mt-6 max-w-sm rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-5 py-4">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-500">
+                  Mã don hàng
+                </p>
+                <p className="mt-2 text-2xl font-black text-orange-400">#{orderId}</p>
+              </div>
+            )}
 
-          <Divider />
+            <div className="mx-auto mt-6 flex max-w-xl items-center justify-center gap-3 rounded-[1.5rem] border border-white/8 bg-black/20 px-4 py-4 text-left">
+              <LocalShipping sx={{ color: "#fb923c" }} />
+              <span className="text-sm leading-6 text-neutral-300 sm:text-base">
+                Don hang dang duoc xac nhan va se duoc ban giao cho don vi van
+                chuyen trong buoc tiep theo.
+              </span>
+            </div>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={() => navigate(`/account/orders`)}
-              sx={{
-                textTransform: "none",
-                borderRadius: "999px",
-                py: 1.2,
-                fontWeight: 600,
-                background: "linear-gradient(135deg, #0097e6, #4fc3f7)",
-                boxShadow: "0 12px 30px rgba(0,151,230,0.35)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #007acc, #29b6f6)",
-                },
-              }}
-            >
-              Quản lý đơn hàng
-            </Button>
+            <p className="mt-4 text-sm text-neutral-500">
+              N?u c?n xem l?i chi ti?t, vào m?c don hàng trong tài kho?n c?a b?n.
+            </p>
 
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => navigate("/")}
-              sx={{
-                textTransform: "none",
-                borderRadius: "999px",
-                py: 1.2,
-                fontWeight: 500,
-                borderColor: "#0097e6",
-                color: "#0097e6",
-                "&:hover": {
-                  borderColor: "#007acc",
-                  backgroundColor: "rgba(0,151,230,0.05)",
-                },
-              }}
-            >
-              Tiếp tục mua sắm
-            </Button>
+            <Divider sx={{ my: 4, borderColor: "rgba(255,255,255,0.08)" }} />
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => navigate(`/account/orders`)}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "999px",
+                  py: 1.35,
+                  fontWeight: 800,
+                  fontSize: "0.96rem",
+                  color: "#111111",
+                  background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                  boxShadow: "0 16px 35px rgba(249,115,22,0.35)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
+                  },
+                }}
+              >
+                Xem don hàng
+              </Button>
+
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate("/")}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "999px",
+                  py: 1.35,
+                  fontWeight: 700,
+                  color: "#fdba74",
+                  borderColor: "rgba(249,115,22,0.35)",
+                  "&:hover": {
+                    borderColor: "#f97316",
+                    backgroundColor: "rgba(249,115,22,0.08)",
+                  },
+                }}
+              >
+                Ti?p t?c mua hàng
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -94,3 +99,4 @@ const OrderSuccess = () => {
 };
 
 export default OrderSuccess;
+

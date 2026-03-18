@@ -16,66 +16,66 @@ const getStatusConfig = (status: OrderStatus) => {
   switch (status) {
     case "PENDING":
       return {
-        color: "#f1c40f",
+        color: "#f59e0b",
         icon: <Pending fontSize="small" />,
         label: "Chờ xác nhận",
-        subLabel: "Đơn hàng đang chờ người bán xác nhận.",
+        subLabel: "Đơn hàng đang chờ người bán xử lý.",
       };
     case "PENDING_PAYMENT":
       return {
-        color: "#cccaaa",
+        color: "#f59e0b",
         icon: <Pending fontSize="small" />,
         label: "Chờ thanh toán",
-        subLabel: "Thanh toán ngay để hoàn thành đơn hàng.",
+        subLabel: "Hoàn tất thanh toán để tiếp tục đơn hàng.",
       };
     case "PLACED":
       return {
-        color: "#00a8ff",
+        color: "#fb923c",
         icon: <Inventory fontSize="small" />,
         label: "Đã đặt hàng",
-        subLabel: "Chúng tôi đã nhận được đơn hàng của bạn.",
+        subLabel: "Hệ thống đã ghi nhận đơn của bạn.",
       };
     case "CONFIRMED":
       return {
-        color: "#0984e3",
+        color: "#f97316",
         icon: <ElectricBolt fontSize="small" />,
         label: "Đã xác nhận",
-        subLabel: "Người bán đã xác nhận đơn hàng.",
+        subLabel: "Người bán đã xác nhận sản phẩm trong đơn.",
       };
     case "SHIPPED":
       return {
-        color: "#16a085",
+        color: "#fdba74",
         icon: <LocalShipping fontSize="small" />,
         label: "Đã gửi hàng",
-        subLabel: "Đơn hàng đang được vận chuyển.",
+        subLabel: "Đơn đang trong quá trình vận chuyển.",
       };
     case "ARRIVING":
       return {
-        color: "#2980b9",
+        color: "#fb923c",
         icon: <LocalShipping fontSize="small" />,
         label: "Sắp giao",
-        subLabel: "Đơn hàng sẽ sớm được giao đến bạn.",
+        subLabel: "Đơn sẽ được giao trong thời gian ngắn.",
       };
     case "DELIVERED":
       return {
-        color: "#27ae60",
+        color: "#22c55e",
         icon: <CheckCircle fontSize="small" />,
         label: "Đã giao hàng",
         subLabel: "Đơn hàng đã được giao thành công.",
       };
     case "CANCELLED":
       return {
-        color: "#e74c3c",
+        color: "#ef4444",
         icon: <Cancel fontSize="small" />,
         label: "Đã hủy",
-        subLabel: "Đơn hàng đã bị hủy.",
+        subLabel: "Đơn hàng này đã bị hủy.",
       };
     default:
       return {
-        color: "#7f8c8d",
+        color: "#94a3b8",
         icon: <Pending fontSize="small" />,
-        label: "Trạng thái không xác định",
-        subLabel: "",
+        label: "Không xác định",
+        subLabel: "Trạng thái chưa được cập nhật.",
       };
   }
 };
@@ -88,8 +88,8 @@ const OrderItem = ({ order }: { order: Order }) => {
     order.orderStatus === "DELIVERED"
       ? "Đã giao ngày "
       : order.orderStatus === "ARRIVING"
-        ? "Dự kiến giao trước "
-        : "Dự kiến giao vào ";
+      ? "Dự kiến giao trước "
+      : "Dự kiến giao vào ";
 
   const formattedDate = order.deliveryDate
     ? format(new Date(order.deliveryDate), "dd/MM/yyyy")
@@ -97,12 +97,8 @@ const OrderItem = ({ order }: { order: Order }) => {
 
   const totalItems = order.orderItems?.reduce(
     (sum, item) => sum + (item.quantity || 0),
-    0,
+    0
   );
-
-  const handleCardClick = () => {
-    navigate(`${order.id}`);
-  };
 
   const formatVND = (value: number) =>
     new Intl.NumberFormat("vi-VN", {
@@ -112,95 +108,97 @@ const OrderItem = ({ order }: { order: Order }) => {
 
   return (
     <div
-      className="text-sm bg-white/95 p-4 sm:p-5 space-y-4 border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-      onClick={handleCardClick}
+      className="space-y-5 rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:border-orange-400/25 cursor-pointer lg:p-6"
+      onClick={() => navigate(`${order.id}`)}
     >
-      {/* Header: trạng thái + tổng tiền */}
-      <div className="flex justify-between gap-4">
-        <div className="flex items-start gap-3 sm:gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-4">
           <Avatar
-            sx={{
-              bgcolor: statusConfig.color,
-              width: 40,
-              height: 40,
-              fontSize: 18,
-            }}
+            sx={{ bgcolor: statusConfig.color, width: 52, height: 52 }}
           >
             {statusConfig.icon}
           </Avatar>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1
-                className="font-semibold text-sm sm:text-base"
+              <h2
+                className="text-xl font-black"
                 style={{ color: statusConfig.color }}
               >
                 {statusConfig.label}
-              </h1>
+              </h2>
               <Chip
                 label={`#${order.id}`}
                 size="small"
-                variant="outlined"
                 sx={{
-                  fontSize: "0.7rem",
                   borderRadius: "999px",
-                  borderColor: "rgba(148,163,184,0.6)",
-                  color: "rgb(100,116,139)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#cbd5e1",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  fontWeight: 700,
                 }}
               />
             </div>
-            <p className="text-xs text-slate-500">{statusConfig.subLabel}</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-base leading-7 text-slate-300">
+              {statusConfig.subLabel}
+            </p>
+            <p className="text-base text-slate-400">
               {deliveryLabel}
-              <span className="font-medium text-slate-800">
+              <span className="font-semibold text-white">
                 {formattedDate}
               </span>
             </p>
             {totalItems ? (
-              <p className="text-xs text-slate-500">
+              <p className="text-base text-slate-400">
                 Số lượng sản phẩm:{" "}
-                <span className="font-medium text-slate-800">{totalItems}</span>
+                <span className="font-semibold text-white">
+                  {totalItems}
+                </span>
               </p>
             ) : null}
           </div>
         </div>
 
-        <div className="text-right">
-          <p className="text-xs text-slate-500">Tổng tiền</p>
-          <p className="text-base sm:text-lg font-semibold text-sky-600">
+        <div className="text-left lg:text-right">
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Tổng tiền
+          </p>
+          <p className="mt-1 text-2xl font-black text-orange-400">
             {formatVND(order.totalPrice)}
           </p>
         </div>
       </div>
 
-      {/* Danh sách sản phẩm trong đơn */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {order.orderItems?.map((item) => (
           <div
             key={item.id}
-            className="px-3 py-2.5 sm:p-3 bg-slate-50 rounded-xl flex gap-3"
+            className="flex gap-4 rounded-[1.3rem] border border-white/6 bg-black/20 p-4"
           >
-            <div className="shrink-0">
-              <img
-                alt={item.product?.title}
-                src={item.product?.images?.[0]}
-                className="w-16 h-20 object-cover rounded-lg border border-slate-100"
-              />
-            </div>
-            <div className="w-full space-y-1">
-              <h2 className="font-semibold text-slate-900 text-sm line-clamp-2">
+            <img
+              alt={item.product?.title}
+              src={item.product?.images?.[0]}
+              className="h-24 w-20 rounded-xl object-cover border border-white/6"
+            />
+            <div className="min-w-0 flex-1 space-y-2">
+              <h3 className="line-clamp-2 text-lg font-bold text-white">
                 {item.product?.title}
-              </h2>
-              <p className="text-xs text-slate-500">
+              </h3>
+              <p className="text-base text-slate-400">
                 {item.product?.seller?.businessDetails?.businessName ||
-                  "Nhà bán hàng"}
+                  "NHTHI Fit"}
               </p>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-1">
+              <div className="flex flex-wrap items-center gap-4 text-base text-slate-300">
                 <p>
-                  <span className="font-medium">Size:</span>{" "}
-                  {item.size?.name || "Không có"}
+                  Kích thước:{" "}
+                  <span className="font-semibold text-white">
+                    {item.size?.name || "Không có"}
+                  </span>
                 </p>
                 <p>
-                  <span className="font-medium">Số lượng:</span> {item.quantity}
+                  Số lượng:{" "}
+                  <span className="font-semibold text-white">
+                    {item.quantity}
+                  </span>
                 </p>
               </div>
             </div>
@@ -208,7 +206,6 @@ const OrderItem = ({ order }: { order: Order }) => {
         ))}
       </div>
 
-      {/* Nút đánh giá */}
       {order.orderStatus === "DELIVERED" && (
         <div className="flex justify-end pt-1">
           <Button
@@ -217,10 +214,18 @@ const OrderItem = ({ order }: { order: Order }) => {
             sx={{
               textTransform: "none",
               borderRadius: "999px",
-              fontSize: "0.8rem",
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              borderColor: "rgba(249,115,22,0.3)",
+              color: "#fb923c",
+              px: 2.5,
+              "&:hover": {
+                borderColor: "#fb923c",
+                backgroundColor: "rgba(249,115,22,0.08)",
+              },
             }}
             onClick={(e) => {
-              e.stopPropagation(); // tránh trigger click card
+              e.stopPropagation();
               navigate(`/account/orders/${order.id}/review`);
             }}
           >
