@@ -6,15 +6,19 @@ const PricingCart = () => {
 
   const totalMrp = cart.cart?.totalMrpPrice || 0;
   const totalSelling = cart.cart?.totalSellingPrice || 0;
-  const totalCouponPrice = cart.cart?.totalCouponPrice || 0;
 
   const discount = totalMrp - totalSelling;
+
   const couponPercent = cart.cart?.coupon
     ? Number(cart.cart?.coupon?.discountPercentage)
     : 0;
+
   const couponValue = cart.cart?.coupon
     ? (totalSelling * couponPercent) / 100
     : 0;
+
+  const shippingFee = totalSelling >= 300000 ? 0 : 50000;
+  const totalCouponPrice = totalSelling + shippingFee - couponValue;
 
   return (
     <div className="p-5 text-neutral-200">
@@ -44,7 +48,13 @@ const PricingCart = () => {
 
         <div className="flex items-center justify-between gap-4">
           <span className="text-neutral-400">Vận chuyển</span>
-          <span className="font-semibold text-emerald-300">Miễn phí</span>
+          <span
+            className={`font-semibold ${
+              shippingFee === 0 ? "text-emerald-300" : "text-white"
+            }`}
+          >
+            {shippingFee === 0 ? "Miễn phí" : `${shippingFee.toLocaleString()}đ`}
+          </span>
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -68,7 +78,7 @@ const PricingCart = () => {
             Tổng thanh toán
           </p>
           <p className="mt-1 text-sm text-neutral-400">
-            Đã tính khuyến mãi và coupon.
+            Đã tính khuyến mãi, coupon và phí vận chuyển.
           </p>
         </div>
         <span className="text-3xl font-black tracking-tight text-orange-400">

@@ -24,6 +24,11 @@ export interface Order {
   paymentStatus?: string;
   // totalMrpPrice: number;
   // totalSellingPrice: number;
+  originalPrice?: number;       // tổng giá gốc
+  subtotalPrice?: number;       // tổng giá bán
+  shippingFee?: number;
+  shippingFeeDiscount?: number;
+  couponDiscount?: number;
   totalPrice: number;
   discount?: number;
   orderStatus: OrderStatus;
