@@ -76,11 +76,17 @@ const PageDetails = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
+
+  const product = products.product;
+  const numericProductId = Number(productId);
+
   const handleWishlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     try {
-      await dispatch(addProductToWishlist(Number(productId))).unwrap();
+      await dispatch(addProductToWishlist(numericProductId)).unwrap();
       setSnackbar({
         open: true,
         message: "Đã thêm vào danh sách yêu thích.",
@@ -96,7 +102,7 @@ const PageDetails = () => {
   };
 
   const handleChatSeller = async () => {
-    const sellerId = products.product?.seller?.id;
+    const sellerId = product?.seller?.id;
     if (sellerId) {
       await dispatch(createChat({ sellerId: Number(sellerId) }));
       navigate("/message");
@@ -109,11 +115,17 @@ const PageDetails = () => {
       return;
     }
 
+    if (quantity > Number(selectedSize.quantity)) {
+      setError(`Size ${selectedSize.name} chỉ còn ${selectedSize.quantity} sản phẩm.`);
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     const productImg = document.querySelector(".main-product-img") as HTMLElement | null;
     const cartIcon = document.querySelector('[data-cart-target="true"]') as HTMLElement | null;
+
     if (productImg && cartIcon) {
       const imgRect = productImg.getBoundingClientRect();
       const cartRect = cartIcon.getBoundingClientRect();
@@ -131,7 +143,8 @@ const PageDetails = () => {
       flyImage.style.zIndex = "1000";
       flyImage.style.pointerEvents = "none";
       flyImage.style.boxShadow = "0 24px 80px rgba(0,0,0,0.38)";
-      flyImage.style.transition = "transform 0.95s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.95s ease, filter 0.95s ease";
+      flyImage.style.transition =
+        "transform 0.95s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.95s ease, filter 0.95s ease";
       document.body.appendChild(flyImage);
 
       const deltaX = cartRect.left - imgRect.left;
@@ -163,7 +176,7 @@ const PageDetails = () => {
     }
 
     const req = {
-      productId: Number(productId),
+      productId: numericProductId,
       sizeId: selectedSize.id,
       quantity: quantity,
     };
@@ -185,25 +198,94 @@ const PageDetails = () => {
       setLoading(false);
     }
   };
+const getErrorMessage = (err: any): string => {
+  if (!err) return "Đã xảy ra lỗi.";
 
-  const product = products.product;
+  if (typeof err === "string") return err;
+
+  if (typeof err === "object") {
+    if (typeof err.message === "string") return err.message;
+    if (typeof err.details === "string") return err.details;
+    return JSON.stringify(err);
+  }
+
+  return "Đã xảy ra lỗi.";
+};
+  useEffect(() => {
+    const loadProduct = async () => {
+      if (!productId || Number.isNaN(numericProductId)) {
+        setPageLoading(false);
+        setPageError("Không tìm thấy sản phẩm.");
+        return;
+      }
+
+      try {
+        setPageLoading(true);
+        setPageError("");
+        setActiveImage(0);
+        setSelectedSize(undefined);
+        setQuantity(1);
+        setError("");
+
+        await dispatch(fetchProductById(numericProductId)).unwrap();
+      } catch (err: any) {
+        setPageError(getErrorMessage(err));
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId, numericProductId, dispatch]);
 
   useEffect(() => {
-    if (productId) {
-      dispatch(fetchProductById(Number(productId)));
-    }
-  }, [productId, dispatch]);
-
-  useEffect(() => {
-    if (product) {
+    if (!pageLoading && product?.id) {
       dispatch(
         fetchSameProduct({
           query: product?.category?.name || "",
-          id: productId,
+          id: product.id,
         })
       );
     }
-  }, [product, dispatch, productId]);
+  }, [pageLoading, product, dispatch]);
+
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4">
+        <div className="flex flex-col items-center gap-4 text-white">
+          <CircularProgress sx={{ color: "#f97316" }} />
+          <p className="text-sm text-slate-300">Đang tải thông tin sản phẩm...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (pageError || !product) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4">
+        <div className="w-full max-w-md rounded-[1.5rem] border border-red-500/20 bg-[#101010] p-6 text-center text-white">
+          <h2 className="text-xl font-bold text-red-300">Không thể hiển thị sản phẩm</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            {pageError || "Sản phẩm không tồn tại hoặc đã bị xóa."}
+          </p>
+          <Button
+            onClick={() => navigate(-1)}
+            variant="contained"
+            sx={{
+              mt: 3,
+              textTransform: "none",
+              borderRadius: "999px",
+              fontWeight: 700,
+              background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+              color: "#050505",
+            }}
+          >
+            Quay lại
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#080808] px-4 pb-16 pt-8 text-white lg:px-16">
@@ -218,7 +300,7 @@ const PageDetails = () => {
             <section className="border-b border-orange-500/10 p-5 lg:border-b-0 lg:border-r lg:p-8">
               <div className="grid gap-4 lg:grid-cols-[100px_minmax(0,1fr)]">
                 <div className="order-2 flex gap-3 overflow-auto lg:order-1 lg:flex-col">
-                  {product?.images.map((item, index) => (
+                  {product?.images?.map((item, index) => (
                     <button
                       key={index}
                       type="button"
@@ -242,7 +324,7 @@ const PageDetails = () => {
                   <div className="relative overflow-hidden rounded-[1.8rem] bg-black">
                     <img
                       alt={product?.title}
-                      src={product?.images[activeImage]}
+                      src={product?.images?.[activeImage] || product?.images?.[0] || ""}
                       className="main-product-img max-h-[620px] w-full object-cover"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.14),transparent_24%)]" />
@@ -286,7 +368,11 @@ const PageDetails = () => {
                       {product?.numRatings || 0}
                       <Star sx={{ color: "#fb923c", fontSize: 18 }} />
                     </span>
-                    <Divider orientation="vertical" flexItem sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
+                    <Divider
+                      orientation="vertical"
+                      flexItem
+                      sx={{ borderColor: "rgba(255,255,255,0.08)" }}
+                    />
                     <span>{product?.reviews?.length || 0} đánh giá</span>
                   </div>
                 </div>
@@ -322,13 +408,16 @@ const PageDetails = () => {
                     Chọn size
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {product?.sizes.map((size: Size) => (
+                    {product?.sizes?.map((size: Size) => (
                       <Button
                         key={size.id}
                         variant={selectedSize?.id === size.id ? "contained" : "outlined"}
                         onClick={() => {
                           setSelectedSize(size);
                           setError("");
+                          if (quantity > Number(size.quantity)) {
+                            setQuantity(1);
+                          }
                         }}
                         disabled={size.quantity === 0}
                         sx={{
@@ -339,11 +428,15 @@ const PageDetails = () => {
                           px: 2,
                           py: 0.9,
                           color: selectedSize?.id === size.id ? "#050505" : "#fff",
-                          backgroundColor: selectedSize?.id === size.id ? "#f97316" : "transparent",
+                          backgroundColor:
+                            selectedSize?.id === size.id ? "#f97316" : "transparent",
                           borderColor: "rgba(249,115,22,0.25)",
                           "&:hover": {
                             borderColor: "#fb923c",
-                            backgroundColor: selectedSize?.id === size.id ? "#fb923c" : "rgba(249,115,22,0.08)",
+                            backgroundColor:
+                              selectedSize?.id === size.id
+                                ? "#fb923c"
+                                : "rgba(249,115,22,0.08)",
                           },
                           "&.Mui-disabled": {
                             color: "rgba(255,255,255,0.24)",
@@ -357,7 +450,9 @@ const PageDetails = () => {
                   </div>
                   {selectedSize && (
                     <p className="text-sm text-slate-400">
-                      Còn lại <span className="font-bold text-white">{selectedSize.quantity}</span> sản phẩm cho size {selectedSize.name}.
+                      Còn lại{" "}
+                      <span className="font-bold text-white">{selectedSize.quantity}</span> sản
+                      phẩm cho size {selectedSize.name}.
                     </p>
                   )}
                 </div>
@@ -374,10 +469,21 @@ const PageDetails = () => {
                     >
                       <Remove />
                     </Button>
-                    <span className="min-w-[28px] text-center font-bold text-white">{quantity}</span>
+                    <span className="min-w-[28px] text-center font-bold text-white">
+                      {quantity}
+                    </span>
                     <Button
                       onClick={() => {
-                        if (selectedSize && quantity + 1 > Number(selectedSize.quantity)) {
+                        if (!selectedSize) {
+                          setSnackbar({
+                            open: true,
+                            message: "Hãy chọn size trước.",
+                            severity: "error",
+                          });
+                          return;
+                        }
+
+                        if (quantity + 1 > Number(selectedSize.quantity)) {
                           setSnackbar({
                             open: true,
                             message: `Size ${selectedSize.name} chỉ còn ${selectedSize.quantity} sản phẩm.`,
@@ -385,6 +491,7 @@ const PageDetails = () => {
                           });
                           return;
                         }
+
                         setQuantity(quantity + 1);
                       }}
                       sx={{ minWidth: 42, borderRadius: "999px", color: "white" }}
@@ -400,7 +507,9 @@ const PageDetails = () => {
                   <Button
                     fullWidth
                     variant="contained"
-                    startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <AddShoppingCart />}
+                    startIcon={
+                      loading ? <CircularProgress size={18} color="inherit" /> : <AddShoppingCart />
+                    }
                     sx={{
                       py: "0.95rem",
                       textTransform: "none",
@@ -472,7 +581,7 @@ const PageDetails = () => {
                     Mô tả sản phẩm
                   </h3>
                   <p className="mt-3 text-sm leading-7 text-slate-300">
-                    {product?.description || "Chua co mo ta cho san pham nay."}
+                    {product?.description || "Chưa có mô tả cho sản phẩm này."}
                   </p>
                 </div>
               </div>
@@ -528,4 +637,3 @@ const PageDetails = () => {
 };
 
 export default PageDetails;
-

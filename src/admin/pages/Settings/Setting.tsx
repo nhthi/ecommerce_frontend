@@ -45,66 +45,111 @@ export default function AdminSettings() {
     <Paper elevation={0} sx={{ ...cardSx, p: { xs: 3, lg: 4 } }}>
       <Stack direction="row" spacing={1.2} alignItems="center">
         <Tune sx={{ color: "#fb923c" }} />
-        <Typography fontSize={28} fontWeight={800} color="white">Settings</Typography>
+        <Typography fontSize={28} fontWeight={800} color="white">
+          Cài đặt hệ thống
+        </Typography>
       </Stack>
+
       <Typography sx={{ mt: 0.8, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
-        Cau hinh nhanh cac thong so van hanh de admin quan ly he thong gon hon.
+        Cấu hình nhanh các thông số vận hành giúp quản trị viên quản lý hệ thống dễ dàng hơn.
       </Typography>
 
       <Tabs
         value={value}
         onChange={(_, next) => setValue(next)}
-        sx={{ mt: 2.5, borderBottom: "1px solid rgba(255,255,255,0.08)", "& .MuiTab-root": { color: "rgba(255,255,255,0.58)", textTransform: "none", minHeight: 54 }, "& .Mui-selected": { color: "#fb923c !important" }, "& .MuiTabs-indicator": { backgroundColor: "#f97316", height: 3, borderRadius: 999 } }}
+        sx={{
+          mt: 2.5,
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          "& .MuiTab-root": {
+            color: "rgba(255,255,255,0.58)",
+            textTransform: "none",
+            minHeight: 54,
+          },
+          "& .Mui-selected": { color: "#fb923c !important" },
+          "& .MuiTabs-indicator": {
+            backgroundColor: "#f97316",
+            height: 3,
+            borderRadius: 999,
+          },
+        }}
       >
-        <Tab label="Tong quan" />
-        <Tab label="Bao mat" />
-        <Tab label="Thanh toan" />
-        <Tab label="Thong bao" />
+        <Tab label="Tổng quan" />
+        <Tab label="Bảo mật" />
+        <Tab label="Thanh toán" />
+        <Tab label="Thông báo" />
       </Tabs>
 
+      {/* TAB 1 */}
       <TabPanel value={value} index={0}>
-        <TextField fullWidth label="Ten trang" defaultValue="NHTHI FIT Admin" sx={fieldSx} />
-        <TextField fullWidth label="Logo URL" defaultValue="/uploads/logo.png" sx={fieldSx} />
-        <TextField select fullWidth label="Ngon ngu mac dinh" defaultValue="vi" sx={fieldSx}>
-          <MenuItem value="vi">Tieng Viet</MenuItem>
-          <MenuItem value="en">English</MenuItem>
+        <TextField fullWidth label="Tên trang" defaultValue="NHTHI FIT Admin" sx={fieldSx} />
+        <TextField fullWidth label="URL logo" defaultValue="/uploads/logo.png" sx={fieldSx} />
+
+        <TextField select fullWidth label="Ngôn ngữ mặc định" defaultValue="vi" sx={fieldSx}>
+          <MenuItem value="vi">Tiếng Việt</MenuItem>
+          <MenuItem value="en">Tiếng Anh</MenuItem>
         </TextField>
-        <TextField fullWidth label="Mui gio" defaultValue="Asia/Ho_Chi_Minh" sx={fieldSx} />
+
+        <TextField fullWidth label="Múi giờ" defaultValue="Asia/Ho_Chi_Minh" sx={fieldSx} />
       </TabPanel>
 
+      {/* TAB 2 */}
       <TabPanel value={value} index={1}>
         <Stack spacing={1.2}>
-          <FormControlLabel control={<Switch defaultChecked />} label="Bat xac minh email" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch defaultChecked />} label="Bat 2FA cho admin" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch />} label="Chi cho phep IP noi bo" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Bật xác minh email" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Bật xác thực 2 lớp (2FA) cho admin" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch />} label="Chỉ cho phép IP nội bộ" sx={{ color: "white" }} />
         </Stack>
-        <TextField fullWidth label="Danh sach IP tin cay" placeholder="192.168.1.1, 127.0.0.1" sx={{ ...fieldSx, mt: 2 }} />
+
+        <TextField
+          fullWidth
+          label="Danh sách IP tin cậy"
+          placeholder="192.168.1.1, 127.0.0.1"
+          sx={{ ...fieldSx, mt: 2 }}
+        />
       </TabPanel>
 
+      {/* TAB 3 */}
       <TabPanel value={value} index={2}>
-        <TextField select fullWidth label="Don vi tien" defaultValue="VND" sx={fieldSx}>
+        <TextField select fullWidth label="Đơn vị tiền tệ" defaultValue="VND" sx={fieldSx}>
           <MenuItem value="VND">VND</MenuItem>
           <MenuItem value="USD">USD</MenuItem>
         </TextField>
+
         <Stack spacing={1.2}>
-          <FormControlLabel control={<Switch defaultChecked />} label="Bat VNPay" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch defaultChecked />} label="Bat COD" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch />} label="Bat PayPal" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Bật thanh toán VNPay" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Bật thanh toán khi nhận hàng (COD)" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch />} label="Bật PayPal" sx={{ color: "white" }} />
         </Stack>
-        <TextField fullWidth type="number" label="Thue (%)" defaultValue={10} sx={{ ...fieldSx, mt: 2 }} />
+
+        <TextField
+          fullWidth
+          type="number"
+          label="Thuế (%)"
+          defaultValue={10}
+          sx={{ ...fieldSx, mt: 2 }}
+        />
       </TabPanel>
 
+      {/* TAB 4 */}
       <TabPanel value={value} index={3}>
         <Stack spacing={1.2}>
-          <FormControlLabel control={<Switch defaultChecked />} label="Thong bao email" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch />} label="Thong bao SMS" sx={{ color: "white" }} />
-          <FormControlLabel control={<Switch defaultChecked />} label="Thong bao day" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Thông báo qua email" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch />} label="Thông báo SMS" sx={{ color: "white" }} />
+          <FormControlLabel control={<Switch defaultChecked />} label="Thông báo đẩy (push notification)" sx={{ color: "white" }} />
         </Stack>
       </TabPanel>
 
       <Box sx={{ mt: 2.5 }}>
-        <Button variant="contained" sx={{ borderRadius: 999, textTransform: "none", px: 2.8, background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
-          Luu cai dat
+        <Button
+          variant="contained"
+          sx={{
+            borderRadius: 999,
+            textTransform: "none",
+            px: 2.8,
+            background: "linear-gradient(135deg, #f97316, #ea580c)",
+          }}
+        >
+          Lưu cài đặt
         </Button>
       </Box>
     </Paper>

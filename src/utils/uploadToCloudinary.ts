@@ -17,7 +17,7 @@ export const uploadToCloundinary = async(pics:any,  fileType:any)=>{
         const fileData = await res.json()
         console.log('fileData',fileData.url);
 
-        return fileData.url
+        return fileData.secure_url;
     }else{
         console.log('error..................');
     }

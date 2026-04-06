@@ -25,9 +25,16 @@ export interface CategoryFormValues {
 }
 
 const validationSchema = Yup.object().shape({
-  name: Yup.string().trim().required("Ten danh muc khong duoc de trong"),
-  categoryId: Yup.string().trim().required("Ma danh muc khong duoc de trong").min(3).max(30),
-  level: Yup.number().required("Vui long chon cap do danh muc").min(1).max(3),
+  name: Yup.string().trim().required("Tên danh mục không được để trống"),
+  categoryId: Yup.string()
+    .trim()
+    .required("Mã danh mục không được để trống")
+    .min(3, "Mã danh mục tối thiểu 3 ký tự")
+    .max(30, "Mã danh mục tối đa 30 ký tự"),
+  level: Yup.number()
+    .required("Vui lòng chọn cấp độ danh mục")
+    .min(1)
+    .max(3),
   parentId: Yup.string().nullable(),
 });
 
@@ -70,47 +77,125 @@ const AddNewCategoryForm = () => {
 
   return (
     <Paper elevation={0} sx={{ ...cardSx, p: { xs: 3, lg: 4 } }}>
-      <Typography fontSize={28} fontWeight={800} color="white">Them danh muc moi</Typography>
-      <Typography sx={{ mt: 0.8, mb: 3, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
-        Tao cau truc danh muc ro rang cho san pham fitness, noi dung blog va khoa hoc.
+      <Typography fontSize={28} fontWeight={800} color="white">
+        Thêm danh mục mới
       </Typography>
+
+      <Typography
+        sx={{
+          mt: 0.8,
+          mb: 3,
+          color: "rgba(255,255,255,0.62)",
+          fontSize: 14.5,
+        }}
+      >
+        Tạo cấu trúc danh mục rõ ràng cho sản phẩm fitness, bài viết blog và khóa học.
+      </Typography>
+
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Grid container spacing={2.2}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth name="name" label="Ten danh muc" value={formik.values.name} onChange={formik.handleChange} error={formik.touched.name && Boolean(formik.errors.name)} helperText={formik.touched.name && formik.errors.name} sx={fieldSx} />
+            <TextField
+              fullWidth
+              name="name"
+              label="Tên danh mục"
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              error={formik.touched.name && Boolean(formik.errors.name)}
+              helperText={formik.touched.name && formik.errors.name}
+              sx={fieldSx}
+            />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth name="categoryId" label="Ma danh muc" value={formik.values.categoryId} onChange={formik.handleChange} error={formik.touched.categoryId && Boolean(formik.errors.categoryId)} helperText={formik.touched.categoryId && formik.errors.categoryId} sx={fieldSx} />
+            <TextField
+              fullWidth
+              name="categoryId"
+              label="Mã danh mục"
+              value={formik.values.categoryId}
+              onChange={formik.handleChange}
+              error={
+                formik.touched.categoryId &&
+                Boolean(formik.errors.categoryId)
+              }
+              helperText={
+                formik.touched.categoryId && formik.errors.categoryId
+              }
+              sx={fieldSx}
+            />
           </Grid>
+
           <Grid size={{ xs: 12, md: 6 }}>
             <FormControl fullWidth sx={fieldSx}>
-              <InputLabel>Cap do</InputLabel>
-              <Select label="Cap do" name="level" value={formik.values.level} onChange={formik.handleChange}>
-                <MenuItem value={1}>Level 1</MenuItem>
-                <MenuItem value={2}>Level 2</MenuItem>
-                <MenuItem value={3}>Level 3</MenuItem>
+              <InputLabel>Cấp độ</InputLabel>
+              <Select
+                label="Cấp độ"
+                name="level"
+                value={formik.values.level}
+                onChange={formik.handleChange}
+              >
+                <MenuItem value={1}>Cấp 1</MenuItem>
+                <MenuItem value={2}>Cấp 2</MenuItem>
+                <MenuItem value={3}>Cấp 3</MenuItem>
               </Select>
             </FormControl>
           </Grid>
+
           {formik.values.level > 1 && (
             <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth sx={fieldSx}>
-                <InputLabel>Danh muc cha</InputLabel>
-                <Select label="Danh muc cha" name="parentId" value={formik.values.parentId || ""} onChange={formik.handleChange}>
-                  {category.categories.filter((cat) => cat.level === formik.values.level - 1).map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                  ))}
+                <InputLabel>Danh mục cha</InputLabel>
+                <Select
+                  label="Danh mục cha"
+                  name="parentId"
+                  value={formik.values.parentId || ""}
+                  onChange={formik.handleChange}
+                >
+                  {category.categories
+                    .filter((cat) => cat.level === formik.values.level - 1)
+                    .map((cat) => (
+                      <MenuItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>
           )}
+
           <Grid size={{ xs: 12 }}>
-            <Box display="flex" gap={1.2} justifyContent="flex-end" flexWrap="wrap">
-              <Button variant="outlined" onClick={() => navigate("/admin/categories")} sx={{ borderRadius: 999, textTransform: "none", px: 2.5, color: "rgba(255,255,255,0.82)", borderColor: "rgba(255,255,255,0.12)" }}>
-                Quay lai
+            <Box
+              display="flex"
+              gap={1.2}
+              justifyContent="flex-end"
+              flexWrap="wrap"
+            >
+              <Button
+                variant="outlined"
+                onClick={() => navigate("/admin/categories")}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 2.5,
+                  color: "rgba(255,255,255,0.82)",
+                  borderColor: "rgba(255,255,255,0.12)",
+                }}
+              >
+                Quay lại
               </Button>
-              <Button type="submit" variant="contained" sx={{ borderRadius: 999, textTransform: "none", px: 2.8, background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
-                Tao danh muc
+
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 2.8,
+                  background:
+                    "linear-gradient(135deg, #f97316, #ea580c)",
+                }}
+              >
+                Tạo danh mục
               </Button>
             </Box>
           </Grid>

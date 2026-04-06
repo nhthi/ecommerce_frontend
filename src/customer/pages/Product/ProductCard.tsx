@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import "./ProductCard.css";
+
 import { Button } from "@mui/material";
 import {
   Favorite,
@@ -47,9 +48,9 @@ const ProductCard = ({ product }: { product: Product }) => {
     setOpenChat(true);
   };
 
-  useEffect(() => {
-    dispatch(getWishlistByUser());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getWishlistByUser());
+  // }, [dispatch]);
 
   return (
     <>
@@ -57,7 +58,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         className="product-card group"
         onClick={() =>
           navigate(
-            `/product-details/${product.category?.categoryId}/${product.title.replaceAll("/", "_")}/${product.id}`,
+            `/product-details/${product.title.replaceAll("/", "_")}/${product.id}`,
           )
         }
       >

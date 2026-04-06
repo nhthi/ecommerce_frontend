@@ -1,6 +1,12 @@
 import { Review } from "./OrderType";
 import { Seller } from "./SellerType";
 
+export interface ProductUser {
+  id: number;
+  fullName?: string;
+  email?: string;
+}
+
 export interface Product {
   id?: number;
   title: string;
@@ -14,6 +20,7 @@ export interface Product {
   numRatings?: number;
   category?: Category;
   seller?: Seller;
+  createdBy?: ProductUser | null;
   createAt?: Date;
   sizes: Size[];
   reviews?: Review[];

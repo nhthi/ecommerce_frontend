@@ -1,4 +1,4 @@
-﻿import {
+import {
   Button,
   FormControl,
   FormControlLabel,
@@ -10,12 +10,14 @@
   AccordionDetails,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { colors } from "../../../data/Filter/color";
 import { useSearchParams } from "react-router-dom";
 import { prices } from "../../../data/Filter/price";
 import { brands } from "../../../data/Filter/brand";
 import { discounts } from "../../../data/Filter/discount";
+import { useAppDispatch, useAppSelector } from "../../../state/Store";
+import { fetchAllCategory } from "../../../state/admin/adminCategorySlice";
 
 const accordionSx = {
   boxShadow: "none",
@@ -70,8 +72,27 @@ const sectionTitleSx = {
 };
 
 const FilterSection = () => {
+  const dispatch = useAppDispatch();
+  const { category } = useAppSelector((store) => store);
   const [expandColor, setExpandColor] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (!category.categories?.length) {
+      dispatch(fetchAllCategory());
+    }
+  }, [category.categories?.length, dispatch]);
+
+  const productCategories = useMemo(
+    () =>
+      (category.categories || [])
+        .filter((item) => item.level === 1)
+        .map((item) => ({
+          label: item.name || item.categoryId,
+          value: item.name || item.categoryId,
+        })),
+    [category.categories],
+  );
 
   const updateFilterParams = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
@@ -88,6 +109,7 @@ const FilterSection = () => {
     setSearchParams(new URLSearchParams());
   };
 
+  const selectedCategory = searchParams.get("keyword") || "";
   const selectedColor = searchParams.get("color") || "";
   const selectedPrice = searchParams.get("price") || "";
   const selectedBrand = searchParams.get("brand") || "";
@@ -127,16 +149,91 @@ const FilterSection = () => {
               },
             }}
           >
-            Xóa tất cả
+            Đặt lại
           </Button>
         </div>
 
         <p className="mt-2 text-sm leading-6 text-neutral-400">
-          Chọn nhanh theo màu sắc, giá, thương hiệu và mức giảm giá.
+          Chọn nhanh theo danh mục, màu sắc, giá và mức giảm giá
         </p>
       </div>
 
       <div className="mt-4 space-y-3">
+        <Accordion disableGutters defaultExpanded sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
+            <FormLabel id="keyword" sx={sectionTitleSx}>
+              Danh mục
+            </FormLabel>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl component="fieldset" fullWidth>
+              <RadioGroup aria-labelledby="keyword" name="keyword" value={selectedCategory} onChange={updateFilterParams}>
+                {productCategories.map((item) => (
+                  <FormControlLabel
+                    key={item.value}
+                    value={item.value}
+                    control={<Radio size="small" sx={radioSx} />}
+                    label={item.label}
+                    sx={labelSx}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion>
+
+        
+
+        <Accordion disableGutters sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
+            <FormLabel id="price" sx={sectionTitleSx}>
+              Khoảng giá
+            </FormLabel>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl component="fieldset" fullWidth>
+              <RadioGroup aria-labelledby="price" name="price" value={selectedPrice} onChange={updateFilterParams}>
+                {prices.map((item) => (
+                  <FormControlLabel key={item.price} value={item.value} control={<Radio size="small" sx={radioSx} />} label={item.price} sx={labelSx} />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion>
+
+        {/* <Accordion disableGutters sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
+            <FormLabel id="brand" sx={sectionTitleSx}>
+              Thuong hieu
+            </FormLabel>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl component="fieldset" fullWidth>
+              <RadioGroup aria-labelledby="brand" name="brand" value={selectedBrand} onChange={updateFilterParams}>
+                {brands.map((item) => (
+                  <FormControlLabel key={item.name} value={item.value} control={<Radio size="small" sx={radioSx} />} label={item.name} sx={labelSx} />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion> */}
+
+        <Accordion disableGutters sx={accordionSx}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
+            <FormLabel id="discount" sx={sectionTitleSx}>
+              Mức giảm giá
+            </FormLabel>
+          </AccordionSummary>
+          <AccordionDetails>
+            <FormControl component="fieldset" fullWidth>
+              <RadioGroup aria-labelledby="discount" name="discount" value={selectedDiscount} onChange={updateFilterParams}>
+                {discounts.map((item) => (
+                  <FormControlLabel key={item.name} value={item.value} control={<Radio size="small" sx={radioSx} />} label={item.name} sx={labelSx} />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </AccordionDetails>
+        </Accordion>
         <Accordion disableGutters defaultExpanded sx={accordionSx}>
           <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
             <FormLabel id="color" sx={sectionTitleSx}>
@@ -182,79 +279,10 @@ const FilterSection = () => {
                     },
                   }}
                 >
-                  {expandColor ? "Thu gọn" : `+ ${colors.length - 5} màu khác`}
+                  {expandColor ? "Thu gon" : `+ ${colors.length - 5} mau khac`}
                 </Button>
               </div>
             )}
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion disableGutters sx={accordionSx}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
-            <FormLabel id="price" sx={sectionTitleSx}>
-              Khoảng giá
-            </FormLabel>
-          </AccordionSummary>
-          <AccordionDetails>
-            <FormControl component="fieldset" fullWidth>
-              <RadioGroup aria-labelledby="price" name="price" value={selectedPrice} onChange={updateFilterParams}>
-                {prices.map((item) => (
-                  <FormControlLabel
-                    key={item.price}
-                    value={item.value}
-                    control={<Radio size="small" sx={radioSx} />}
-                    label={item.price}
-                    sx={labelSx}
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion disableGutters sx={accordionSx}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
-            <FormLabel id="brand" sx={sectionTitleSx}>
-              Thương hiệu
-            </FormLabel>
-          </AccordionSummary>
-          <AccordionDetails>
-            <FormControl component="fieldset" fullWidth>
-              <RadioGroup aria-labelledby="brand" name="brand" value={selectedBrand} onChange={updateFilterParams}>
-                {brands.map((item) => (
-                  <FormControlLabel
-                    key={item.name}
-                    value={item.value}
-                    control={<Radio size="small" sx={radioSx} />}
-                    label={item.name}
-                    sx={labelSx}
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </AccordionDetails>
-        </Accordion>
-
-        <Accordion disableGutters sx={accordionSx}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18, color: "#fdba74" }} />}>
-            <FormLabel id="discount" sx={sectionTitleSx}>
-              Mức giảm giá
-            </FormLabel>
-          </AccordionSummary>
-          <AccordionDetails>
-            <FormControl component="fieldset" fullWidth>
-              <RadioGroup aria-labelledby="discount" name="discount" value={selectedDiscount} onChange={updateFilterParams}>
-                {discounts.map((item) => (
-                  <FormControlLabel
-                    key={item.name}
-                    value={item.value}
-                    control={<Radio size="small" sx={radioSx} />}
-                    label={item.name}
-                    sx={labelSx}
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
           </AccordionDetails>
         </Accordion>
       </div>

@@ -15,7 +15,7 @@ export const createCategory = createAsyncThunk<Category, CategoryFormValues>(
       console.log("error----", error);
       rejectWithValue(error.response.data.message || "Failed to fetch deals");
     }
-  }
+  },
 );
 
 export const updateCategory = createAsyncThunk<
@@ -45,7 +45,21 @@ export const fetchAllCategory = createAsyncThunk<Category[], void>(
       console.log("error----", error);
       rejectWithValue(error.response.data.message || "Failed to fetch deals");
     }
-  }
+  },
+);
+
+export const deleteCategory = createAsyncThunk<number, number>(
+  "category/deleteCategory",
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/api/category/admin/${id}`);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Xóa danh mục thất bại",
+      );
+    }
+  },
 );
 
 const initialState: CategoryState = {
@@ -89,7 +103,7 @@ const categorySlice = createSlice({
         state.loading = false;
         // Tìm index của category cần cập nhật trong mảng hiện tại
         const index = state.categories.findIndex(
-          (cat) => cat.id === action.payload.id
+          (cat) => cat.id === action.payload.id,
         );
 
         if (index !== -1) {
@@ -99,6 +113,14 @@ const categorySlice = createSlice({
       })
       .addCase(updateCategory.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.categories = state.categories.filter(
+          (cat) => cat.id !== action.payload,
+        );
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

@@ -5,6 +5,8 @@ import {
   Snackbar,
   TextField,
   Collapse,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useAppDispatch } from "../../../state/Store";
@@ -14,6 +16,9 @@ import { MuiOtpInput } from "mui-one-time-password-input";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import LockOutlineIcon from "@mui/icons-material/LockOutline";
 
 type SnackbarSeverity = "success" | "info" | "warning" | "error";
 
@@ -49,31 +54,48 @@ const RegisterForm = () => {
   const dispatch = useAppDispatch();
   const [sendOtp, setSendOtp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRePassword, setShowRePassword] = useState(false);
+
   const navigate = useNavigate();
 
   const validationSchema = Yup.object({
     email: Yup.string()
       .email("Email không đúng định dạng")
       .required("Email không được để trống"),
+
     fullName: Yup.string()
       .min(2, "Họ và tên phải có ít nhất 2 ký tự")
       .required("Họ và tên không được để trống"),
+
+    password: Yup.string()
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+      .max(50, "Mật khẩu không được vượt quá 50 ký tự")
+      .required("Mật khẩu không được để trống"),
+
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password")], "Mật khẩu nhập lại không khớp")
+      .required("Vui lòng nhập lại mật khẩu"),
+
     otp: Yup.string().when([], {
       is: () => sendOtp,
       then: (schema) =>
         schema
           .matches(/^[0-9]{6}$/, "Mã OTP phải gồm 6 chữ số")
           .required("Vui lòng nhập mã OTP"),
+      otherwise: (schema) => schema.notRequired(),
     }),
   });
 
-  const [countdown, setCountdown] = useState(0);
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (countdown > 0) {
       timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [countdown]);
 
   const [snackbar, setSnackbar] = useState<{
@@ -91,20 +113,33 @@ const RegisterForm = () => {
       email: "",
       otp: "",
       fullName: "",
+      password: "",
+      confirmPassword: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
-        await dispatch(signup(values)).unwrap();
+
+        await dispatch(
+          signup({
+            email: values.email,
+            fullName: values.fullName,
+            password: values.password,
+            otp: values.otp,
+          })
+        ).unwrap();
+
         setSnackbar({
           open: true,
           message: "Tạo tài khoản thành công",
           severity: "success",
         });
+
         navigate("/");
       } catch (error: any) {
         let errorMessage = "Đăng ký thất bại. Thử lại sau.";
+
         if (error?.response?.data) {
           errorMessage =
             error.response.data.message ||
@@ -113,6 +148,7 @@ const RegisterForm = () => {
         } else if (typeof error === "string") {
           errorMessage = error;
         }
+
         setSnackbar({
           open: true,
           message: errorMessage,
@@ -125,29 +161,48 @@ const RegisterForm = () => {
   });
 
   const handleSendOtp = async () => {
-    if (!formik.values.email) {
-      formik.setFieldTouched("email", true);
-      return;
-    }
-    if (formik.errors.email) return;
+    await formik.setTouched({
+      email: true,
+      fullName: true,
+      password: true,
+      confirmPassword: true,
+      otp: false,
+    });
 
-    if (!formik.values.fullName) {
-      formik.setFieldTouched("fullName", true);
+    await formik.validateForm();
+
+    if (
+      !formik.values.email ||
+      !formik.values.fullName ||
+      !formik.values.password ||
+      !formik.values.confirmPassword
+    ) {
       return;
     }
-    if (formik.errors.fullName) return;
+
+    if (
+      formik.errors.email ||
+      formik.errors.fullName ||
+      formik.errors.password ||
+      formik.errors.confirmPassword
+    ) {
+      return;
+    }
 
     try {
       setLoading(true);
+
       await dispatch(
         sendLoginSignupOtp({
           email: formik.values.email,
+          password: formik.values.password,
           role: "ROLE_CUSTOMER",
         })
       ).unwrap();
 
       setSendOtp(true);
       setCountdown(60);
+
       setSnackbar({
         open: true,
         message: "Mã OTP đã được gửi tới email của bạn",
@@ -212,6 +267,77 @@ const RegisterForm = () => {
           sx={inputSx}
         />
 
+        <TextField
+          fullWidth
+          name="password"
+          label="Mật khẩu"
+          placeholder="Nhập mật khẩu"
+          type={showPassword ? "text" : "password"}
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password && Boolean(formik.errors.password)}
+          helperText={formik.touched.password && formik.errors.password}
+          size="small"
+          sx={inputSx}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockOutlineIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  edge="end"
+                  sx={{ color: "#94a3b8" }}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <TextField
+          fullWidth
+          name="confirmPassword"
+          label="Nhập lại mật khẩu"
+          placeholder="Nhập lại mật khẩu"
+          type={showRePassword ? "text" : "password"}
+          value={formik.values.confirmPassword}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={
+            formik.touched.confirmPassword &&
+            Boolean(formik.errors.confirmPassword)
+          }
+          helperText={
+            formik.touched.confirmPassword && formik.errors.confirmPassword
+          }
+          size="small"
+          sx={inputSx}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockOutlineIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowRePassword((prev) => !prev)}
+                  edge="end"
+                  sx={{ color: "#94a3b8" }}
+                >
+                  {showRePassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
         <Collapse in={sendOtp}>
           <div className="space-y-3 rounded-[1.2rem] border border-orange-500/10 bg-black/20 p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-orange-300">
@@ -223,6 +349,7 @@ const RegisterForm = () => {
                 {formik.values.email || "email của bạn"}
               </span>.
             </p>
+
             <MuiOtpInput
               length={6}
               value={formik.values.otp}
@@ -233,6 +360,7 @@ const RegisterForm = () => {
                 sx: inputSx,
               }}
             />
+
             {formik.touched.otp && formik.errors.otp && (
               <div className="text-sm text-red-300">{formik.errors.otp}</div>
             )}
@@ -301,7 +429,7 @@ const RegisterForm = () => {
 
         {!sendOtp && (
           <p className="text-center text-xs text-slate-500">
-            Sau khi xác thực OTP, tài khoản sẽ được tạo ngay.
+            Nhập đầy đủ thông tin, mật khẩu và xác thực OTP để tạo tài khoản.
           </p>
         )}
       </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CartItem from "./CartItem";
-import { Favorite, LocalOffer, ShoppingCart } from "@mui/icons-material";
+import { Close, Favorite, LocalOffer, ShoppingCart } from "@mui/icons-material";
 import { Button, IconButton, TextField, Typography } from "@mui/material";
 import PricingCart from "./PricingCart";
 import { useNavigate } from "react-router-dom";
@@ -173,7 +173,7 @@ const Cart = () => {
                       {cart.cart.coupon.name} - Giam {cart.cart.coupon.discountPercentage}%
                     </p>
                   </div>
-                  <Button
+                  <IconButton
                     onClick={handleRemoveCoupon}
                     size="small"
                     sx={{
@@ -190,8 +190,8 @@ const Cart = () => {
                       },
                     }}
                   >
-                    Bo ma
-                  </Button>
+                    <Close/>
+                  </IconButton>
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">

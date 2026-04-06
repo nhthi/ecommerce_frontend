@@ -28,7 +28,7 @@ const DealCard: React.FC<Product> = ({
       <div
         className="relative cursor-pointer overflow-hidden bg-black"
         onClick={() =>
-          navigate(`/product-details/${category?.categoryId}/${title}/${id}`)
+          navigate(`/product-details/${title}/${id}`)
         }
       >
         <img

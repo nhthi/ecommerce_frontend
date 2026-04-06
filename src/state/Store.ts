@@ -25,6 +25,15 @@ import couponSlice from "./admin/adminCouponSlice";
 import categorySlice from "./admin/adminCategorySlice";
 import adminProductSlice from "./admin/adminProduct";
 import adminUserSlice from "./admin/adminUserSlice";
+import adminBlogCategorySlice from "./admin/adminBlogCategorySlice";
+import adminBlogPostSlice from "./admin/adminBlogPostSlice";
+import adminBlogTagSlice from "./admin/adminBlogTagSlice";
+
+import adminWorkoutPlanSlice from "./admin/adminWorkoutPlanSlice";
+import adminWorkoutPlanDaySlice from "./admin/adminWorkoutPlanDaySlice";
+import adminExerciseSlice from "./admin/adminExerciseSlice";
+import adminDashboardSlice from "./admin/adminDashboardSlice";
+
 const rootReducer = combineReducers({
   seller: sellerSlice,
   sellerProduct: sellerProductSlice,
@@ -50,6 +59,13 @@ const rootReducer = combineReducers({
   category: categorySlice,
   adminProduct: adminProductSlice,
   adminUser: adminUserSlice,
+  blogCategory: adminBlogCategorySlice,
+  blogTag: adminBlogTagSlice,
+  blogPost: adminBlogPostSlice,
+  adminWorkoutPlan: adminWorkoutPlanSlice,
+    adminWorkoutPlanDay: adminWorkoutPlanDaySlice,
+    adminExercise: adminExerciseSlice,
+    adminDashboard:adminDashboardSlice
 });
 const store = configureStore({
   reducer: rootReducer,

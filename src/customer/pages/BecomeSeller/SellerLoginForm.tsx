@@ -87,12 +87,12 @@ const SellerLoginForm = () => {
 
     try {
       setLoading(true);
-      await dispatch(
-        sendLoginSignupOtp({
-          email: "signing_" + formik.values.email,
-          role: "ROLE_SELLER",
-        })
-      ).unwrap();
+      // await dispatch(
+      //   sendLoginSignupOtp({
+      //     email: "signing_" + formik.values.email,
+      //     role: "ROLE_SELLER",
+      //   })
+      // ).unwrap();
 
       setSendOtp(true);
       setCountdown(60);

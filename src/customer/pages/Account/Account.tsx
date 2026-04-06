@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Orders from "./Orders";
 import OrderDetails from "./OrderDetails";
@@ -7,13 +7,15 @@ import Address from "./Address";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { logout } from "../../../state/AuthSlice";
 import OrderReviewPageWrapper from "./OrderReviewPageWrapper";
+import MyReview from "./MyReview";
 
 const menu = [
-  { name: "Đơn hàng", path: "/account/orders" },
-  { name: "Cá nhân", path: "/account" },
-  { name: "Thẻ thanh toán", path: "/account/save-card", disabled: true },
-  { name: "Địa chỉ", path: "/account/addresses" },
-  { name: "Đăng xuất", path: "/" },
+  { name: "Don hang", path: "/account/orders" },
+  { name: "Ca nhan", path: "/account" },
+  { name: "The thanh toan", path: "/account/save-card", disabled: true },
+  { name: "Dia chi", path: "/account/addresses" },
+  { name: "Danh gia cua toi", path: "/account/my-reviews" },
+  { name: "Dang xuat", path: "/" },
 ];
 
 const Account = () => {
@@ -36,22 +38,22 @@ const Account = () => {
     <div className="min-h-screen bg-[#080808] px-4 py-8 text-white lg:px-12">
       <div className="mx-auto max-w-[1320px] space-y-6">
         <div className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] lg:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">Tài khoản của tôi</p>
-          <h1 className="mt-3 text-4xl font-black text-white lg:text-5xl">Tài khoản của bạn.</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">Tai khoan cua toi</p>
+          <h1 className="mt-3 text-4xl font-black text-white lg:text-5xl">Tai khoan cua ban.</h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg">
-            Quản lý thông tin cá nhân, theo dõi đơn hàng, địa chỉ giao hàng và các thao tác sau mua trong cùng một khu vực dễ đọc.
+            Quan ly thong tin ca nhan, theo doi don hang, dia chi giao hang va cac thao tac sau mua trong cung mot khu vuc de doc.
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
           <aside className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] lg:p-5">
             <div className="rounded-[1.5rem] border border-white/6 bg-black/20 p-4">
-              <p className="text-sm font-semibold text-slate-400">Tài khoản</p>
+              <p className="text-sm font-semibold text-slate-400">Tai khoan</p>
               <h2 className="mt-2 text-2xl font-black text-white">
-                {auth.user?.fullName || "Khách hàng"}
+                {auth.user?.fullName || "Khach hang"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-400">
-                {auth.user?.email || "Email chưa cập nhật"}
+                {auth.user?.email || "Email chua cap nhat"}
               </p>
             </div>
 
@@ -83,11 +85,11 @@ const Account = () => {
                     <span>{item.name}</span>
                     {active && !isLogout ? (
                       <span className="text-xs font-bold uppercase tracking-[0.16em]">
-                        Đang xem
+                        Dang xem
                       </span>
                     ) : item.disabled ? (
                       <span className="text-xs uppercase tracking-[0.16em] text-slate-600">
-                        Sắp có
+                        Sap co
                       </span>
                     ) : null}
                   </button>
@@ -102,10 +104,8 @@ const Account = () => {
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/:orderId" element={<OrderDetails />} />
               <Route path="/addresses" element={<Address />} />
-              <Route
-                path="/orders/:orderId/review"
-                element={<OrderReviewPageWrapper />}
-              />
+              <Route path="/my-reviews" element={<MyReview />} />
+              <Route path="/orders/:orderId/review" element={<OrderReviewPageWrapper />} />
             </Routes>
           </section>
         </div>

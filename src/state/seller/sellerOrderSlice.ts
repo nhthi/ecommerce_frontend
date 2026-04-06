@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Order, OrderStatus } from "../../types/OrderType";
-import { api, sellerApi } from "../../config/Api";
+import { api } from "../../config/Api";
 
 interface SellerOrderState {
   orders: Order[];
@@ -33,7 +33,7 @@ export const fetchSellerOrders = createAsyncThunk<Order[], void>(
   "sellerOrders/fetchSellerOrders",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await sellerApi.get("/api/seller/orders");
+      const response = await api.get("/api/seller/orders");
       console.log("Fetched seller orders:", response.data);
 
       return response.data;
@@ -56,7 +56,7 @@ export const updateOrderStatus = createAsyncThunk<
   "sellerOrders/updateOrderStatus",
   async ({ orderId, orderStatus }, { rejectWithValue }) => {
     try {
-      const response = await sellerApi.patch(
+      const response = await api.patch(
         `/api/seller/orders/${orderId}/status/${orderStatus}`
       );
       console.log("update status orders:", response.data);
@@ -75,7 +75,7 @@ export const deleteOrder = createAsyncThunk<any, number>(
   "sellerOrders/deleteOrder",
   async (orderId, { rejectWithValue }) => {
     try {
-      const response = await sellerApi.delete(
+      const response = await api.delete(
         `/api/seller/orders/${orderId}/delete`
       );
       console.log("delete orders:", response.data);

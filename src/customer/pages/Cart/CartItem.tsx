@@ -132,6 +132,16 @@ const CartItem = ({ item }: { item: CartItemType }) => {
           <p className="mt-1 text-2xl font-black text-orange-400">
             {item.sellingPrice.toLocaleString()}đ
           </p>
+          {!!item.mrpPrice && item.mrpPrice > item.sellingPrice && (
+            <>
+              <p className="mt-1 text-sm font-semibold text-neutral-500 line-through">
+                {item.mrpPrice.toLocaleString()}đ
+              </p>
+              <p className="mt-2 inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-200">
+                Giam {(item.mrpPrice - item.sellingPrice).toLocaleString()}đ
+              </p>
+            </>
+          )}
         </div>
       </div>
 

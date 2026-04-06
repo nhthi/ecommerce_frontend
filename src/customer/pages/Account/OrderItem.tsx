@@ -201,6 +201,21 @@ const OrderItem = ({ order }: { order: Order }) => {
                   </span>
                 </p>
               </div>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <p className="text-lg font-black text-orange-400">
+                  {formatVND(item.sellingPrice || 0)}
+                </p>
+                {!!item.mrpPrice && item.mrpPrice > item.sellingPrice && (
+                  <>
+                    <p className="text-sm font-semibold text-slate-500 line-through">
+                      {formatVND(item.mrpPrice)}
+                    </p>
+                    <p className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-200">
+                      Giam {formatVND((item.mrpPrice - item.sellingPrice) * (item.quantity || 1))}
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         ))}

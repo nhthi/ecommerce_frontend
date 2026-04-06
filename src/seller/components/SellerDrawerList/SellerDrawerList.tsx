@@ -65,7 +65,7 @@ const menu2 = [
 ];
 
 const SellerDrawerList = ({ toggleDrawer }: { toggleDrawer: any }) => {
-  return <DrawerList menu={menu} menu2={menu2} toggleDrawer={toggleDrawer} />;
+  return <DrawerList menu={menu} menu2={menu2} menuAdmin={menu} toggleDrawer={toggleDrawer} />;
 };
 
 export default SellerDrawerList;

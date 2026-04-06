@@ -26,7 +26,7 @@ const WishlistProductCard: React.FC<Props> = ({ item }) => {
 
   const handleOpenProduct = () => {
     navigate(
-      `/product-details/${item.category?.categoryId}/${item.title}/${item.id}`
+      `/product-details/${item.title}/${item.id}`
     );
   };
 

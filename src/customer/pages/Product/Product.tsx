@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import FilterSection from "./FilterSection";
 import {
@@ -16,6 +16,7 @@ import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchAllProducts } from "../../../state/customer/productSlice";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Product as ProductType } from "../../../types/ProductType";
+import { getWishlistByUser } from "../../../state/customer/wishlistSlice";
 
 const selectSx = {
   minWidth: 220,
@@ -49,6 +50,7 @@ const Product = () => {
   const [searchParams] = useSearchParams();
   const product = useAppSelector((store) => store.product);
   const { category } = useParams();
+  const keyword = searchParams.get("keyword") || "";
 
   const handleSortChange = (e: any) => {
     setSort(e.target.value);
@@ -63,23 +65,26 @@ const Product = () => {
     const [minPrice, maxPrice] = searchParams.get("price")?.split("-") || [];
     const color = searchParams.get("color");
     const brand = searchParams.get("brand");
-    const minDiscount = searchParams.get("discount")
-      ? Number(searchParams.get("discount"))
-      : undefined;
+    const keywordQuery = searchParams.get("keyword");
+    const minDiscount = searchParams.get("discount") ? Number(searchParams.get("discount")) : undefined;
     const pageNumber = page - 1;
 
-    dispatch(
-      fetchAllProducts({
-        color: color || undefined,
-        brand: brand || undefined,
-        minPrice: minPrice ? Number(minPrice) : undefined,
-        maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        minDiscount,
-        pageNumber,
-        category,
-        sort: sort || undefined,
-      }),
-    );
+    const fetchData = async () => {
+      await dispatch(getWishlistByUser());
+      await dispatch(
+        fetchAllProducts({
+          color: color || undefined,
+          brand: brand || undefined,
+          keyword: keywordQuery || undefined,
+          minPrice: minPrice ? Number(minPrice) : undefined,
+          maxPrice: maxPrice ? Number(maxPrice) : undefined,
+          minDiscount,
+          pageNumber,
+          sort: sort || undefined,
+        }),
+      );
+    };
+    fetchData();
   }, [searchParams, page, category, sort, dispatch]);
 
   const totalPages = product.totalPages || 1;
@@ -95,31 +100,22 @@ const Product = () => {
               </span>
               <div className="space-y-2">
                 <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                  {category ? `${category}` : "Tất cả sản phẩm"}
+                  {keyword || (category ? `${category}` : "Tat ca san pham")}
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-neutral-300 sm:text-base">
-                  Lọc nhanh theo nhu cầu mua sắm, xem các mặt hàng đang có sẵn và
-                  sắp xếp lại theo mức giá bạn mong muốn.
+                  Lọc nhanh theo nhu cầu mua sắm, xem các sản phẩm đang có sẵn và sắp xếp theo mức giá mong muốn.
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm text-neutral-300">
               <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
-                  Sản phẩm
-                </p>
-                <p className="mt-2 text-2xl font-black text-white">
-                  {product.products.length || 0}
-                </p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Sản phẩm</p>
+                <p className="mt-2 text-2xl font-black text-white">{product.products.length || 0}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">
-                  Trang
-                </p>
-                <p className="mt-2 text-2xl font-black text-orange-400">
-                  {page}/{totalPages}
-                </p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Trang</p>
+                <p className="mt-2 text-2xl font-black text-orange-400">{page}/{totalPages}</p>
               </div>
             </div>
           </div>
@@ -149,12 +145,8 @@ const Product = () => {
                   </IconButton>
                 )}
                 <div>
-                  <p className="text-lg font-black tracking-tight text-white">
-                    Danh sách sản phẩm
-                  </p>
-                  <p className="text-sm text-neutral-400">
-                    {product.products.length || 0} kết quả phù hợp với bộ lọc hiện tại.
-                  </p>
+                  <p className="text-lg font-black tracking-tight text-white">Danh sách sản phẩm</p>
+                  <p className="text-sm text-neutral-400">{product.products.length || 0} kết quả phù hợp với bộ lọc hiện tại</p>
                 </div>
               </div>
 
@@ -180,12 +172,8 @@ const Product = () => {
 
               {product.products.length === 0 && (
                 <div className="col-span-full rounded-[1.8rem] border border-dashed border-white/10 bg-[#121212] px-6 py-12 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
-                  <p className="text-2xl font-black tracking-tight text-white">
-                    Không có sản phẩm phù hợp
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-neutral-400">
-                    Thử thay đổi khoảng giá, màu sắc hoặc mức giảm giá để xem thêm kết quả.
-                  </p>
+                  <p className="text-2xl font-black tracking-tight text-white">Không có sản phẩm phù hợp</p>
+                  <p className="mt-2 text-sm leading-6 text-neutral-400">Hãy thay đổi từ khóa tìm kiếm hoặc bộ lọc để xem thêm sản phẩm liên quan</p>
                 </div>
               )}
             </section>

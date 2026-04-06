@@ -1,14 +1,16 @@
 import {
   AccountBox,
   Analytics,
+  Badge,
   Category,
   ConfirmationNumber,
+  FitnessCenter,
   Group,
   Inventory2,
   Logout,
+  PostAdd,
   Settings,
   ShoppingBag,
-  SupportAgent,
 } from "@mui/icons-material";
 import React from "react";
 import DrawerList from "../../component/DrawerList";
@@ -53,20 +55,35 @@ const menu = [
     icon: <Group className={iconClass} />,
     activeIcon: <Group className={activeIconClass} />,
   },
+
   {
-    name: "Nguoi ban",
-    path: "/admin/sellers",
-    icon: <SupportAgent className={iconClass} />,
-    activeIcon: <SupportAgent className={activeIconClass} />,
+    name: "Bai viet",
+    path: "/admin/blog",
+    icon: <PostAdd className={iconClass} />,
+    activeIcon: <PostAdd className={activeIconClass} />,
   },
   {
+    name: "Quan ly tap luyen",
+    path: "/admin/workout",
+    icon: <FitnessCenter className={iconClass} />,
+    activeIcon: <FitnessCenter className={activeIconClass} />,
+  },
+
+];
+const menuAdmin =[
+  {
+    name: "Nhan vien",
+    path: "/admin/staff",
+    icon: <Badge className={iconClass} />,
+    activeIcon: <Badge className={activeIconClass} />,
+  },
+    {
     name: "Cai dat",
     path: "/admin/settings",
     icon: <Settings className={iconClass} />,
     activeIcon: <Settings className={activeIconClass} />,
   },
-];
-
+]
 const menu2 = [
   {
     name: "Tai khoan",
@@ -83,7 +100,7 @@ const menu2 = [
 ];
 
 const AdminDrawerList = ({ toggleDrawer }: { toggleDrawer: any }) => {
-  return <DrawerList menu={menu} menu2={menu2} toggleDrawer={toggleDrawer} />;
+  return <DrawerList menu={menu} menu2={menu2} menuAdmin={menuAdmin}toggleDrawer={toggleDrawer} />;
 };
 
 export default AdminDrawerList;

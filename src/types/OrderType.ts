@@ -38,6 +38,17 @@ export interface Review {
   createdAt: string;
   user?: User; // LocalDateTime -> string ISO
 }
+export interface MyReview {
+  reviewId: number;
+  reviewText: string;
+  rating: number;
+  productImages: string[];
+  createdAt: string;
+  productId: number | null;
+  productTitle: string | null;
+  productImage: string | null;
+  orderItemId: number | null;
+}
 export interface OrderItem {
   id: number;
   product: Product;

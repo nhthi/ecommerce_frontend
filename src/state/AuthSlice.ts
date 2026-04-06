@@ -5,15 +5,17 @@ import { User } from "../types/UserType";
 export const sendLoginSignupOtp = createAsyncThunk(
   "/auth/sendLoginSignupOtp",
   async (
-    { email, role }: { email: string; role: string },
+    { email, password, role }: { email: string; password: string; role: string },
     { rejectWithValue }
   ) => {
     try {
       const response = await publicApi.post("/auth/sent/login-signup-otp", {
         email,
+        password,
         role,
       });
       console.log("login otp ", response);
+      return response.data;
     } catch (error: any) {
       console.log("error----", error);
       return rejectWithValue(
@@ -28,11 +30,39 @@ export const updateProfileUser = createAsyncThunk<any, any>(
   async (updateUser, { rejectWithValue }) => {
     try {
       const response = await api.put("/users/profile", updateUser);
-      console.log("update user ", response);
+      console.log("update user ", response.data);
+      return response.data;
     } catch (error: any) {
       console.log("error----", error);
       return rejectWithValue(
         error.response?.data?.message || "Failed to update user."
+      );
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk<
+  any,
+  {
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }
+>(
+  "/auth/changePassword",
+  async ({ oldPassword, newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const response = await api.put("/users/change-password", {
+        oldPassword,
+        newPassword,
+        confirmPassword,
+      });
+      console.log("change password response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.log("change password error----", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to change password."
       );
     }
   }
@@ -50,26 +80,31 @@ export const signin = createAsyncThunk<any, any>(
       return jwt;
     } catch (error: any) {
       console.log("error----", error);
-      rejectWithValue(error.response?.data?.message || "Failed to sigin.");
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to signin."
+      );
     }
   }
 );
 
 export const fetchUserProfile = createAsyncThunk(
   "/auth/fetchUserProfile",
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
       const response = await api.post("/users/profile");
       console.log("user profile ", response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.log("error----", error);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch user profile."
+      );
     }
   }
 );
 
 export const signup = createAsyncThunk<any, any>(
-  "auth/signup", // ⚠️ Không nên bắt đầu bằng "/"
+  "auth/signup",
   async (signupRequest, { rejectWithValue }) => {
     try {
       const response = await publicApi.post("/auth/signup", signupRequest);
@@ -81,7 +116,6 @@ export const signup = createAsyncThunk<any, any>(
     } catch (error: any) {
       console.log("Signup error:", error);
 
-      // ✅ Bắt lỗi chi tiết từ backend
       if (error.response && error.response.data) {
         const message =
           error.response.data.message ||
@@ -115,6 +149,8 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isLoggedIn: boolean;
+  passwordChanged: boolean;
+  changePasswordMessage: string | null;
 }
 
 const initialState: AuthState = {
@@ -124,11 +160,20 @@ const initialState: AuthState = {
   jwt: null,
   isLoggedIn: false,
   otpSent: false,
+  passwordChanged: false,
+  changePasswordMessage: null,
 };
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    clearAuthMessage: (state) => {
+      state.error = null;
+      state.changePasswordMessage = null;
+      state.passwordChanged = false;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(signin.pending, (state) => {
@@ -140,12 +185,13 @@ const authSlice = createSlice({
         state.jwt = action.payload;
         state.isLoggedIn = true;
         state.error = null;
-        // state.user = action.payload.user;
       })
-      .addCase(signin.rejected, (state, action) => {
+      .addCase(signin.rejected, (state, action: any) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to login";
+        state.error =
+          action.payload || action.error.message || "Failed to login";
       })
+
       .addCase(signup.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -155,12 +201,13 @@ const authSlice = createSlice({
         state.jwt = action.payload;
         state.isLoggedIn = true;
         state.error = null;
-        // state.user = action.payload.user;
       })
-      .addCase(signup.rejected, (state, action) => {
+      .addCase(signup.rejected, (state, action: any) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to signup";
+        state.error =
+          action.payload || action.error.message || "Failed to signup";
       })
+
       .addCase(fetchUserProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -171,24 +218,75 @@ const authSlice = createSlice({
         state.error = null;
         state.isLoggedIn = true;
       })
+      .addCase(fetchUserProfile.rejected, (state, action: any) => {
+        state.loading = false;
+        state.error =
+          action.payload || action.error.message || "Failed to fetch user profile";
+      })
+
+      .addCase(updateProfileUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateProfileUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
         state.error = null;
         state.isLoggedIn = true;
       })
-      .addCase(fetchUserProfile.rejected, (state, action) => {
+      .addCase(updateProfileUser.rejected, (state, action: any) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to fetch user profile";
+        state.error =
+          action.payload || action.error.message || "Failed to update user";
+      })
+
+      .addCase(sendLoginSignupOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.otpSent = false;
       })
       .addCase(sendLoginSignupOtp.fulfilled, (state) => {
+        state.loading = false;
         state.otpSent = true;
+        state.error = null;
       })
+      .addCase(sendLoginSignupOtp.rejected, (state, action: any) => {
+        state.loading = false;
+        state.otpSent = false;
+        state.error =
+          action.payload || action.error.message || "Failed to send OTP";
+      })
+
+      .addCase(changePassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.passwordChanged = false;
+        state.changePasswordMessage = null;
+      })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.passwordChanged = true;
+        state.changePasswordMessage =
+          action.payload?.message || "Đổi mật khẩu thành công";
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action: any) => {
+        state.loading = false;
+        state.passwordChanged = false;
+        state.changePasswordMessage = null;
+        state.error =
+          action.payload || action.error.message || "Failed to change password";
+      })
+
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.jwt = null;
         state.isLoggedIn = false;
+        state.passwordChanged = false;
+        state.changePasswordMessage = null;
       });
   },
 });
+
+export const { clearAuthMessage } = authSlice.actions;
 export default authSlice.reducer;

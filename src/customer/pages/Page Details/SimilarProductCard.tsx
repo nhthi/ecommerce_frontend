@@ -11,7 +11,7 @@ const SimilarProductCard = ({ product }: { product: Product }) => {
       type="button"
       onClick={() =>
         navigate(
-          `/product-details/${product.category?.categoryId}/${product.title}/${product.id}`
+          `/product-details/${product.title}/${product.id}`
         )
       }
       className="group overflow-hidden rounded-[1.5rem] border border-orange-500/12 bg-[#161616] text-left transition hover:-translate-y-1 hover:border-orange-400/25"

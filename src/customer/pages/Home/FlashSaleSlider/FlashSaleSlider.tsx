@@ -45,7 +45,7 @@ export default function FlashDealSlider({
               className="w-[260px] flex-shrink-0 rounded-[1.6rem] border border-orange-500/15 bg-[#171717] p-4 text-left transition hover:-translate-y-1"
               onClick={() =>
                 navigate(
-                  `/product-details/${deal.category?.categoryId}/${deal.title}/${deal.id}`
+                  `/product-details/${deal.title}/${deal.id}`
                 )
               }
             >

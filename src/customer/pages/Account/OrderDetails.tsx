@@ -99,42 +99,54 @@ const OrderDetails = () => {
                   <span className="mr-2 text-slate-500 line-through">{formatVND(item.mrpPrice || 0)}</span>
                   <span className="font-semibold text-orange-400">{formatVND(item.sellingPrice || 0)}</span>
                 </p>
-                <div className="pt-2">
-                  {item.review ? (
-                    <Button
-                      disabled
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#4b5563",
-                        color: "#fff",
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        fontSize: "0.9rem",
-                        px: 2.5,
-                        "&:hover": { backgroundColor: "#4b5563" },
-                      }}
-                    >
-                      Đã đánh giá
-                    </Button>
-                  ) : (
-                    <Button
-                      disabled={currentOrder.orderStatus !== "DELIVERED"}
-                      onClick={() => navigate(`/account/orders/${currentOrder.id}/review`, { state: { orderItemId: item.id } })}
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        fontSize: "0.95rem",
-                        fontWeight: 700,
-                        borderColor: "rgba(249,115,22,0.3)",
-                        color: "#fb923c",
-                        px: 2.5,
-                      }}
-                    >
-                      Viết đánh giá
-                    </Button>
-                  )}
-                </div>
+<div className="pt-2">
+  {item.review ? (
+    <Button
+      onClick={() =>
+        navigate(`/account/orders/${currentOrder.id}/review-detail`, {
+          state: { orderItemId: item.id, review: item.review },
+        })
+      }
+      variant="contained"
+      sx={{
+        backgroundColor: "#4b5563",
+        color: "#fff",
+        textTransform: "none",
+        borderRadius: "999px",
+        fontSize: "0.9rem",
+        px: 2.5,
+        "&:hover": { backgroundColor: "#374151" },
+      }}
+    >
+      Xem đánh giá
+    </Button>
+  ) : (
+    <Button
+      disabled={currentOrder.orderStatus !== "DELIVERED"}
+      onClick={() =>
+        navigate(`/account/orders/${currentOrder.id}/review`, {
+          state: { orderItemId: item.id },
+        })
+      }
+      variant="outlined"
+      sx={{
+        textTransform: "none",
+        borderRadius: "999px",
+        fontSize: "0.95rem",
+        fontWeight: 700,
+        borderColor: "rgba(249,115,22,0.3)",
+        color: "#fb923c",
+        px: 2.5,
+        "&:hover": {
+          borderColor: "#fb923c",
+          backgroundColor: "rgba(249,115,22,0.08)",
+        },
+      }}
+    >
+      Viết đánh giá
+    </Button>
+  )}
+</div>
               </div>
             </div>
           ))}

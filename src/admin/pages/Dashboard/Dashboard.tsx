@@ -18,20 +18,21 @@ const AdminDashboard: React.FC = () => {
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
-              Admin workspace
+              Trang quản trị
             </p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-white">
-              Dieu hanh he thong NHTHI FIT
+              Điều hành hệ thống NHTHI FIT
             </h1>
           </div>
+
           <div className="hidden rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-sm text-neutral-300 lg:block">
-            Quan ly seller, san pham, don hang va doanh thu tren cung mot giao dien.
+            Quản lý người bán, sản phẩm, đơn hàng và doanh thu trên cùng một giao diện.
           </div>
         </div>
       </div>
 
       <div className="mx-auto flex max-w-[1600px] gap-6 px-4 py-6 lg:px-6">
-        <section className="hidden lg:block lg:sticky lg:top-6 lg:h-[calc(100vh-48px)]">
+        <section className="hidden lg:block lg:sticky lg:top-6 ">
           <AdminDrawerList toggleDrawer={toggleDrawer} />
         </section>
 

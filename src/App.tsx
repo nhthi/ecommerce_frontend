@@ -25,6 +25,14 @@ import ChatBotWidget from "./customer/components/ChatBot/ChatBotWidget";
 import Message from "./customer/pages/Message/Message";
 import { useAppSelector } from "./state/Store";
 import SellerStorePage from "./customer/pages/SellerProduct/SellerStorePage";
+import Training from "./customer/pages/Training/Training";
+import TrainingDetail from "./customer/pages/Training/TrainingDetail";
+import Delivery from "./customer/pages/Policy/Delivery";
+import Payment from "./customer/pages/Policy/Payment";
+import Exchange from "./customer/pages/Policy/Exchange";
+import Faq from "./customer/pages/Policy/Faq";
+import Blog from "./customer/pages/Blog/Blog";
+import BlogDetail from "./customer/pages/Blog/BlogDetail";
 
 function App() {
   const { seller, auth } = useAppSelector((store) => store);
@@ -37,41 +45,30 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/store/:sellerId" element={<SellerStorePage />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogDetail />} />
+            <Route path="/training" element={<Training />} />
+            <Route path="/training/:slug" element={<TrainingDetail />} />
+            <Route path="/policy/delivery" element={<Delivery />} />
+            <Route path="/policy/payment" element={<Payment />} />
+            <Route path="/policy/exchange" element={<Exchange />} />
+            <Route path="/policy/faq" element={<Faq />} />
             <Route path="/test" element={<TryOn />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/message" element={<Message />} />
             <Route path="/message" element={<Message />} />
             <Route path="/products/:category" element={<Product />} />
-            <Route
-              path="/product-details/:categoryId/:name/:productId"
-              element={<PageDetails />}
-            />
+            <Route path="/product-details/:name/:productId" element={<PageDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/ordersuccess" element={<OrderSuccess />} />
-            <Route
-              path="/payment-success/:orderId"
-              element={<PaymentSuccess />}
-            />
+            <Route path="/payment-success/:orderId" element={<PaymentSuccess />} />
             <Route path="/become-seller" element={<BecomeSeller />} />
             <Route path="/search" element={<SearchProduct />} />
-
             <Route path="/account/*" element={<Account />} />
-            <Route
-              path="/seller/*"
-              element={seller.profile ? <SellerDashboard /> : <NotFound />}
-            />
-            <Route
-              path="/admin/*"
-              element={
-                auth.user?.role === "ROLE_ADMIN" ? (
-                  <AdminDashboard />
-                ) : (
-                  <NotFound />
-                )
-              }
-            />
+            <Route path="/seller/*" element={seller.profile ? <SellerDashboard /> : <NotFound />} />
+            <Route path="/admin/*" element={(auth.user?.role === "ROLE_ADMIN"||auth.user?.role === "ROLE_STAFF") ? <AdminDashboard /> : <NotFound />} />
             <Route path="/*" element={<NotFound />} />
           </Routes>
           <ChatBotWidget />

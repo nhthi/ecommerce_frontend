@@ -9,11 +9,16 @@ import {
   Snackbar,
   TextField,
   Collapse,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
 import * as Yup from "yup";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useNavigate } from "react-router-dom";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import LockOutlineIcon from "@mui/icons-material/LockOutline";
 
 type SnackbarSeverity = "success" | "info" | "warning" | "error";
 
@@ -43,23 +48,31 @@ const inputSx = {
     color: "#fca5a5",
     marginLeft: "6px",
   },
+  "& .MuiInputBase-input::placeholder": {
+    color: "#64748b",
+    opacity: 1,
+  },
 };
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
   const [sendOtp, setSendOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (countdown > 0) {
       timer = setInterval(() => {
         setCountdown((prev) => prev - 1);
       }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
   }, [countdown]);
 
   const [snackbar, setSnackbar] = useState<{
@@ -76,29 +89,44 @@ const LoginForm = () => {
     email: Yup.string()
       .email("Email không đúng định dạng")
       .required("Email không được để trống"),
+    password: Yup.string()
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+      .required("Mật khẩu không được để trống"),
     otp: Yup.string().when([], {
       is: () => sendOtp,
       then: (schema) =>
         schema
           .matches(/^[0-9]{6}$/, "Mã OTP phải gồm 6 chữ số")
           .required("Vui lòng nhập mã OTP"),
+      otherwise: (schema) => schema.notRequired(),
     }),
   });
 
   const formik = useFormik({
     initialValues: {
       email: "",
+      password: "",
       otp: "",
     },
+    validationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
-        await dispatch(signin(values)).unwrap();
+
+        await dispatch(
+          signin({
+            email: values.email,
+            password: values.password,
+            otp: values.otp,
+          })
+        ).unwrap();
+
         setSnackbar({
           open: true,
           message: "Đăng nhập thành công",
           severity: "success",
         });
+
         navigate("/");
       } catch (error: any) {
         setSnackbar({
@@ -110,27 +138,35 @@ const LoginForm = () => {
         setLoading(false);
       }
     },
-    validationSchema,
   });
 
   const handleSendOtp = async () => {
-    if (!formik.values.email) {
-      formik.setFieldTouched("email", true);
-      return;
-    }
-    if (formik.errors.email) return;
+    await formik.setTouched({
+      email: true,
+      password: true,
+      otp: false,
+    });
+
+    const emailError = await formik.validateField("email");
+    const passwordError = await formik.validateField("password");
+
+    if (!formik.values.email || !formik.values.password) return;
+    if (formik.errors.email || formik.errors.password) return;
 
     try {
       setLoading(true);
+
       await dispatch(
         sendLoginSignupOtp({
           email: "signing_" + formik.values.email,
+          password: formik.values.password,
           role: "ROLE_CUSTOMER",
         })
       ).unwrap();
 
       setSendOtp(true);
       setCountdown(60);
+
       setSnackbar({
         open: true,
         message: "Mã OTP đã được gửi tới email của bạn",
@@ -156,7 +192,7 @@ const LoginForm = () => {
           </p>
           <h2 className="mt-2 text-3xl font-black text-white">Đăng nhập</h2>
           <p className="mt-2 max-w-[320px] text-sm leading-6 text-slate-300">
-            Nhập email để nhận OTP và vào lại tài khoản nhanh gọn.
+            Nhập email và mật khẩu, sau đó xác thực OTP để đăng nhập an toàn.
           </p>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black">
@@ -179,6 +215,39 @@ const LoginForm = () => {
           sx={inputSx}
         />
 
+        <TextField
+          fullWidth
+          name="password"
+          label="Mật khẩu"
+          placeholder="Nhập mật khẩu của bạn"
+          type={showPassword ? "text" : "password"}
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.password && Boolean(formik.errors.password)}
+          helperText={formik.touched.password && formik.errors.password}
+          size="small"
+          sx={inputSx}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockOutlineIcon sx={{ color: "#94a3b8", fontSize: 20 }} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  edge="end"
+                  sx={{ color: "#94a3b8" }}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+
         <Collapse in={sendOtp}>
           <div className="space-y-3 rounded-[1.2rem] border border-orange-500/10 bg-black/20 p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-orange-300">
@@ -190,6 +259,7 @@ const LoginForm = () => {
                 {formik.values.email || "email của bạn"}
               </span>.
             </p>
+
             <MuiOtpInput
               length={6}
               value={formik.values.otp}
@@ -200,6 +270,7 @@ const LoginForm = () => {
                 sx: inputSx,
               }}
             />
+
             {formik.touched.otp && formik.errors.otp && (
               <div className="text-sm text-red-300">{formik.errors.otp}</div>
             )}
@@ -219,6 +290,7 @@ const LoginForm = () => {
               >
                 {countdown > 0 ? `Gửi lại sau ${countdown}s` : "Gửi lại OTP"}
               </Button>
+
               <span className="text-xs text-slate-500">
                 Kiểm tra cả Spam nếu chưa thấy mail.
               </span>
@@ -284,7 +356,7 @@ const LoginForm = () => {
 
         {!sendOtp && (
           <p className="text-center text-xs text-slate-500">
-            OTP chỉ dùng một lần và có hiệu lực trong thời gian ngắn.
+            Bạn cần nhập đúng email và mật khẩu trước khi hệ thống gửi OTP.
           </p>
         )}
       </div>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Avatar, Box, Button, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { Alert, Avatar, Box, Button, Snackbar, Tab, Tabs, TextField, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchUserProfile, updateProfileUser } from "../../../state/AuthSlice";
 import RecentOrders from "./RecentOrder";
 import UserProfileForm from "./UserProfileForm";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 const inputSx = {
   "& .MuiOutlinedInput-root": {
@@ -24,6 +25,15 @@ const UserProfile: React.FC = () => {
   const { auth } = useAppSelector((store) => store);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+  open: boolean;
+  message: string;
+  severity: "success" | "error";
+}>({
+  open: false,
+  message: "",
+  severity: "success",
+});
   const [profile, setProfile] = useState({
     fullName: auth.user?.fullName || "",
     email: auth.user?.email || "",
@@ -39,7 +49,31 @@ const UserProfile: React.FC = () => {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setProfile({ ...profile, [e.target.name]: e.target.value });
-  const handleUpdateProfile = async (values: any) => { setLoading(true); await dispatch(updateProfileUser(values)); setLoading(false); };
+const handleUpdateProfile = async (values: any) => {
+  try {
+    setLoading(true);
+
+    await dispatch(updateProfileUser(values)).unwrap();
+
+    setSnackbar({
+      open: true,
+      message: "Cập nhật thông tin thành công 🎉",
+      severity: "success",
+    });
+
+    // reload lại profile (nếu cần)
+    dispatch(fetchUserProfile());
+
+  } catch (error: any) {
+    setSnackbar({
+      open: true,
+      message: error || "Cập nhật thất bại. Vui lòng thử lại.",
+      severity: "error",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => { dispatch(fetchUserProfile()); }, [dispatch]);
 
   return (
@@ -93,19 +127,26 @@ const UserProfile: React.FC = () => {
             </div>
           )}
 
-          {tab === 2 && (
-            <div className="space-y-4">
-              <Typography sx={{ fontSize: "1.7rem", fontWeight: 900, color: "white" }}>Bảo mật tài khoản</Typography>
-              <TextField fullWidth type="password" label="Mật khẩu hiện tại" sx={inputSx} />
-              <TextField fullWidth type="password" label="Mật khẩu mới" sx={inputSx} />
-              <TextField fullWidth type="password" label="Xác nhận mật khẩu mới" sx={inputSx} />
-              <Button variant="contained" sx={{ borderRadius: "999px", textTransform: "none", fontWeight: 800, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "#050505", boxShadow: "none", px: 3 }}>Cập nhật mật khẩu</Button>
-            </div>
-          )}
+          {tab === 2 && <ChangePasswordForm />}
 
           {tab === 3 && <RecentOrders customerId={auth.user?.id} />}
         </div>
       </div>
+      <Snackbar
+  open={snackbar.open}
+  autoHideDuration={4000}
+  onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+  anchorOrigin={{ vertical: "top", horizontal: "right" }}
+>
+  <Alert
+    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+    severity={snackbar.severity}
+    variant="filled"
+    sx={{ borderRadius: "0.8rem" }}
+  >
+    {snackbar.message}
+  </Alert>
+</Snackbar>
     </Box>
   );
 };
