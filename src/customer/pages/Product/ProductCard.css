@@ -128,3 +128,30 @@
   font-size: 0.92rem;
   text-decoration: line-through;
 }
+
+body.theme-light .product-card__frame {
+  border-color: rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+}
+
+body.theme-light .product-card__frame:hover {
+  border-color: rgba(249, 115, 22, 0.24);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+body.theme-light .product-card__media {
+  background: #f8fafc;
+}
+
+body.theme-light .product-card__brand {
+  color: #ea580c;
+}
+
+body.theme-light .product-card__title {
+  color: #0f172a;
+}
+
+body.theme-light .product-card__old-price {
+  color: rgba(15, 23, 42, 0.4);
+}

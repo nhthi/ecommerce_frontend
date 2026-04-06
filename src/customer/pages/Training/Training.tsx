@@ -7,12 +7,14 @@ import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchAllWorkoutPlans } from "../../../state/admin/adminWorkoutPlanSlice";
 import { fetchAllWorkoutPlanDays } from "../../../state/admin/adminWorkoutPlanDaySlice";
 import { mapWorkoutPlansToTrainingSchedules } from "./trainingData";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const Training = () => {
   const dispatch = useAppDispatch();
   const [filters, setFilters] = useState<TrainingFilters>({ level: "All", goal: "All" });
   const { workoutPlans, loading: plansLoading, error: plansError } = useAppSelector((store) => store.adminWorkoutPlan);
   const { workoutPlanDays, loading: daysLoading, error: daysError } = useAppSelector((store) => store.adminWorkoutPlanDay);
+  const { isDark } = useSiteThemeMode();
 
   useEffect(() => {
     dispatch(fetchAllWorkoutPlans());
@@ -37,47 +39,48 @@ const Training = () => {
   const error = plansError || daysError;
 
   return (
-    <Box sx={{ minHeight: "100vh", background: "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)", px: { xs: 2, md: 3 }, py: { xs: 3, lg: 4 } }}>
+    <Box sx={{ minHeight: "100vh", background: isDark ? "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)" : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 28%, #f6f7fb 100%)", px: { xs: 2, md: 3 }, py: { xs: 3, lg: 4 } }}>
       <Box sx={{ mx: "auto", maxWidth: "1460px" }}>
         <Paper
           elevation={0}
           sx={{
             overflow: "hidden",
             borderRadius: "34px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background:
-              "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))",
-            boxShadow: "0 28px 80px rgba(0,0,0,0.34)",
-            color: "white",
+            border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+            background: isDark
+              ? "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
+              : "radial-gradient(circle at top left, rgba(249,115,22,0.14), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+            boxShadow: isDark ? "0 28px 80px rgba(0,0,0,0.34)" : "0 28px 80px rgba(15,23,42,0.08)",
+            color: isDark ? "white" : "#0f172a",
             p: { xs: 2.5, md: 4 },
           }}
         >
           <Grid container spacing={3} alignItems="center">
             <Grid size={{ xs: 12, lg: 7 }}>
-              <Chip label="Lich tap lay tu du lieu that" variant="outlined" sx={{ color: "#fed7aa", borderColor: "rgba(249,115,22,0.3)", backgroundColor: "rgba(249,115,22,0.1)" }} />
+              <Chip label="Lich tap lay tu du lieu that" variant="outlined" sx={{ color: isDark ? "#fed7aa" : "#c2410c", borderColor: "rgba(249,115,22,0.3)", backgroundColor: "rgba(249,115,22,0.1)" }} />
               <Typography fontSize={{ xs: 34, md: 54 }} fontWeight={900} lineHeight={1.02} sx={{ mt: 1.8 }}>
                 Lich tap duoc cap nhat tu he thong admin.
               </Typography>
-              <Typography sx={{ mt: 1.5, maxWidth: 760, color: "rgba(255,255,255,0.72)", fontSize: { xs: 15, md: 17 } }}>
+              <Typography sx={{ mt: 1.5, maxWidth: 760, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: { xs: 15, md: 17 } }}>
                 Cac workout plan, workout day va exercise duoi day duoc map truc tiep tu API. Ban co the loc theo cap do va muc tieu ngay tren trang customer.
               </Typography>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} sx={{ mt: 2.4 }}>
-                <Chip icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />} label={`${trainingSchedules.length} lich tap san sang`} variant="outlined" sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }} />
-                <Chip icon={<Groups2 sx={{ color: "#fb923c !important" }} />} label="Cap nhat boi admin" variant="outlined" sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }} />
-                <Chip icon={<FitnessCenter sx={{ color: "#fb923c !important" }} />} label="Su dung du lieu workout that" variant="outlined" sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }} />
+                <Chip icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />} label={`${trainingSchedules.length} lich tap san sang`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
+                <Chip icon={<Groups2 sx={{ color: "#fb923c !important" }} />} label="Cap nhat boi admin" variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
+                <Chip icon={<FitnessCenter sx={{ color: "#fb923c !important" }} />} label="Su dung du lieu workout that" variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
               </Stack>
             </Grid>
             <Grid size={{ xs: 12, lg: 5 }}>
               {featuredSchedule && (
-                <Paper elevation={0} sx={{ borderRadius: "26px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "rgba(255,255,255,0.03)" }}>
+                <Paper elevation={0} sx={{ borderRadius: "26px", overflow: "hidden", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.75)" }}>
                   <Box component="img" src={featuredSchedule.cover} alt={featuredSchedule.title} sx={{ width: "100%", height: 250, objectFit: "cover" }} />
                   <Box sx={{ p: 2.2 }}>
                     <Stack direction="row" justifyContent="space-between" spacing={1} alignItems="center">
-                      <Typography fontSize={22} fontWeight={800} sx={{ color: "white" }}>{featuredSchedule.title}</Typography>
+                      <Typography fontSize={22} fontWeight={800} sx={{ color: isDark ? "white" : "#0f172a" }}>{featuredSchedule.title}</Typography>
                       <LocalFireDepartment sx={{ color: "#fb923c" }} />
                     </Stack>
-                    <Typography sx={{ mt: 1, color: "rgba(255,255,255,0.7)", fontSize: 14.5 }}>{featuredSchedule.summary}</Typography>
+                    <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.7)" : "#475569", fontSize: 14.5 }}>{featuredSchedule.summary}</Typography>
                   </Box>
                 </Paper>
               )}
@@ -98,8 +101,8 @@ const Training = () => {
           <Grid size={{ xs: 12, lg: 8.8 }}>
             <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={1.5} sx={{ mb: 2 }}>
               <Box>
-                <Typography fontSize={28} fontWeight={800} color="white">Danh sach lich tap</Typography>
-                <Typography sx={{ mt: 0.6, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
+                <Typography fontSize={28} fontWeight={800} color={isDark ? "white" : "#0f172a"}>Danh sach lich tap</Typography>
+                <Typography sx={{ mt: 0.6, color: isDark ? "rgba(255,255,255,0.62)" : "#475569", fontSize: 14.5 }}>
                   {loading ? "Dang tai du lieu workout..." : `${filteredSchedules.length} lich tap dang duoc hien thi.`}
                 </Typography>
               </Box>
@@ -114,7 +117,7 @@ const Training = () => {
             </Grid>
 
             {!loading && filteredSchedules.length === 0 && (
-              <Paper elevation={0} sx={{ mt: 1.2, borderRadius: "24px", border: "1px dashed rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.03)", color: "white", p: 3, textAlign: "center" }}>
+              <Paper elevation={0} sx={{ mt: 1.2, borderRadius: "24px", border: isDark ? "1px dashed rgba(255,255,255,0.12)" : "1px dashed rgba(15,23,42,0.14)", backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)", color: isDark ? "white" : "#0f172a", p: 3, textAlign: "center" }}>
                 Chua co workout plan phu hop voi bo loc hien tai.
               </Paper>
             )}

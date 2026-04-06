@@ -2,11 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Box, Button, Chip, Grid, Paper, Stack, Typography } from "@mui/material";
 import { ArrowBack, LocalShipping, Payments, Autorenew, Quiz } from "@mui/icons-material";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const links = [
-  { label: "Vận chuyển", path: "/policy/delivery", icon: <LocalShipping sx={{ fontSize: 18 }} /> },
-  { label: "Thanh toán", path: "/policy/payment", icon: <Payments sx={{ fontSize: 18 }} /> },
-  { label: "Đổi trả", path: "/policy/exchange", icon: <Autorenew sx={{ fontSize: 18 }} /> },
+  { label: "Van chuyen", path: "/policy/delivery", icon: <LocalShipping sx={{ fontSize: 18 }} /> },
+  { label: "Thanh toan", path: "/policy/payment", icon: <Payments sx={{ fontSize: 18 }} /> },
+  { label: "Doi tra", path: "/policy/exchange", icon: <Autorenew sx={{ fontSize: 18 }} /> },
   { label: "FAQ", path: "/policy/faq", icon: <Quiz sx={{ fontSize: 18 }} /> },
 ];
 
@@ -25,11 +26,15 @@ const PolicyLayout = ({
   facts: string[];
   children: React.ReactNode;
 }) => {
+  const { isDark } = useSiteThemeMode();
+
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #070707 0%, #111111 30%, #090909 100%)",
+        background: isDark
+          ? "linear-gradient(180deg, #070707 0%, #111111 30%, #090909 100%)"
+          : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 30%, #f6f7fb 100%)",
         px: { xs: 2, md: 3 },
         py: { xs: 3, lg: 4 },
       }}
@@ -42,13 +47,13 @@ const PolicyLayout = ({
           sx={{
             mb: 2.4,
             textTransform: "none",
-            color: "#fff7ed",
+            color: isDark ? "#fff7ed" : "#0f172a",
             borderRadius: 999,
             border: "1px solid rgba(249,115,22,0.22)",
             px: 2.2,
           }}
         >
-          Về trang chủ
+          Ve trang chu
         </Button>
 
         <Paper
@@ -56,11 +61,12 @@ const PolicyLayout = ({
           sx={{
             overflow: "hidden",
             borderRadius: "36px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background:
-              "radial-gradient(circle at top left, rgba(249,115,22,0.18), transparent 24%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))",
-            boxShadow: "0 30px 90px rgba(0,0,0,0.38)",
-            color: "white",
+            border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+            background: isDark
+              ? "radial-gradient(circle at top left, rgba(249,115,22,0.18), transparent 24%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
+              : "radial-gradient(circle at top left, rgba(249,115,22,0.14), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+            boxShadow: isDark ? "0 30px 90px rgba(0,0,0,0.38)" : "0 30px 90px rgba(15,23,42,0.08)",
+            color: isDark ? "white" : "#0f172a",
           }}
         >
           <Grid container>
@@ -70,7 +76,7 @@ const PolicyLayout = ({
                   label={eyebrow}
                   variant="outlined"
                   sx={{
-                    color: "#fed7aa",
+                    color: isDark ? "#fed7aa" : "#c2410c",
                     borderColor: "rgba(249,115,22,0.28)",
                     backgroundColor: "rgba(249,115,22,0.1)",
                   }}
@@ -87,7 +93,7 @@ const PolicyLayout = ({
                   sx={{
                     mt: 1.5,
                     maxWidth: 780,
-                    color: "rgba(255,255,255,0.72)",
+                    color: isDark ? "rgba(255,255,255,0.72)" : "#475569",
                     fontSize: { xs: 15, md: 17 },
                     lineHeight: 1.8,
                   }}
@@ -103,12 +109,14 @@ const PolicyLayout = ({
                         sx={{
                           height: "100%",
                           borderRadius: "22px",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+                          border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+                          background: isDark
+                            ? "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))"
+                            : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.9))",
                           p: 1.6,
                         }}
                       >
-                        <Typography sx={{ color: "rgba(255,255,255,0.8)", fontSize: 14.3, lineHeight: 1.7 }}>
+                        <Typography sx={{ color: isDark ? "rgba(255,255,255,0.8)" : "#334155", fontSize: 14.3, lineHeight: 1.7 }}>
                           {fact}
                         </Typography>
                       </Paper>
@@ -126,8 +134,9 @@ const PolicyLayout = ({
                       sx={{
                         borderRadius: 999,
                         textTransform: "none",
-                        color: "#fff7ed",
-                        border: "1px solid rgba(255,255,255,0.1)",
+                        color: isDark ? "#fff7ed" : "#0f172a",
+                        border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(15,23,42,0.08)",
+                        backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.82)",
                         px: 2.2,
                         py: 1,
                       }}
@@ -149,15 +158,15 @@ const PolicyLayout = ({
                     sx={{
                       borderRadius: "24px",
                       border: "1px solid rgba(255,255,255,0.1)",
-                      background: "rgba(10,10,10,0.65)",
+                      background: isDark ? "rgba(10,10,10,0.65)" : "rgba(255,255,255,0.82)",
                       backdropFilter: "blur(12px)",
-                      color: "white",
+                      color: isDark ? "white" : "#0f172a",
                       p: 1.8,
                     }}
                   >
-                    <Typography fontSize={22} fontWeight={800}>Thông tin cần biết</Typography>
-                    <Typography sx={{ mt: 0.8, color: "rgba(255,255,255,0.72)", fontSize: 14.5, lineHeight: 1.75 }}>
-                      Đây là nhóm trang tĩnh được viết theo hướng dễ đọc, giúp khách hàng nắm nhanh thông tin và đối chiếu khi cần hỗ trợ đơn hàng.
+                    <Typography fontSize={22} fontWeight={800}>Thong tin can biet</Typography>
+                    <Typography sx={{ mt: 0.8, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: 14.5, lineHeight: 1.75 }}>
+                      Day la nhom trang tinh duoc viet theo huong de doc, giup khach hang nam nhanh thong tin va doi chieu khi can ho tro don hang.
                     </Typography>
                   </Paper>
                 </Box>

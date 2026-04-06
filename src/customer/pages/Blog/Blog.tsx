@@ -20,6 +20,7 @@ import { fetchAllBlogCategories } from "../../../state/admin/adminBlogCategorySl
 import { fetchAllBlogPosts } from "../../../state/admin/adminBlogPostSlice";
 import { fetchAllBlogTags } from "../../../state/admin/adminBlogTagSlice";
 import { BlogPost } from "../../../types/BlogType";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const POSTS_PER_PAGE = 6;
 
@@ -54,6 +55,7 @@ const Blog = () => {
   const { categories } = useAppSelector((store) => store.blogCategory);
   const { tags } = useAppSelector((store) => store.blogTag);
   const [page, setPage] = useState(1);
+  const { isDark } = useSiteThemeMode();
 
   useEffect(() => {
     dispatch(fetchAllBlogPosts());
@@ -117,7 +119,9 @@ const Blog = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)",
+        background: isDark
+          ? "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)"
+          : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 28%, #f6f7fb 100%)",
         px: { xs: 2, md: 3 },
         py: { xs: 3, lg: 4 },
       }}
@@ -128,11 +132,12 @@ const Blog = () => {
           sx={{
             overflow: "hidden",
             borderRadius: "34px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background:
-              "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))",
-            boxShadow: "0 28px 80px rgba(0,0,0,0.34)",
-            color: "white",
+            border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+            background: isDark
+              ? "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
+              : "radial-gradient(circle at top left, rgba(249,115,22,0.14), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+            boxShadow: isDark ? "0 28px 80px rgba(0,0,0,0.34)" : "0 28px 80px rgba(15,23,42,0.08)",
+            color: isDark ? "white" : "#0f172a",
             p: { xs: 2.5, md: 4 },
           }}
         >
@@ -142,7 +147,7 @@ const Blog = () => {
                 label="Noi dung blog tu he thong admin"
                 variant="outlined"
                 sx={{
-                  color: "#fed7aa",
+                  color: isDark ? "#fed7aa" : "#c2410c",
                   borderColor: "rgba(249,115,22,0.3)",
                   backgroundColor: "rgba(249,115,22,0.1)",
                 }}
@@ -151,7 +156,7 @@ const Blog = () => {
                 Blog chia se kinh nghiem tap luyen, dinh duong va phuc hoi.
               </Typography>
               <Typography
-                sx={{ mt: 1.5, maxWidth: 760, color: "rgba(255,255,255,0.72)", fontSize: { xs: 15, md: 17 } }}
+                sx={{ mt: 1.5, maxWidth: 760, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: { xs: 15, md: 17 } }}
               >
                 Toan bo bai viet duoi day duoc lay tu du lieu that tu admin. Ban co the loc theo danh muc va doc chi tiet tung bai theo slug.
               </Typography>
@@ -161,13 +166,13 @@ const Blog = () => {
                   icon={<AutoStories sx={{ color: "#fb923c !important" }} />}
                   label={`${publishedPosts.length} bai viet da xuat ban`}
                   variant="outlined"
-                  sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }}
+                  sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
                 />
                 <Chip
                   icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />}
                   label={`${categories.length} danh muc`}
                   variant="outlined"
-                  sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }}
+                  sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
                 />
               </Stack>
 
@@ -178,9 +183,9 @@ const Blog = () => {
                       key={tag.id}
                       label={`#${tag.name}`}
                       sx={{
-                        color: "#fff7ed",
-                        backgroundColor: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        color: isDark ? "#fff7ed" : "#0f172a",
+                        backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.04)",
+                        border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
                       }}
                     />
                   ))}
@@ -195,8 +200,8 @@ const Blog = () => {
                   sx={{
                     borderRadius: "26px",
                     overflow: "hidden",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    backgroundColor: "rgba(255,255,255,0.03)",
+                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+                    backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
                   }}
                 >
                   <Box
@@ -211,15 +216,15 @@ const Blog = () => {
                   />
                   <Box sx={{ p: 2.2 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.2}>
-                      <Typography fontSize={22} fontWeight={800} sx={{color:'white'}}>
+                      <Typography fontSize={22} fontWeight={800} sx={{ color: isDark ? "white" : "#0f172a" }}>
                         {featuredPost.title}
                       </Typography>
                       <LocalFireDepartment sx={{ color: "#fb923c" }} />
                     </Stack>
-                    <Typography sx={{ mt: 1, color: "rgba(255,255,255,0.7)", fontSize: 14.5 }}>
+                    <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.7)" : "#475569", fontSize: 14.5 }}>
                       {getPostSummary(featuredPost)}
                     </Typography>
-                    <Typography sx={{ mt: 1.4, color: "rgba(255,255,255,0.45)", fontSize: 12.5 }}>
+                    <Typography sx={{ mt: 1.4, color: isDark ? "rgba(255,255,255,0.45)" : "#64748b", fontSize: 12.5 }}>
                       Dang ngay {formatDate(featuredPost.publishedAt)}
                     </Typography>
                   </Box>
@@ -229,10 +234,10 @@ const Blog = () => {
                   elevation={0}
                   sx={{
                     borderRadius: "26px",
-                    border: "1px dashed rgba(255,255,255,0.12)",
-                    backgroundColor: "rgba(255,255,255,0.03)",
+                    border: isDark ? "1px dashed rgba(255,255,255,0.12)" : "1px dashed rgba(15,23,42,0.14)",
+                    backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
                     p: 3,
-                    color: "rgba(255,255,255,0.72)",
+                    color: isDark ? "rgba(255,255,255,0.72)" : "#475569",
                   }}
                 >
                   Chua co bai viet nao da xuat ban.
@@ -249,9 +254,9 @@ const Blog = () => {
               label={category.label}
               onClick={() => handleCategoryChange(category.value)}
               sx={{
-                color: activeCategory === category.value ? "#050505" : "#fff7ed",
-                backgroundColor: activeCategory === category.value ? "#fb923c" : "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                color: activeCategory === category.value ? "#050505" : isDark ? "#fff7ed" : "#0f172a",
+                backgroundColor: activeCategory === category.value ? "#fb923c" : isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.8)",
+                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
                 fontWeight: 700,
               }}
             />
@@ -287,9 +292,9 @@ const Blog = () => {
                 elevation={0}
                 sx={{
                   borderRadius: "28px",
-                  border: "1px dashed rgba(255,255,255,0.12)",
-                  backgroundColor: "rgba(255,255,255,0.03)",
-                  color: "white",
+                  border: isDark ? "1px dashed rgba(255,255,255,0.12)" : "1px dashed rgba(15,23,42,0.14)",
+                  backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
+                  color: isDark ? "white" : "#0f172a",
                   p: 4,
                   textAlign: "center",
                 }}
@@ -297,7 +302,7 @@ const Blog = () => {
                 <Typography fontSize={24} fontWeight={800}>
                   Chua co bai viet phu hop
                 </Typography>
-                <Typography sx={{ mt: 1, color: "rgba(255,255,255,0.68)" }}>
+                <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.68)" : "#475569" }}>
                   Thu doi danh muc hoac dang them bai viet moi tu trang admin.
                 </Typography>
               </Paper>
@@ -314,9 +319,9 @@ const Blog = () => {
               shape="rounded"
               sx={{
                 "& .MuiPaginationItem-root": {
-                  color: "#fff7ed",
-                  borderColor: "rgba(255,255,255,0.08)",
-                  backgroundColor: "rgba(255,255,255,0.03)",
+                  color: isDark ? "#fff7ed" : "#0f172a",
+                  borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+                  backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.8)",
                 },
                 "& .Mui-selected": {
                   backgroundColor: "#fb923c !important",

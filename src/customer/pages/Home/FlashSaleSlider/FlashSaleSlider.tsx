@@ -4,6 +4,7 @@ import { Bolt, LocalOffer } from "@mui/icons-material";
 import { Product } from "../../../../types/ProductType";
 import { formatCurrencyVND } from "../../../../utils/formatCurrencyVND";
 import { useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 
 export default function FlashDealSlider({
   flashDeals,
@@ -12,9 +13,10 @@ export default function FlashDealSlider({
 }) {
   const items = [...flashDeals, ...flashDeals];
   const navigate = useNavigate();
+  const { isDark } = useSiteThemeMode();
 
   return (
-    <section className="rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-10 md:px-6">
+    <section className={isDark ? "rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-10 md:px-6" : "rounded-[2rem] border border-slate-200 bg-white px-4 py-10 shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:px-6"}>
       <div className="mb-8 text-center">
         <Chip
           icon={<Bolt />}
@@ -27,8 +29,8 @@ export default function FlashDealSlider({
             px: 1,
           }}
         />
-        <h2 className="mt-4 text-3xl font-black text-white">
-          Sản phẩm đang giảm giá nhanh
+        <h2 className={isDark ? "mt-4 text-3xl font-black text-white" : "mt-4 text-3xl font-black text-slate-900"}>
+          San pham dang giam gia nhanh
         </h2>
       </div>
 
@@ -42,7 +44,7 @@ export default function FlashDealSlider({
             <button
               key={i}
               type="button"
-              className="w-[260px] flex-shrink-0 rounded-[1.6rem] border border-orange-500/15 bg-[#171717] p-4 text-left transition hover:-translate-y-1"
+              className={isDark ? "w-[260px] flex-shrink-0 rounded-[1.6rem] border border-orange-500/15 bg-[#171717] p-4 text-left transition hover:-translate-y-1" : "w-[260px] flex-shrink-0 rounded-[1.6rem] border border-slate-200 bg-white p-4 text-left shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:border-orange-300"}
               onClick={() =>
                 navigate(
                   `/product-details/${deal.title}/${deal.id}`
@@ -59,7 +61,7 @@ export default function FlashDealSlider({
                   {deal.discountPercent}%
                 </span>
               </div>
-              <h3 className="mt-3 line-clamp-2 font-semibold text-white">{deal.title}</h3>
+              <h3 className={isDark ? "mt-3 line-clamp-2 font-semibold text-white" : "mt-3 line-clamp-2 font-semibold text-slate-900"}>{deal.title}</h3>
               <p className="mt-1 font-black text-orange-400">
                 {formatCurrencyVND(deal.sellingPrice)}
               </p>
@@ -69,9 +71,10 @@ export default function FlashDealSlider({
                 sx={{
                   mt: 1.5,
                   borderColor: "#f97316",
-                  color: "#fb923c",
+                  color: isDark ? "#fb923c" : "#ea580c",
                   borderRadius: "999px",
                   fontWeight: 700,
+                  backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.82)",
                   "&:hover": { backgroundColor: "rgba(249,115,22,0.08)", borderColor: "#fb923c" },
                 }}
                 fullWidth

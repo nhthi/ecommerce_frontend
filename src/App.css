@@ -33,3 +33,262 @@
   }
 }
 
+body.theme-dark {
+  background: #090909;
+  color: #ffffff;
+}
+
+body.theme-light {
+  background: #f6f7fb;
+  color: #0f172a;
+}
+
+#root,
+.App {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--site-bg, #090909);
+  color: var(--site-text, #ffffff);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+:root[data-theme="dark"] {
+  --site-bg: #090909;
+  --site-surface: #111111;
+  --site-surface-soft: #141414;
+  --site-surface-elevated: rgba(255, 255, 255, 0.03);
+  --site-border: rgba(255, 255, 255, 0.08);
+  --site-text: #ffffff;
+  --site-text-soft: #cbd5e1;
+  --site-text-muted: #94a3b8;
+  --site-accent: #f97316;
+  --site-accent-soft: rgba(249, 115, 22, 0.1);
+}
+
+:root[data-theme="light"] {
+  --site-bg: #f6f7fb;
+  --site-surface: #ffffff;
+  --site-surface-soft: #f8fafc;
+  --site-surface-elevated: rgba(15, 23, 42, 0.03);
+  --site-border: rgba(15, 23, 42, 0.1);
+  --site-text: #0f172a;
+  --site-text-soft: #334155;
+  --site-text-muted: #64748b;
+  --site-accent: #f97316;
+  --site-accent-soft: rgba(249, 115, 22, 0.1);
+}
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.theme-light .bg-\[\#050505\],
+.theme-light .bg-\[\#080808\],
+.theme-light .bg-\[\#0b0b0b\],
+.theme-light .bg-\[\#0c0c0c\],
+.theme-light .bg-\[\#0d0d0d\],
+.theme-light .bg-black {
+  background: var(--site-bg) !important;
+}
+
+.theme-light .bg-\[\#101010\],
+.theme-light .bg-\[\#121212\],
+.theme-light .bg-\[\#141414\],
+.theme-light .bg-\[\#1b1b1b\],
+.theme-light .bg-black\/20,
+.theme-light .bg-black\/25,
+.theme-light .bg-white\/\[0\.02\],
+.theme-light .bg-white\/\[0\.03\],
+.theme-light .bg-white\/\[0\.04\],
+.theme-light .bg-white\/\[0\.05\],
+.theme-light .bg-white\/\[0\.06\],
+.theme-light .bg-white\/\[0\.07\],
+.theme-light .bg-white\/5,
+.theme-light .bg-white\/10 {
+  background-color: var(--site-surface) !important;
+}
+
+.theme-light .text-white {
+  color: var(--site-text) !important;
+}
+
+.theme-light .text-slate-200,
+.theme-light .text-slate-300,
+.theme-light .text-neutral-300,
+.theme-light .text-orange-200 {
+  color: var(--site-text-soft) !important;
+}
+
+.theme-light .text-slate-400,
+.theme-light .text-slate-500,
+.theme-light .text-neutral-400,
+.theme-light .text-neutral-500,
+.theme-light .text-slate-600 {
+  color: var(--site-text-muted) !important;
+}
+
+.theme-light .border-white\/6,
+.theme-light .border-white\/8,
+.theme-light .border-white\/10,
+.theme-light .border-white\/12,
+.theme-light .border-white\/15 {
+  border-color: var(--site-border) !important;
+}
+
+.theme-light .border-dashed.border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+.theme-light .shadow-black\/30,
+.theme-light .shadow-black\/40,
+.theme-light .shadow-black\/50 {
+  --tw-shadow-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light [class*="bg-[radial-gradient(circle_at_top_left"] {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+}
+
+.theme-light [class*="bg-[linear-gradient(135deg,rgba(0,0,0,0.82)"] {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(15, 23, 42, 0.55) 45%, rgba(249, 115, 22, 0.28) 100%) !important;
+}
+
+.theme-light .MuiPaper-root,
+.theme-light .MuiCard-root,
+.theme-light .MuiDialog-paper,
+.theme-light .MuiMenu-paper,
+.theme-light .MuiPopover-paper,
+.theme-light .MuiDrawer-paper {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.theme-light .MuiOutlinedInput-root {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+.theme-light .MuiInputBase-input,
+.theme-light .MuiSelect-select,
+.theme-light .MuiMenuItem-root,
+.theme-light .MuiTableCell-root,
+.theme-light .MuiTypography-root {
+  color: #0f172a !important;
+}
+
+.theme-light .MuiFormLabel-root,
+.theme-light .MuiInputLabel-root,
+.theme-light .MuiInputBase-input::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+.theme-light .MuiSvgIcon-root {
+  color: inherit;
+}
+
+.theme-light .admin-shell .MuiPaper-root,
+.theme-light .admin-shell .MuiCard-root,
+.theme-light .admin-shell .MuiAccordion-root,
+.theme-light .admin-shell .MuiDialog-paper,
+.theme-light .admin-shell .MuiMenu-paper,
+.theme-light .admin-shell .MuiPopover-paper,
+.theme-light .admin-shell .MuiDrawer-paper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .admin-shell .MuiTypography-root,
+.theme-light .admin-shell .MuiTableCell-root,
+.theme-light .admin-shell .MuiChip-root,
+.theme-light .admin-shell .MuiButtonBase-root,
+.theme-light .admin-shell .MuiFormLabel-root,
+.theme-light .admin-shell .MuiFormControlLabel-label,
+.theme-light .admin-shell .MuiInputLabel-root,
+.theme-light .admin-shell .MuiSvgIcon-root {
+  color: inherit !important;
+}
+
+.theme-light .admin-shell .MuiTableCell-root,
+.theme-light .admin-shell .MuiTypography-root,
+.theme-light .admin-shell .MuiButton-root,
+.theme-light .admin-shell .MuiChip-label,
+.theme-light .admin-shell .MuiMenuItem-root,
+.theme-light .admin-shell .MuiTab-root {
+  color: #0f172a !important;
+}
+
+.theme-light .admin-shell .MuiInputBase-root,
+.theme-light .admin-shell .MuiOutlinedInput-root,
+.theme-light .admin-shell .MuiSelect-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light .admin-shell .MuiOutlinedInput-notchedOutline,
+.theme-light .admin-shell .MuiTableCell-root,
+.theme-light .admin-shell .MuiDivider-root {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .admin-shell .text-white,
+.theme-light .admin-shell .text-slate-200,
+.theme-light .admin-shell .text-slate-300,
+.theme-light .admin-shell .text-neutral-300,
+.theme-light .admin-shell .text-neutral-400,
+.theme-light .admin-shell .text-slate-400 {
+  color: #334155 !important;
+}
+
+.theme-light .admin-shell .bg-\[\#090909\],
+.theme-light .admin-shell .bg-\[\#101010\],
+.theme-light .admin-shell .bg-\[\#141414\],
+.theme-light .admin-shell .bg-black\/20,
+.theme-light .admin-shell .bg-white\/\[0\.03\],
+.theme-light .admin-shell .bg-white\/\[0\.04\] {
+  background: #ffffff !important;
+}
+
+.theme-light .admin-shell .MuiTableCell-head {
+  background: #fff7ed !important;
+  color: #9a3412 !important;
+  border-bottom-color: rgba(249, 115, 22, 0.22) !important;
+}
+
+.theme-light .admin-shell .MuiTableBody-root .MuiTableCell-body {
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .admin-shell .MuiTableRow-root:hover {
+  background-color: rgba(249, 115, 22, 0.04) !important;
+}
+
+.theme-light .admin-shell .MuiPaper-root > .MuiBox-root:first-child {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.08), rgba(255,255,255,0.92)) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-light .admin-shell .MuiPaper-root > .MuiBox-root:first-child .MuiTypography-root {
+  color: #0f172a !important;
+}
+
+.theme-light .admin-shell .MuiPaper-root > .MuiBox-root:first-child .MuiTypography-root:last-child {
+  color: #475569 !important;
+}
+
+.theme-light .admin-shell .MuiTablePagination-root,
+.theme-light .admin-shell .MuiTablePagination-root .MuiToolbar-root,
+.theme-light .admin-shell .MuiDialogTitle-root,
+.theme-light .admin-shell .MuiDialogContent-root,
+.theme-light .admin-shell .MuiDialogActions-root {
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}

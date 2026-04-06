@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowForward, CalendarMonth, PersonOutline } from "@mui/icons-material";
 import { Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import { BlogPost } from "../../../types/BlogType";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const stripHtml = (html?: string) => {
   if (!html) return "";
@@ -23,6 +24,7 @@ const formatDate = (value?: string | null) => {
 const normalizeBlogSlug = (slug?: string | null) => {
   return (slug || "").replace(/^#+/, "");
 };
+
 const getCategoryTone = (categoryName?: string) => {
   const name = (categoryName || "").toLowerCase();
   if (name.includes("tap")) return { color: "#fff7ed", bg: "rgba(120,53,15,0.88)" };
@@ -34,6 +36,7 @@ const getCategoryTone = (categoryName?: string) => {
 const BlogCard = ({ post }: { post: BlogPost }) => {
   const navigate = useNavigate();
   const tone = getCategoryTone(post.category?.name);
+  const { isDark } = useSiteThemeMode();
   const excerpt =
     post.shortDescription?.trim() ||
     stripHtml(post.content).slice(0, 150) ||
@@ -45,10 +48,12 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       sx={{
         overflow: "hidden",
         borderRadius: "28px",
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-        color: "white",
+        border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+        background: isDark
+          ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
+          : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+        boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.28)" : "0 24px 60px rgba(15,23,42,0.08)",
+        color: isDark ? "white" : "#0f172a",
         height: "100%",
         transition: "transform 0.22s ease, border-color 0.22s ease",
         "&:hover": { transform: "translateY(-4px)", borderColor: "rgba(249,115,22,0.26)" },
@@ -83,10 +88,10 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
       </Box>
 
       <Box sx={{ p: 2.2 }}>
-        <Typography fontSize={24} fontWeight={800} sx={{ lineHeight: 1.15 }}>
+        <Typography fontSize={24} fontWeight={800} sx={{ lineHeight: 1.15, color: isDark ? "white" : "#0f172a" }}>
           {post.title}
         </Typography>
-        <Typography sx={{ mt: 1, color: "rgba(255,255,255,0.72)", fontSize: 14.6, lineHeight: 1.75 }}>
+        <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: 14.6, lineHeight: 1.75 }}>
           {excerpt}
         </Typography>
 
@@ -95,13 +100,13 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
             icon={<PersonOutline sx={{ color: "#fb923c !important" }} />}
             label={post.createdBy?.fullName || post.createdBy?.email || "Admin"}
             variant="outlined"
-            sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }}
+            sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
           />
           <Chip
             icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />}
             label={formatDate(post.publishedAt)}
             variant="outlined"
-            sx={{ color: "#fff7ed", borderColor: "rgba(249,115,22,0.22)" }}
+            sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
           />
         </Stack>
 
@@ -118,6 +123,3 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
 };
 
 export default BlogCard;
-
-
-

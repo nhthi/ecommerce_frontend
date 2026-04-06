@@ -6,6 +6,7 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { Product } from "../../../../types/ProductType";
 import { formatCurrencyVND } from "../../../../utils/formatCurrencyVND";
 import { useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 
 const DealCard: React.FC<Product> = ({
   title,
@@ -18,15 +19,16 @@ const DealCard: React.FC<Product> = ({
   id,
 }) => {
   const navigate = useNavigate();
+  const { isDark } = useSiteThemeMode();
 
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -4 }}
       transition={{ type: "spring", stiffness: 220, damping: 20 }}
-      className="overflow-hidden rounded-[1.6rem] border border-orange-500/15 bg-[#171717] shadow-sm"
+      className={isDark ? "overflow-hidden rounded-[1.6rem] border border-orange-500/15 bg-[#171717] shadow-sm" : "overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]"}
     >
       <div
-        className="relative cursor-pointer overflow-hidden bg-black"
+        className={isDark ? "relative cursor-pointer overflow-hidden bg-black" : "relative cursor-pointer overflow-hidden bg-slate-100"}
         onClick={() =>
           navigate(`/product-details/${title}/${id}`)
         }
@@ -43,12 +45,12 @@ const DealCard: React.FC<Product> = ({
 
         <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-3 py-1 text-[10px] font-semibold text-orange-300 backdrop-blur-sm">
           <LocalOfferIcon sx={{ fontSize: 12 }} />
-          Giá tốt
+          Gia tot
         </div>
       </div>
 
       <div className="flex flex-col gap-2 px-4 pb-4 pt-3">
-        <p className="line-clamp-2 min-h-[42px] text-sm font-semibold text-white">
+        <p className={isDark ? "line-clamp-2 min-h-[42px] text-sm font-semibold text-white" : "line-clamp-2 min-h-[42px] text-sm font-semibold text-slate-900"}>
           {title}
         </p>
 
@@ -57,15 +59,15 @@ const DealCard: React.FC<Product> = ({
             {formatCurrencyVND(sellingPrice)}
           </span>
           {formatCurrencyVND(mrpPrice) && (
-            <span className="text-xs text-slate-500 line-through">
+            <span className={isDark ? "text-xs text-slate-500 line-through" : "text-xs text-slate-400 line-through"}>
               {formatCurrencyVND(mrpPrice)}
             </span>
           )}
         </div>
 
-        <p className="text-[11px] text-slate-400">
-          Thuong hieu: {" "}
-          <span className="font-medium text-slate-200">
+        <p className={isDark ? "text-[11px] text-slate-400" : "text-[11px] text-slate-500"}>
+          Thuong hieu:{" "}
+          <span className={isDark ? "font-medium text-slate-200" : "font-medium text-slate-700"}>
             {seller?.businessDetails.businessName || "NHTHI Fit"}
           </span>
         </p>
@@ -85,7 +87,7 @@ const DealCard: React.FC<Product> = ({
           }}
         >
           <ShoppingBagIcon sx={{ fontSize: 16 }} />
-          <span className="text-sm font-bold">Xem chi tiết</span>
+          <span className="text-sm font-bold">Xem chi tiet</span>
         </IconButton>
       </div>
     </motion.div>

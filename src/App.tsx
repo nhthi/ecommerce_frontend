@@ -1,15 +1,12 @@
-import { ThemeProvider } from "@mui/material";
-import "./App.css";
+﻿import "./App.css";
 import Navbar from "./customer/components/Navbar/Navbar";
-import customeTheme from "./Theme/customeTheme";
 import Home from "./customer/pages/Home/Home";
 import Product from "./customer/pages/Product/Product";
 import PageDetails from "./customer/pages/Page Details/PageDetails";
 import Cart from "./customer/pages/Cart/Cart";
 import Checkout from "./customer/pages/Checkout/Checkout";
 import Account from "./customer/pages/Account/Account";
-import { Route, Routes, useParams } from "react-router-dom";
-import Review from "./customer/pages/Home/Review/Review";
+import { Route, Routes } from "react-router-dom";
 import BecomeSeller from "./customer/pages/BecomeSeller/BecomeSeller";
 import SellerDashboard from "./seller/pages/SellerDashboard/SellerDashboard";
 import AdminDashboard from "./admin/pages/Dashboard/Dashboard";
@@ -33,13 +30,15 @@ import Exchange from "./customer/pages/Policy/Exchange";
 import Faq from "./customer/pages/Policy/Faq";
 import Blog from "./customer/pages/Blog/Blog";
 import BlogDetail from "./customer/pages/Blog/BlogDetail";
+import SiteThemeProvider from "./Theme/SiteThemeProvider";
 
 function App() {
   const { seller, auth } = useAppSelector((store) => store);
+
   return (
     <div className="App">
-      <ThemeProvider theme={customeTheme}>
-        <div>
+      <SiteThemeProvider>
+        <div className="app-shell">
           <Navbar />
           <ScrollToTop />
           <Routes>
@@ -56,7 +55,6 @@ function App() {
             <Route path="/test" element={<TryOn />} />
             <Route path="/login" element={<Auth />} />
             <Route path="/message" element={<Message />} />
-            <Route path="/message" element={<Message />} />
             <Route path="/products/:category" element={<Product />} />
             <Route path="/product-details/:name/:productId" element={<PageDetails />} />
             <Route path="/cart" element={<Cart />} />
@@ -68,12 +66,12 @@ function App() {
             <Route path="/search" element={<SearchProduct />} />
             <Route path="/account/*" element={<Account />} />
             <Route path="/seller/*" element={seller.profile ? <SellerDashboard /> : <NotFound />} />
-            <Route path="/admin/*" element={(auth.user?.role === "ROLE_ADMIN"||auth.user?.role === "ROLE_STAFF") ? <AdminDashboard /> : <NotFound />} />
+            <Route path="/admin/*" element={(auth.user?.role === "ROLE_ADMIN" || auth.user?.role === "ROLE_STAFF") ? <AdminDashboard /> : <NotFound />} />
             <Route path="/*" element={<NotFound />} />
           </Routes>
           <ChatBotWidget />
         </div>
-      </ThemeProvider>
+      </SiteThemeProvider>
     </div>
   );
 }

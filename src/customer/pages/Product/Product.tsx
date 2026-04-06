@@ -1,56 +1,53 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import FilterSection from "./FilterSection";
 import {
-  Box,
   FormControl,
-  IconButton,
   MenuItem,
   Pagination,
   Select,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
-import { FilterAlt } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchAllProducts } from "../../../state/customer/productSlice";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Product as ProductType } from "../../../types/ProductType";
 import { getWishlistByUser } from "../../../state/customer/wishlistSlice";
-
-const selectSx = {
-  minWidth: 220,
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "999px",
-    color: "white",
-    backgroundColor: "rgba(255,255,255,0.04)",
-    "& fieldset": {
-      borderColor: "rgba(255,255,255,0.1)",
-    },
-    "&:hover fieldset": {
-      borderColor: "rgba(249,115,22,0.35)",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#f97316",
-    },
-  },
-  "& .MuiSvgIcon-root": {
-    color: "rgba(255,255,255,0.65)",
-  },
-};
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const Product = () => {
-  const theme = useTheme();
-  const isLarge = useMediaQuery(theme.breakpoints.up("lg"));
   const [sort, setSort] = useState<string>("");
   const [page, setPage] = useState(1);
-  const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const { isDark } = useSiteThemeMode();
 
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const product = useAppSelector((store) => store.product);
   const { category } = useParams();
   const keyword = searchParams.get("keyword") || "";
+
+  const selectSx = useMemo(
+    () => ({
+      minWidth: 210,
+      "& .MuiOutlinedInput-root": {
+        borderRadius: "999px",
+        color: isDark ? "#ffffff" : "#0f172a",
+        backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#ffffff",
+        "& fieldset": {
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(15,23,42,0.12)",
+        },
+        "&:hover fieldset": {
+          borderColor: "rgba(249,115,22,0.35)",
+        },
+        "&.Mui-focused fieldset": {
+          borderColor: "#f97316",
+        },
+      },
+      "& .MuiSvgIcon-root": {
+        color: isDark ? "rgba(255,255,255,0.65)" : "#64748b",
+      },
+    }),
+    [isDark]
+  );
 
   const handleSortChange = (e: any) => {
     setSort(e.target.value);
@@ -88,82 +85,52 @@ const Product = () => {
   }, [searchParams, page, category, sort, dispatch]);
 
   const totalPages = product.totalPages || 1;
+  const heading = keyword || (category ? `${category}` : "Tat ca san pham");
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-12 xl:px-20">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.18),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl space-y-3">
+        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.18),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] px-6 py-7 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
               <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
-                Danh sách sản phẩm
+                Product
               </span>
-              <div className="space-y-2">
-                <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                  {keyword || (category ? `${category}` : "Tat ca san pham")}
-                </h1>
-                <p className="max-w-2xl text-sm leading-6 text-neutral-300 sm:text-base">
-                  Lọc nhanh theo nhu cầu mua sắm, xem các sản phẩm đang có sẵn và sắp xếp theo mức giá mong muốn.
-                </p>
-              </div>
+              <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+                {heading}
+              </h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm text-neutral-300">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Sản phẩm</p>
-                <p className="mt-2 text-2xl font-black text-white">{product.products.length || 0}</p>
+            <div className="flex items-center gap-3 self-start lg:self-auto">
+              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-center">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Items</p>
+                <p className="mt-1 text-2xl font-black text-white">{product.products.length || 0}</p>
               </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Trang</p>
-                <p className="mt-2 text-2xl font-black text-orange-400">{page}/{totalPages}</p>
+              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-center">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Page</p>
+                <p className="mt-1 text-2xl font-black text-orange-400">{page}/{totalPages}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-          <section className="hidden lg:block lg:sticky lg:top-24">
+          <section className="lg:sticky lg:top-24">
             <FilterSection />
           </section>
 
           <div className="space-y-5">
-            <div className="flex flex-col gap-3 rounded-[1.8rem] border border-white/10 bg-[#121212] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)] sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                {!isLarge && (
-                  <IconButton
-                    onClick={() => setShowMobileFilter((prev) => !prev)}
-                    sx={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: "999px",
-                      color: "#fdba74",
-                      border: "1px solid rgba(249,115,22,0.25)",
-                      backgroundColor: "rgba(249,115,22,0.08)",
-                    }}
-                  >
-                    <FilterAlt sx={{ fontSize: 20 }} />
-                  </IconButton>
-                )}
-                <div>
-                  <p className="text-lg font-black tracking-tight text-white">Danh sách sản phẩm</p>
-                  <p className="text-sm text-neutral-400">{product.products.length || 0} kết quả phù hợp với bộ lọc hiện tại</p>
-                </div>
-              </div>
+            <div className="flex flex-col gap-3 rounded-[1.6rem] border border-white/10 bg-[#121212] px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.28)] sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-neutral-300">{product.products.length || 0} san pham</p>
 
               <FormControl size="small" sx={selectSx}>
                 <Select value={sort} displayEmpty onChange={handleSortChange}>
-                  <MenuItem value="">Mặc định</MenuItem>
-                  <MenuItem value="price_low">Giá thấp đến cao</MenuItem>
-                  <MenuItem value="price_high">Giá cao đến thấp</MenuItem>
+                  <MenuItem value="">Mac dinh</MenuItem>
+                  <MenuItem value="price_low">Gia thap den cao</MenuItem>
+                  <MenuItem value="price_high">Gia cao den thap</MenuItem>
                 </Select>
               </FormControl>
             </div>
-
-            {!isLarge && showMobileFilter && (
-              <Box>
-                <FilterSection />
-              </Box>
-            )}
 
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {product.products.map((item: ProductType) => (
@@ -171,9 +138,8 @@ const Product = () => {
               ))}
 
               {product.products.length === 0 && (
-                <div className="col-span-full rounded-[1.8rem] border border-dashed border-white/10 bg-[#121212] px-6 py-12 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
-                  <p className="text-2xl font-black tracking-tight text-white">Không có sản phẩm phù hợp</p>
-                  <p className="mt-2 text-sm leading-6 text-neutral-400">Hãy thay đổi từ khóa tìm kiếm hoặc bộ lọc để xem thêm sản phẩm liên quan</p>
+                <div className="col-span-full rounded-[1.6rem] border border-dashed border-white/10 bg-[#121212] px-6 py-12 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
+                  <p className="text-2xl font-black tracking-tight text-white">Khong co san pham</p>
                 </div>
               )}
             </section>
@@ -187,8 +153,8 @@ const Product = () => {
                   shape="rounded"
                   sx={{
                     "& .MuiPaginationItem-root": {
-                      color: "rgba(255,255,255,0.78)",
-                      borderColor: "rgba(255,255,255,0.12)",
+                      color: isDark ? "rgba(255,255,255,0.78)" : "#334155",
+                      borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)",
                     },
                     "& .Mui-selected": {
                       backgroundColor: "#f97316 !important",

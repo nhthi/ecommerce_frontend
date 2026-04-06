@@ -2,19 +2,22 @@ import React from "react";
 import { Grid, Paper, Stack, Typography } from "@mui/material";
 import PolicyLayout from "./PolicyLayout";
 import { deliverySections } from "./policyContent";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const Delivery = () => {
+  const { isDark } = useSiteThemeMode();
+
   return (
     <PolicyLayout
-      eyebrow="Chính sách vận chuyển"
-      title="Giao hàng rõ ràng, dễ theo dõi và phù hợp với dụng cụ fitness."
-      summary="Thông tin giao hàng dưới đây được xây dựng để khách hàng dễ hình dung thời gian xử lý, phạm vi giao và các lưu ý khi nhận hàng, từ phụ kiện nhỏ đến thiết bị lớn."
+      eyebrow="Chinh sach van chuyen"
+      title="Giao hang ro rang, de theo doi va phu hop voi dung cu fitness."
+      summary="Thong tin giao hang duoi day duoc xay dung de khach hang de hinh dung thoi gian xu ly, pham vi giao va cac luu y khi nhan hang, tu phu kien nho den thiet bi lon."
       image="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80"
       facts={[
-        "Đơn có sẵn sẽ được xử lý trong 12 đến 24 giờ làm việc.",
-        "Nội thành và tỉnh lân cận được ưu tiên tùy tuyến vận chuyển.",
-        "Sản phẩm lớn có thể cần xác nhận lịch giao và lắp đặt riêng.",
-        "Khách nên kiểm tra tình trạng thùng hàng ngay khi nhận đơn.",
+        "Don co san se duoc xu ly trong 12 den 24 gio lam viec.",
+        "Noi thanh va tinh lan can duoc uu tien tuy tuyen van chuyen.",
+        "San pham lon co the can xac nhan lich giao va lap dat rieng.",
+        "Khach nen kiem tra tinh trang thung hang ngay khi nhan don.",
       ]}
     >
       <Grid container spacing={2.2}>
@@ -25,10 +28,10 @@ const Delivery = () => {
               sx={{
                 height: "100%",
                 borderRadius: "28px",
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))",
-                boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-                color: "white",
+                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+                background: isDark ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))" : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+                boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.28)" : "0 24px 60px rgba(15,23,42,0.08)",
+                color: isDark ? "white" : "#0f172a",
                 p: 2.4,
               }}
             >
@@ -36,7 +39,7 @@ const Delivery = () => {
               {section.paragraphs && (
                 <Stack spacing={1.1} sx={{ mt: 1.4 }}>
                   {section.paragraphs.map((paragraph) => (
-                    <Typography key={paragraph} sx={{ color: "rgba(255,255,255,0.74)", fontSize: 14.8, lineHeight: 1.8 }}>
+                    <Typography key={paragraph} sx={{ color: isDark ? "rgba(255,255,255,0.74)" : "#475569", fontSize: 14.8, lineHeight: 1.8 }}>
                       {paragraph}
                     </Typography>
                   ))}
@@ -45,7 +48,7 @@ const Delivery = () => {
               {section.bullets && (
                 <Stack spacing={1} sx={{ mt: 1.4 }}>
                   {section.bullets.map((bullet) => (
-                    <Typography key={bullet} sx={{ color: "rgba(255,255,255,0.74)", fontSize: 14.8, lineHeight: 1.8 }}>
+                    <Typography key={bullet} sx={{ color: isDark ? "rgba(255,255,255,0.74)" : "#475569", fontSize: 14.8, lineHeight: 1.8 }}>
                       {bullet}
                     </Typography>
                   ))}

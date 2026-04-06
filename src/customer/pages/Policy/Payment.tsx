@@ -2,19 +2,22 @@ import React from "react";
 import { Grid, Paper, Stack, Typography } from "@mui/material";
 import PolicyLayout from "./PolicyLayout";
 import { paymentSections } from "./policyContent";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const Payment = () => {
+  const { isDark } = useSiteThemeMode();
+
   return (
     <PolicyLayout
-      eyebrow="Chính sách thanh toán"
-      title="Thanh toán linh hoạt, minh bạch và ưu tiên an toàn giao dịch."
-      summary="Nội dung dưới đây mô tả các hình thức thanh toán đang áp dụng, cách xác nhận giao dịch và một số nguyên tắc bảo mật cơ bản để khách hàng yên tâm hơn khi mua sắm."
+      eyebrow="Chinh sach thanh toan"
+      title="Thanh toan linh hoat, minh bach va uu tien an toan giao dich."
+      summary="Noi dung duoi day mo ta cac hinh thuc thanh toan dang ap dung, cach xac nhan giao dich va mot so nguyen tac bao mat co ban de khach hang yen tam hon khi mua sam."
       image="https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1400&q=80"
       facts={[
-        "COD chỉ áp dụng với đơn đủ điều kiện và khu vực hỗ trợ.",
-        "Thanh toán trước có thể cần thiết với đơn lớn hoặc đặt trước.",
-        "Shop ưu tiên các kênh thanh toán quen thuộc, dễ đối chiếu.",
-        "Thông tin hoàn tiền được xử lý theo kênh thanh toán ban đầu.",
+        "COD chi ap dung voi don du dieu kien va khu vuc ho tro.",
+        "Thanh toan truoc co the can thiet voi don lon hoac dat truoc.",
+        "Shop uu tien cac kenh thanh toan quen thuoc, de doi chieu.",
+        "Thong tin hoan tien duoc xu ly theo kenh thanh toan ban dau.",
       ]}
     >
       <Grid container spacing={2.2}>
@@ -25,10 +28,10 @@ const Payment = () => {
               sx={{
                 height: "100%",
                 borderRadius: "28px",
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))",
-                boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-                color: "white",
+                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+                background: isDark ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))" : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+                boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.28)" : "0 24px 60px rgba(15,23,42,0.08)",
+                color: isDark ? "white" : "#0f172a",
                 p: 2.4,
               }}
             >
@@ -36,7 +39,7 @@ const Payment = () => {
               {section.paragraphs && (
                 <Stack spacing={1.1} sx={{ mt: 1.4 }}>
                   {section.paragraphs.map((paragraph) => (
-                    <Typography key={paragraph} sx={{ color: "rgba(255,255,255,0.74)", fontSize: 14.8, lineHeight: 1.8 }}>
+                    <Typography key={paragraph} sx={{ color: isDark ? "rgba(255,255,255,0.74)" : "#475569", fontSize: 14.8, lineHeight: 1.8 }}>
                       {paragraph}
                     </Typography>
                   ))}
@@ -45,7 +48,7 @@ const Payment = () => {
               {section.bullets && (
                 <Stack spacing={1} sx={{ mt: 1.4 }}>
                   {section.bullets.map((bullet) => (
-                    <Typography key={bullet} sx={{ color: "rgba(255,255,255,0.74)", fontSize: 14.8, lineHeight: 1.8 }}>
+                    <Typography key={bullet} sx={{ color: isDark ? "rgba(255,255,255,0.74)" : "#475569", fontSize: 14.8, lineHeight: 1.8 }}>
                       {bullet}
                     </Typography>
                   ))}

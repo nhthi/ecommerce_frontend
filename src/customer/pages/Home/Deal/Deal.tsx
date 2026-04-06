@@ -4,8 +4,11 @@ import DealCard from "./DealCard";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { Product } from "../../../../types/ProductType";
+import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 
 const Deal = ({ products }: { products: Product[] }) => {
+  const { isDark } = useSiteThemeMode();
+
   const settings = {
     dots: false,
     arrows: false,
@@ -26,18 +29,18 @@ const Deal = ({ products }: { products: Product[] }) => {
   };
 
   return (
-    <section className="rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-8 md:px-6">
+    <section className={isDark ? "rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-8 md:px-6" : "rounded-[2rem] border border-slate-200 bg-white px-4 py-8 shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:px-6"}>
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white">
-            Sản phẩm đang có giá tốt
+          <h2 className={isDark ? "text-2xl font-black text-white" : "text-2xl font-black text-slate-900"}>
+            San pham dang co gia tot
           </h2>
-          <p className="mt-1 text-sm text-slate-300">
-            Tập trung vào các sản phẩm có giá dễ tiếp cận, phù hợp cho người mới bắt đầu.
+          <p className={isDark ? "mt-1 text-sm text-slate-300" : "mt-1 text-sm text-slate-600"}>
+            Tap trung vao cac san pham co gia de tiep can, phu hop cho nguoi moi bat dau.
           </p>
         </div>
         <span className="hidden rounded-full border border-orange-500/25 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-400 md:inline-flex">
-          Cập nhật liên tục
+          Cap nhat lien tuc
         </span>
       </div>
 
