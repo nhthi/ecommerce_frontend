@@ -1,10 +1,11 @@
-﻿import { Box, Button, Grid, MenuItem, TextField } from "@mui/material";
+import { Box, Button, Grid, MenuItem, TextField } from "@mui/material";
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
 import axios from "axios";
 import { useAppDispatch } from "../../../state/Store";
 import { createAddress } from "../../../state/customer/addressSlice";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 interface Ward {
   code: number;
@@ -35,55 +36,61 @@ const AddressFormSchema = Yup.object().shape({
   note: Yup.string(),
 });
 
-const fieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "18px",
-    color: "white",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    "& fieldset": {
-      borderColor: "rgba(255,255,255,0.1)",
-    },
-    "&:hover fieldset": {
-      borderColor: "rgba(249,115,22,0.35)",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#f97316",
-    },
-    "&.Mui-disabled": {
-      backgroundColor: "rgba(255,255,255,0.02)",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "rgba(255,255,255,0.62)",
-  },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "#fdba74",
-  },
-  "& .MuiFormHelperText-root": {
-    color: "rgba(255,255,255,0.45)",
-    marginLeft: "6px",
-  },
-  "& .MuiInputBase-input::placeholder": {
-    color: "rgba(255,255,255,0.38)",
-    opacity: 1,
-  },
-  "& .MuiSvgIcon-root": {
-    color: "rgba(255,255,255,0.55)",
-  },
-};
-
 const AddressForm = ({ onClose }: { onClose: () => void }) => {
   const dispatch = useAppDispatch();
+  const { isDark } = useSiteThemeMode();
 
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
 
+  const fieldSx = useMemo(
+    () => ({
+      "& .MuiOutlinedInput-root": {
+        borderRadius: "18px",
+        color: isDark ? "#ffffff" : "#0f172a",
+        backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+        "& fieldset": {
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(15,23,42,0.12)",
+        },
+        "&:hover fieldset": {
+          borderColor: "rgba(249,115,22,0.35)",
+        },
+        "&.Mui-focused fieldset": {
+          borderColor: "#f97316",
+        },
+        "&.Mui-disabled": {
+          backgroundColor: isDark
+            ? "rgba(255,255,255,0.02)"
+            : "rgba(15,23,42,0.03)",
+        },
+      },
+      "& .MuiInputLabel-root": {
+        color: isDark ? "rgba(255,255,255,0.62)" : "#64748b",
+      },
+      "& .MuiInputLabel-root.Mui-focused": {
+        color: "#fdba74",
+      },
+      "& .MuiFormHelperText-root": {
+        color: isDark ? "rgba(255,255,255,0.45)" : "#64748b",
+        marginLeft: "6px",
+      },
+      "& .MuiInputBase-input::placeholder": {
+        color: isDark ? "rgba(255,255,255,0.38)" : "rgba(100,116,139,0.72)",
+        opacity: 1,
+      },
+      "& .MuiSvgIcon-root": {
+        color: isDark ? "rgba(255,255,255,0.55)" : "#64748b",
+      },
+    }),
+    [isDark]
+  );
+
   useEffect(() => {
     axios
       .get("https://provinces.open-api.vn/api/p/")
       .then((res) => setProvinces(res.data))
-      .catch((err) => console.error("Error fetching provinces", err));
+      .catch((err) => console.error("Lỗi khi tải danh sách tỉnh/thành phố", err));
   }, []);
 
   const formik = useFormik({
@@ -106,14 +113,20 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
   useEffect(() => {
     if (formik.values.province) {
       const selectedProvince = provinces.find(
-        (p) => p.name === formik.values.province,
+        (p) => p.name === formik.values.province
       );
+
       if (selectedProvince) {
         axios
-          .get(`https://provinces.open-api.vn/api/p/${selectedProvince.code}?depth=2`)
+          .get(
+            `https://provinces.open-api.vn/api/p/${selectedProvince.code}?depth=2`
+          )
           .then((res) => setDistricts(res.data.districts || []))
-          .catch((err) => console.error("Error fetching districts", err));
+          .catch((err) =>
+            console.error("Lỗi khi tải danh sách quận/huyện", err)
+          );
       }
+
       setWards([]);
       formik.setFieldValue("district", "");
       formik.setFieldValue("ward", "");
@@ -123,14 +136,18 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
   useEffect(() => {
     if (formik.values.district) {
       const selectedDistrict = districts.find(
-        (d) => d.name === formik.values.district,
+        (d) => d.name === formik.values.district
       );
+
       if (selectedDistrict) {
         axios
-          .get(`https://provinces.open-api.vn/api/d/${selectedDistrict.code}?depth=2`)
+          .get(
+            `https://provinces.open-api.vn/api/d/${selectedDistrict.code}?depth=2`
+          )
           .then((res) => setWards(res.data.wards || []))
-          .catch((err) => console.error("Error fetching wards", err));
+          .catch((err) => console.error("Lỗi khi tải danh sách phường/xã", err));
       }
+
       formik.setFieldValue("ward", "");
     }
   }, [formik.values.district, districts]);
@@ -138,23 +155,32 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
   return (
     <Box
       sx={{
-        bgcolor: "#111111",
-        color: "white",
+        bgcolor: isDark ? "#111111" : "#ffffff",
+        color: isDark ? "white" : "#0f172a",
         borderRadius: "28px",
-        border: "1px solid rgba(249,115,22,0.16)",
-        boxShadow: "0 28px 80px rgba(0,0,0,0.45)",
+        border: isDark
+          ? "1px solid rgba(249,115,22,0.16)"
+          : "1px solid rgba(15,23,42,0.08)",
+        boxShadow: isDark
+          ? "0 28px 80px rgba(0,0,0,0.45)"
+          : "0 24px 70px rgba(15,23,42,0.12)",
         p: { xs: 3, sm: 4 },
       }}
     >
       <div className="mb-6 space-y-2 text-center">
-        <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
-          New address
-        </p>
-        <h2 className="text-3xl font-black tracking-tight text-white">
+        <p className=" font-bold uppercase tracking-[0.28em] text-xl text-orange-400">
           Thêm địa chỉ giao hàng
-        </h2>
-        <p className="mx-auto max-w-lg text-sm leading-6 text-neutral-400">
-          Điền thông tin giao hàng rõ ràng để đơn được xử lý nhanh và đúng địa chỉ.
+        </p>
+        
+        <p
+          className={
+            isDark
+              ? "mx-auto max-w-lg text-sm leading-6 text-neutral-400"
+              : "mx-auto max-w-lg text-sm leading-6 text-slate-600"
+          }
+        >
+          Điền đầy đủ thông tin giao hàng để đơn hàng được xử lý nhanh chóng và
+          chính xác hơn.
         </p>
       </div>
 
@@ -169,8 +195,13 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               value={formik.values.receiverName}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.receiverName && Boolean(formik.errors.receiverName)}
-              helperText={formik.touched.receiverName && formik.errors.receiverName}
+              error={
+                formik.touched.receiverName &&
+                Boolean(formik.errors.receiverName)
+              }
+              helperText={
+                formik.touched.receiverName && formik.errors.receiverName
+              }
               sx={fieldSx}
             />
           </Grid>
@@ -184,8 +215,12 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               value={formik.values.phoneNumber}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
-              helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+              error={
+                formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)
+              }
+              helperText={
+                formik.touched.phoneNumber && formik.errors.phoneNumber
+              }
               sx={fieldSx}
             />
           </Grid>
@@ -264,8 +299,13 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               value={formik.values.streetDetail}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.streetDetail && Boolean(formik.errors.streetDetail)}
-              helperText={formik.touched.streetDetail && formik.errors.streetDetail}
+              error={
+                formik.touched.streetDetail &&
+                Boolean(formik.errors.streetDetail)
+              }
+              helperText={
+                formik.touched.streetDetail && formik.errors.streetDetail
+              }
               sx={fieldSx}
             />
           </Grid>
@@ -277,7 +317,7 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
               rows={3}
               name="note"
               label="Ghi chú"
-              placeholder="Gọi trước khi giao, giao giờ hành chính..."
+              placeholder="Gọi trước khi giao, giao trong giờ hành chính..."
               value={formik.values.note}
               onChange={formik.handleChange}
               sx={fieldSx}
@@ -299,7 +339,8 @@ const AddressForm = ({ onClose }: { onClose: () => void }) => {
                 background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
                 boxShadow: "0 14px 35px rgba(249,115,22,0.35)",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
+                  background:
+                    "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
                 },
               }}
             >

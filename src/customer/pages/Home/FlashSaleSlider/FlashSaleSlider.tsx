@@ -30,7 +30,7 @@ export default function FlashDealSlider({
           }}
         />
         <h2 className={isDark ? "mt-4 text-3xl font-black text-white" : "mt-4 text-3xl font-black text-slate-900"}>
-          San pham dang giam gia nhanh
+          Sản phẩm đang giảm giá nhanh
         </h2>
       </div>
 

@@ -1,4 +1,4 @@
-﻿import "./App.css";
+import "./App.css";
 import Navbar from "./customer/components/Navbar/Navbar";
 import Home from "./customer/pages/Home/Home";
 import Product from "./customer/pages/Product/Product";
@@ -22,7 +22,6 @@ import ChatBotWidget from "./customer/components/ChatBot/ChatBotWidget";
 import Message from "./customer/pages/Message/Message";
 import { useAppSelector } from "./state/Store";
 import SellerStorePage from "./customer/pages/SellerProduct/SellerStorePage";
-import Training from "./customer/pages/Training/Training";
 import TrainingDetail from "./customer/pages/Training/TrainingDetail";
 import Delivery from "./customer/pages/Policy/Delivery";
 import Payment from "./customer/pages/Policy/Payment";
@@ -31,6 +30,10 @@ import Faq from "./customer/pages/Policy/Faq";
 import Blog from "./customer/pages/Blog/Blog";
 import BlogDetail from "./customer/pages/Blog/BlogDetail";
 import SiteThemeProvider from "./Theme/SiteThemeProvider";
+import Training from "./customer/pages/Training";
+import CreateSupportPage from "./customer/pages/Support/CreateSupportPage";
+import CustomerSupportChat from "./customer/pages/Support/CustomerSupportChat";
+import MyReturnRequestsPage from "./customer/pages/Account/ReturnRequest/MyReturnRequestsPage";
 
 function App() {
   const { seller, auth } = useAppSelector((store) => store);
@@ -64,6 +67,11 @@ function App() {
             <Route path="/payment-success/:orderId" element={<PaymentSuccess />} />
             <Route path="/become-seller" element={<BecomeSeller />} />
             <Route path="/search" element={<SearchProduct />} />
+            <Route path="/support/create" element={<CreateSupportPage />} />
+            
+<Route path="/support/:id" element={<CustomerSupportChat />} />
+<Route path="/support" element={<CustomerSupportChat />} />
+
             <Route path="/account/*" element={<Account />} />
             <Route path="/seller/*" element={seller.profile ? <SellerDashboard /> : <NotFound />} />
             <Route path="/admin/*" element={(auth.user?.role === "ROLE_ADMIN" || auth.user?.role === "ROLE_STAFF") ? <AdminDashboard /> : <NotFound />} />
@@ -77,3 +85,4 @@ function App() {
 }
 
 export default App;
+

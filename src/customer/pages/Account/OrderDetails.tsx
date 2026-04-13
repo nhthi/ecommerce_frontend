@@ -18,15 +18,24 @@ import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { cancelOrder, fetchOrderById } from "../../../state/customer/orderSlice";
 import { OrderStatus } from "../../../types/OrderType";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
+import ReturnRequestDialog from "../../components/ReturnRequest/ReturnRequestDialog";
+import {
+  fetchMyReturnRequests,
+  markReturnCustomerShipped,
+} from "../../../state/customer/returnRequestSlice";
 
 const OrderDetails = () => {
   const navigate = useNavigate();
   const { orderId } = useParams();
-  const { order } = useAppSelector((store) => store);
   const dispatch = useAppDispatch();
+
+  const { order, returnRequestSlice } = useAppSelector((store) => store);
 
   const [openConfirm, setOpenConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [selectedOrderItem, setSelectedOrderItem] = useState<any | null>(null);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -44,6 +53,7 @@ const OrderDetails = () => {
   useEffect(() => {
     if (orderId) {
       dispatch(fetchOrderById(Number(orderId)));
+      dispatch(fetchMyReturnRequests());
     }
   }, [orderId, dispatch]);
 
@@ -67,6 +77,31 @@ const OrderDetails = () => {
     } finally {
       setLoading(false);
       setOpenConfirm(false);
+    }
+  };
+
+  const handleOpenReturnDialog = (item: any) => {
+    setSelectedOrderItem(item);
+    setReturnDialogOpen(true);
+  };
+
+  const handleCustomerShipped = async (requestId: number) => {
+    try {
+      await dispatch(markReturnCustomerShipped(requestId)).unwrap();
+      setSnackbar({
+        open: true,
+        message: "Đã cập nhật trạng thái khách gửi hàng trả.",
+        severity: "success",
+      });
+    } catch (err: any) {
+      setSnackbar({
+        open: true,
+        message:
+          typeof err === "string"
+            ? err
+            : "Không thể cập nhật trạng thái trả hàng lúc này.",
+        severity: "error",
+      });
     }
   };
 
@@ -95,6 +130,44 @@ const OrderDetails = () => {
     };
   }, [currentOrder]);
 
+  const returnRequestMap = useMemo(() => {
+    const map = new Map<number, any>();
+    returnRequestSlice.myRequests.forEach((request) => {
+      request.items?.forEach((item) => {
+        map.set(item.orderItemId, request);
+      });
+    });
+    return map;
+  }, [returnRequestSlice.myRequests]);
+
+  const isReturnAvailable = (deliveryDate?: string) => {
+    if (!deliveryDate) return false;
+
+    const delivered = new Date(deliveryDate);
+    if (Number.isNaN(delivered.getTime())) return false;
+
+    const deadline = new Date(delivered);
+    deadline.setDate(deadline.getDate() + 7);
+
+    return new Date() <= deadline;
+  };
+
+  const getReturnDeadlineText = (deliveryDate?: string) => {
+    if (!deliveryDate) return "Không xác định";
+
+    const delivered = new Date(deliveryDate);
+    if (Number.isNaN(delivered.getTime())) return "Không xác định";
+
+    const deadline = new Date(delivered);
+    deadline.setDate(deadline.getDate() + 7);
+
+    return deadline.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   if (!currentOrder) {
     return (
       <Box className="min-h-[50vh] flex items-center justify-center text-lg text-slate-400">
@@ -105,6 +178,8 @@ const OrderDetails = () => {
 
   const canCancel =
     currentOrder.orderStatus === "PENDING" || currentOrder.orderStatus === "PLACED";
+
+  const canReturnByDate = isReturnAvailable(currentOrder.deliveryDate);
 
   return (
     <Box className="space-y-6">
@@ -129,28 +204,36 @@ const OrderDetails = () => {
             <p className="mt-1 text-2xl font-black text-orange-400">
               {formatVND(pricing.totalPrice)}
             </p>
+
+            {currentOrder.orderStatus === "DELIVERED" && (
+              <p className="mt-2 text-sm text-slate-400">
+                Có thể trả hàng đến{" "}
+                <span className="font-semibold text-white">
+                  {getReturnDeadlineText(currentOrder.deliveryDate)}
+                </span>
+              </p>
+            )}
           </div>
 
-          <Button
-            variant="outlined"
-            size="small"
-            sx={{
-              textTransform: "none",
-              borderRadius: "999px",
-              fontSize: "0.95rem",
-              fontWeight: 700,
-              borderColor: "rgba(249,115,22,0.3)",
-              color: "#fb923c",
-              px: 2.5,
-              "&:hover": {
-                borderColor: "#fb923c",
-                backgroundColor: "rgba(249,115,22,0.08)",
-              },
-            }}
-            onClick={() => navigate("/account/orders")}
-          >
-            Quay lại danh sách đơn hàng
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outlined"
+              size="small"
+              sx={secondaryButtonSx}
+              onClick={() => navigate("/account/orders")}
+            >
+              Quay lại danh sách đơn hàng
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              sx={secondaryButtonSx}
+              onClick={() => navigate("/account/return-requests")}
+            >
+              Yêu cầu trả hàng của tôi
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -159,99 +242,152 @@ const OrderDetails = () => {
         <Divider sx={{ borderColor: "rgba(249,115,22,0.12)", my: 3 }} />
 
         <div className="space-y-4">
-          {currentOrder.orderItems?.map((item) => (
-            <div
-              key={item.id}
-              className="flex flex-col gap-4 rounded-[1.4rem] border border-white/6 bg-black/20 p-4 sm:flex-row"
-            >
-              <img
-                src={ item.product?.images?.[0]}
-                alt={ item.product?.title}
-                className="h-32 w-24 rounded-xl border border-white/6 object-cover"
-              />
+          {currentOrder.orderItems?.map((item) => {
+            const itemReturnRequest = returnRequestMap.get(item.id);
+            const canCreateReturn =
+              currentOrder.orderStatus === "DELIVERED" &&
+              canReturnByDate &&
+              !itemReturnRequest;
 
-              <div className="flex-1 space-y-2 text-base">
-                <h4 className="text-xl font-bold text-white">
-                  { item.product?.title}
-                </h4>
+            return (
+              <div
+                key={item.id}
+                className="flex flex-col gap-4 rounded-[1.4rem] border border-white/6 bg-black/20 p-4 sm:flex-row"
+              >
+                <img
+                  src={item.product?.images?.[0]}
+                  alt={item.product?.title}
+                  className="h-32 w-24 rounded-xl border border-white/6 object-cover"
+                />
 
-                <p className="text-slate-400">
-                  {item.product?.seller?.businessDetails?.businessName || "NHTHI Fit"}
-                </p>
+                <div className="flex-1 space-y-2 text-base">
+                  <h4 className="text-xl font-bold text-white">
+                    {item.product?.title}
+                  </h4>
 
-                <p className="text-slate-300">
-                  Kích thước:{" "}
-                  <span className="font-semibold text-white">
-                    { item.size?.name || "Không có"}
-                  </span>
-                </p>
+                  <p className="text-slate-400">
+                    {item.product?.seller?.businessDetails?.businessName || "NHTHI Fit"}
+                  </p>
 
-                <p className="text-slate-300">
-                  Số lượng:{" "}
-                  <span className="font-semibold text-white">{item.quantity}</span>
-                </p>
+                  <p className="text-slate-300">
+                    Kích thước:{" "}
+                    <span className="font-semibold text-white">
+                      {item.size?.name || "Không có"}
+                    </span>
+                  </p>
 
-                <p className="text-slate-300">
-                  Giá:{" "}
-                  <span className="mr-2 text-slate-500 line-through">
-                    {formatVND(item.mrpPrice || 0)}
-                  </span>
-                  <span className="font-semibold text-orange-400">
-                    {formatVND(item.sellingPrice || 0)}
-                  </span>
-                </p>
+                  <p className="text-slate-300">
+                    Số lượng:{" "}
+                    <span className="font-semibold text-white">{item.quantity}</span>
+                  </p>
 
-                <div className="pt-2">
-                  {item.review ? (
-                    <Button
-                      onClick={() =>
-                        navigate(`/account/orders/${currentOrder.id}/review-detail`, {
-                          state: { orderItemId: item.id, review: item.review },
-                        })
-                      }
-                      variant="contained"
-                      sx={{
-                        backgroundColor: "#4b5563",
-                        color: "#fff",
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        fontSize: "0.9rem",
-                        px: 2.5,
-                        "&:hover": { backgroundColor: "#374151" },
-                      }}
-                    >
-                      Xem đánh giá
-                    </Button>
-                  ) : (
-                    <Button
-                      disabled={currentOrder.orderStatus !== "DELIVERED"}
-                      onClick={() =>
-                        navigate(`/account/orders/${currentOrder.id}/review`, {
-                          state: { orderItemId: item.id },
-                        })
-                      }
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        fontSize: "0.95rem",
-                        fontWeight: 700,
-                        borderColor: "rgba(249,115,22,0.3)",
-                        color: "#fb923c",
-                        px: 2.5,
-                        "&:hover": {
-                          borderColor: "#fb923c",
-                          backgroundColor: "rgba(249,115,22,0.08)",
-                        },
-                      }}
-                    >
-                      Viết đánh giá
-                    </Button>
+                  <p className="text-slate-300">
+                    Giá:{" "}
+                    <span className="mr-2 text-slate-500 line-through">
+                      {formatVND(item.mrpPrice || 0)}
+                    </span>
+                    <span className="font-semibold text-orange-400">
+                      {formatVND(item.sellingPrice || 0)}
+                    </span>
+                  </p>
+
+                  {itemReturnRequest && (
+                    <div className="mt-3 rounded-2xl border border-orange-500/15 bg-orange-500/8 px-4 py-3">
+                      <p className="text-sm font-bold text-orange-300">
+                        Yêu cầu trả hàng: {getReturnStatusLabel(itemReturnRequest.status)}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-300">
+                        Tiền hoàn dự kiến{" "}
+                        <span className="font-semibold text-white">
+                          {formatVND(itemReturnRequest.refundAmount || 0)}
+                        </span>
+                      </p>
+                      {itemReturnRequest.note && (
+                        <p className="mt-1 text-sm text-slate-400">
+                          Ghi chú: {itemReturnRequest.note}
+                        </p>
+                      )}
+                    </div>
                   )}
+
+                  {currentOrder.orderStatus === "DELIVERED" && !canReturnByDate && !itemReturnRequest && (
+                    <div className="mt-3 rounded-2xl border border-red-500/15 bg-red-500/8 px-4 py-3">
+                      <p className="text-sm font-semibold text-red-300">
+                        Đã quá thời hạn 7 ngày kể từ ngày giao, sản phẩm này không còn hỗ trợ trả hàng.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    {item.review ? (
+                      <Button
+                        onClick={() =>
+                          navigate(`/account/orders/${currentOrder.id}/review-detail`, {
+                            state: { orderItemId: item.id, review: item.review },
+                          })
+                        }
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#4b5563",
+                          color: "#fff",
+                          textTransform: "none",
+                          borderRadius: "999px",
+                          fontSize: "0.9rem",
+                          px: 2.5,
+                          "&:hover": { backgroundColor: "#374151" },
+                        }}
+                      >
+                        Xem đánh giá
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled={currentOrder.orderStatus !== "DELIVERED"}
+                        onClick={() =>
+                          navigate(`/account/orders/${currentOrder.id}/review`, {
+                            state: { orderItemId: item.id },
+                          })
+                        }
+                        variant="outlined"
+                        sx={secondaryButtonSx}
+                      >
+                        Viết đánh giá
+                      </Button>
+                    )}
+
+                    {canCreateReturn && (
+                      <Button
+                        variant="outlined"
+                        sx={secondaryButtonSx}
+                        onClick={() => handleOpenReturnDialog(item)}
+                      >
+                        Yêu cầu trả hàng
+                      </Button>
+                    )}
+
+                    {itemReturnRequest?.status === "APPROVED" && (
+                      <Button
+                        variant="contained"
+                        sx={primaryButtonSx}
+                        onClick={() => handleCustomerShipped(itemReturnRequest.id)}
+                      >
+                        Tôi đã gửi hàng trả
+                      </Button>
+                    )}
+
+                    {itemReturnRequest && (
+                      <Button
+                        variant="outlined"
+                        sx={secondaryButtonSx}
+                        onClick={() => navigate("/account/return-requests")}
+                      >
+                        Theo dõi trả hàng
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -424,6 +560,13 @@ const OrderDetails = () => {
         </DialogActions>
       </Dialog>
 
+      <ReturnRequestDialog
+        open={returnDialogOpen}
+        onClose={() => setReturnDialogOpen(false)}
+        orderId={Number(orderId)}
+        orderItem={selectedOrderItem}
+      />
+
       {loading && <CustomLoading message="Đang hủy đơn hàng..." />}
 
       <Snackbar
@@ -443,6 +586,54 @@ const OrderDetails = () => {
       </Snackbar>
     </Box>
   );
+};
+
+const getReturnStatusLabel = (status?: string) => {
+  switch (status) {
+    case "REQUESTED":
+      return "Đã gửi yêu cầu";
+    case "APPROVED":
+      return "Đã duyệt";
+    case "REJECTED":
+      return "Bị từ chối";
+    case "CUSTOMER_SHIPPED":
+      return "Khách đã gửi hàng trả";
+    case "RECEIVED":
+      return "Shop đã nhận hàng trả";
+    case "REFUNDED":
+      return "Đã hoàn tiền";
+    case "COMPLETED":
+      return "Hoàn tất";
+    case "CANCELLED":
+      return "Đã hủy";
+    default:
+      return "Đang xử lý";
+  }
+};
+
+const secondaryButtonSx = {
+  textTransform: "none",
+  borderRadius: "999px",
+  fontSize: "0.95rem",
+  fontWeight: 700,
+  borderColor: "rgba(249,115,22,0.3)",
+  color: "#fb923c",
+  px: 2.5,
+  "&:hover": {
+    borderColor: "#fb923c",
+    backgroundColor: "rgba(249,115,22,0.08)",
+  },
+};
+
+const primaryButtonSx = {
+  textTransform: "none",
+  borderRadius: "999px",
+  px: 2.5,
+  fontWeight: 800,
+  backgroundColor: "#f97316",
+  "&:hover": {
+    backgroundColor: "#ea580c",
+  },
 };
 
 export default OrderDetails;

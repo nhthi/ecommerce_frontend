@@ -34,6 +34,7 @@ export interface Order {
   orderStatus: OrderStatus;
   totalItem: number;
   deliveryDate?: string;
+  orderCode?:string
 }
 export interface Review {
   id: number; // Long -> number

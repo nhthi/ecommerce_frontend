@@ -37,30 +37,31 @@ const Auth = () => {
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
                 Access your account
               </p>
-              <h2 className="mt-4 max-w-[460px] text-5xl font-black leading-[0.98] text-white">
+              <h2 className="mt-4 max-w-[460px] text-5xl font-black leading-[0.98] text-slate-100">
                 Đăng nhập để mua nhanh và theo dõi lịch sử đơn hàng.
               </h2>
-              <p className="mt-6 max-w-[440px] text-base leading-7 text-slate-200">
+              <p className="mt-6 max-w-[440px] text-base leading-7 text-slate-100">
                 Tài khoản giúp bạn lưu sản phẩm yêu thích, nhận OTP đăng nhập nhanh và tiếp tục xem các gợi ý tập luyện phù hợp.
               </p>
 
               <div className="mt-8 grid max-w-[460px] grid-cols-2 gap-3">
                 <div className="rounded-[1.4rem] border border-white/10 bg-black/25 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
-                    Đăng nhập OTP
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-200">
-                    Không cần nhớ mật khẩu, chỉ xác thực qua email.
-                  </p>
-                </div>
-                <div className="rounded-[1.4rem] border border-white/10 bg-black/25 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
-                    Đồng bộ nhanh
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-200">
-                    Lưu thông tin mua hàng, wishlist và các mục đã xem.
-                  </p>
-                </div>
+  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+    Đăng nhập linh hoạt
+  </p>
+  <p className="mt-2 text-sm leading-6 text-slate-200">
+    Đăng nhập bằng mật khẩu hoặc nhận mã OTP qua email để xác thực nhanh.
+  </p>
+</div>
+
+<div className="rounded-[1.4rem] border border-white/10 bg-black/25 px-4 py-4 backdrop-blur-sm">
+  <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-300">
+    Đồng bộ tiện lợi
+  </p>
+  <p className="mt-2 text-sm leading-6 text-slate-200">
+    Lưu đơn hàng, danh sách yêu thích và lịch sử xem sản phẩm trên mọi thiết bị.
+  </p>
+</div>
               </div>
             </div>
 

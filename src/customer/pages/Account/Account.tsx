@@ -8,14 +8,16 @@ import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { logout } from "../../../state/AuthSlice";
 import OrderReviewPageWrapper from "./OrderReviewPageWrapper";
 import MyReview from "./MyReview";
+import MyReturnRequestsPage from "./ReturnRequest/MyReturnRequestsPage";
 
 const menu = [
-  { name: "Don hang", path: "/account/orders" },
-  { name: "Ca nhan", path: "/account" },
-  { name: "The thanh toan", path: "/account/save-card", disabled: true },
-  { name: "Dia chi", path: "/account/addresses" },
-  { name: "Danh gia cua toi", path: "/account/my-reviews" },
-  { name: "Dang xuat", path: "/" },
+  { name: "Đơn hàng", path: "/account/orders" },
+    { name: "Trả hàng", path: "/account/return-requests" },
+  { name: "Cá nhân", path: "/account" },
+  { name: "Thẻ thanh toán", path: "/account/save-card", disabled: true },
+  { name: "Địa chỉ", path: "/account/addresses" },
+  { name: "Đánh giá của tôi", path: "/account/my-reviews" },
+  { name: "Đăng xuất", path: "/" },
 ];
 
 const Account = () => {
@@ -37,13 +39,7 @@ const Account = () => {
   return (
     <div className="min-h-screen bg-[#080808] px-4 py-8 text-white lg:px-12">
       <div className="mx-auto max-w-[1320px] space-y-6">
-        <div className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] lg:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">Tai khoan cua toi</p>
-          <h1 className="mt-3 text-4xl font-black text-white lg:text-5xl">Tai khoan cua ban.</h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300 lg:text-lg">
-            Quan ly thong tin ca nhan, theo doi don hang, dia chi giao hang va cac thao tac sau mua trong cung mot khu vuc de doc.
-          </p>
-        </div>
+        
 
         <div className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
           <aside className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] lg:p-5">
@@ -106,6 +102,7 @@ const Account = () => {
               <Route path="/addresses" element={<Address />} />
               <Route path="/my-reviews" element={<MyReview />} />
               <Route path="/orders/:orderId/review" element={<OrderReviewPageWrapper />} />
+              <Route path="/return-requests" element={<MyReturnRequestsPage />} />
             </Routes>
           </section>
         </div>

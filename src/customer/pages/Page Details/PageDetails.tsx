@@ -34,6 +34,8 @@ import { Size } from "../../../types/ProductType";
 import { addItemToCart } from "../../../state/customer/cartSlice";
 import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
 import { createChat } from "../../../state/customer/chatSlice";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import { fetchRecommendations, fetchSameProducts } from "../../../state/customer/recommendationSlice";
 
 const infoPoints = [
   {
@@ -70,14 +72,17 @@ const PageDetails = () => {
   });
 
   const products = useAppSelector((store) => store.product);
+  const recommendationSlice = useAppSelector((store) => store.recommendationSlice);
+
   const dispatch = useAppDispatch();
   const { productId } = useParams();
   const [activeImage, setActiveImage] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const auth = useAppSelector(store=>store.auth)
   const [pageLoading, setPageLoading] = useState(true);
   const [pageError, setPageError] = useState("");
+  const { isDark } = useSiteThemeMode();
 
   const product = products.product;
   const numericProductId = Number(productId);
@@ -238,21 +243,30 @@ const getErrorMessage = (err: any): string => {
     loadProduct();
   }, [productId, numericProductId, dispatch]);
 
-  useEffect(() => {
-    if (!pageLoading && product?.id) {
-      dispatch(
-        fetchSameProduct({
-          query: product?.category?.name || "",
-          id: product.id,
-        })
-      );
-    }
-  }, [pageLoading, product, dispatch]);
+useEffect(() => {
+  if (pageLoading || !product?.id) return;
 
+  if (auth.user?.id) {
+    dispatch(
+      fetchRecommendations({
+        userId: auth.user.id,
+        productId: product.id,
+        topN: 10,
+      })
+    );
+  } else {
+    dispatch(
+      fetchSameProducts({
+        productId: product.id,
+        topN: 10,
+      })
+    );
+  }
+}, [pageLoading, product?.id, auth.user?.id, dispatch]);
   if (pageLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4">
-        <div className="flex flex-col items-center gap-4 text-white">
+        <div className={isDark ? "flex flex-col items-center gap-4 text-white" : "flex flex-col items-center gap-4 text-slate-900"}>
           <CircularProgress sx={{ color: "#f97316" }} />
           <p className="text-sm text-slate-300">Đang tải thông tin sản phẩm...</p>
         </div>
@@ -265,7 +279,7 @@ const getErrorMessage = (err: any): string => {
       <div className="flex min-h-screen items-center justify-center bg-[#080808] px-4">
         <div className="w-full max-w-md rounded-[1.5rem] border border-red-500/20 bg-[#101010] p-6 text-center text-white">
           <h2 className="text-xl font-bold text-red-300">Không thể hiển thị sản phẩm</h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className={isDark ? "mt-2 text-sm text-slate-400" : "mt-2 text-sm text-slate-600"}>
             {pageError || "Sản phẩm không tồn tại hoặc đã bị xóa."}
           </p>
           <Button
@@ -288,16 +302,16 @@ const getErrorMessage = (err: any): string => {
   }
 
   return (
-    <div className="min-h-screen bg-[#080808] px-4 pb-16 pt-8 text-white lg:px-16">
+    <div className={isDark ? "min-h-screen bg-[#080808] px-4 pb-16 pt-8 text-white lg:px-16" : "min-h-screen bg-[#f6f7fb] px-4 pb-16 pt-8 text-slate-900 lg:px-16"}>
       <div className="mx-auto max-w-[1320px] space-y-8">
         <motion.div
           initial="hidden"
           animate="show"
           variants={fadeUp}
-          className="overflow-hidden rounded-[2rem] border border-orange-500/12 bg-[#101010] shadow-[0_30px_100px_rgba(0,0,0,0.32)]"
+          className={isDark ? "overflow-hidden rounded-[2rem] border border-orange-500/12 bg-[#101010] shadow-[0_30px_100px_rgba(0,0,0,0.32)]" : "overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]"}
         >
           <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1.05fr_0.95fr]">
-            <section className="border-b border-orange-500/10 p-5 lg:border-b-0 lg:border-r lg:p-8">
+            <section className={isDark ? "border-b border-orange-500/10 p-5 lg:border-b-0 lg:border-r lg:p-8" : "border-b border-slate-200 p-5 lg:border-b-0 lg:border-r lg:p-8"}>
               <div className="grid gap-4 lg:grid-cols-[100px_minmax(0,1fr)]">
                 <div className="order-2 flex gap-3 overflow-auto lg:order-1 lg:flex-col">
                   {product?.images?.map((item, index) => (
@@ -321,7 +335,7 @@ const getErrorMessage = (err: any): string => {
                 </div>
 
                 <div className="order-1 lg:order-2">
-                  <div className="relative overflow-hidden rounded-[1.8rem] bg-black">
+                  <div className={isDark ? "relative overflow-hidden rounded-[1.8rem] bg-black" : "relative overflow-hidden rounded-[1.8rem] bg-slate-100"}>
                     <img
                       alt={product?.title}
                       src={product?.images?.[activeImage] || product?.images?.[0] || ""}
@@ -349,7 +363,7 @@ const getErrorMessage = (err: any): string => {
                     </h1>
                     <button
                       onClick={() => navigate(`/store/${product?.seller?.id}`)}
-                      className="mt-1 text-sm font-semibold text-slate-300 transition hover:text-orange-300"
+                      className={isDark ? "mt-1 text-sm font-semibold text-slate-300 transition hover:text-orange-300" : "mt-1 text-sm font-semibold text-slate-600 transition hover:text-orange-600"}
                     >
                       Xem cửa hàng
                     </button>
@@ -357,14 +371,14 @@ const getErrorMessage = (err: any): string => {
                 </div>
 
                 <div>
-                  <h2 className="max-w-[640px] text-3xl font-black leading-tight text-white lg:text-[2.4rem]">
+                  <h2 className={isDark ? "max-w-[640px] text-3xl font-black leading-tight text-white lg:text-[2.4rem]" : "max-w-[640px] text-3xl font-black leading-tight text-slate-900 lg:text-[2.4rem]"}>
                     {product?.title}
                   </h2>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="inline-flex items-center gap-3 rounded-full border border-orange-500/15 bg-black/20 px-4 py-2 text-sm text-slate-300">
-                    <span className="inline-flex items-center gap-1 font-semibold text-white">
+                  <div className={isDark ? "inline-flex items-center gap-3 rounded-full border border-orange-500/15 bg-black/20 px-4 py-2 text-sm text-slate-300" : "inline-flex items-center gap-3 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm text-slate-600"}>
+                    <span className={isDark ? "inline-flex items-center gap-1 font-semibold text-white" : "inline-flex items-center gap-1 font-semibold text-slate-900"}>
                       {product?.numRatings || 0}
                       <Star sx={{ color: "#fb923c", fontSize: 18 }} />
                     </span>
@@ -377,16 +391,16 @@ const getErrorMessage = (err: any): string => {
                   </div>
                 </div>
 
-                <div className="rounded-[1.4rem] border border-orange-500/12 bg-black/20 p-5">
+                <div className={isDark ? "rounded-[1.4rem] border border-orange-500/12 bg-black/20 p-5" : "rounded-[1.4rem] border border-orange-100 bg-orange-50/70 p-5"}>
                   <div className="flex flex-wrap items-end gap-3">
                     <span className="text-3xl font-black text-orange-400">
                       {formatCurrencyVND(Number(product?.sellingPrice))}
                     </span>
-                    <span className="pb-1 text-base text-slate-500 line-through">
+                    <span className={isDark ? "pb-1 text-base text-slate-500 line-through" : "pb-1 text-base text-slate-400 line-through"}>
                       {formatCurrencyVND(Number(product?.mrpPrice))}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-400">
+                  <p className={isDark ? "mt-2 text-sm text-slate-400" : "mt-2 text-sm text-slate-600"}>
                     Giá đã bao gồm thuế. Phí giao hàng sẽ thay đổi tùy khu vực.
                   </p>
                 </div>
@@ -395,7 +409,7 @@ const getErrorMessage = (err: any): string => {
                   {infoPoints.map((item) => (
                     <div
                       key={item.text}
-                      className="flex items-start gap-3 rounded-[1.2rem] border border-white/6 bg-white/[0.03] px-4 py-4 text-sm text-slate-300"
+                      className={isDark ? "flex items-start gap-3 rounded-[1.2rem] border border-white/6 bg-white/[0.03] px-4 py-4 text-sm text-slate-300" : "flex items-start gap-3 rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600"}
                     >
                       {item.icon}
                       <p className="leading-6">{item.text}</p>
@@ -427,20 +441,20 @@ const getErrorMessage = (err: any): string => {
                           fontWeight: 700,
                           px: 2,
                           py: 0.9,
-                          color: selectedSize?.id === size.id ? "#050505" : "#fff",
+                          color: selectedSize?.id === size.id ? "#050505" : isDark ? "#fff" : "#0f172a",
                           backgroundColor:
                             selectedSize?.id === size.id ? "#f97316" : "transparent",
-                          borderColor: "rgba(249,115,22,0.25)",
+                          borderColor: isDark ? "rgba(249,115,22,0.25)" : "rgba(249,115,22,0.32)",
                           "&:hover": {
                             borderColor: "#fb923c",
                             backgroundColor:
                               selectedSize?.id === size.id
                                 ? "#fb923c"
-                                : "rgba(249,115,22,0.08)",
+                                : isDark ? "rgba(249,115,22,0.08)" : "rgba(249,115,22,0.10)",
                           },
                           "&.Mui-disabled": {
-                            color: "rgba(255,255,255,0.24)",
-                            borderColor: "rgba(255,255,255,0.08)",
+                            color: isDark ? "rgba(255,255,255,0.24)" : "rgba(15,23,42,0.28)",
+                            borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.10)",
                           },
                         }}
                       >
@@ -449,9 +463,9 @@ const getErrorMessage = (err: any): string => {
                     ))}
                   </div>
                   {selectedSize && (
-                    <p className="text-sm text-slate-400">
+                    <p className={isDark ? "text-sm text-slate-400" : "text-sm text-slate-600"}>
                       Còn lại{" "}
-                      <span className="font-bold text-white">{selectedSize.quantity}</span> sản
+                      <span className={isDark ? "font-bold text-white" : "font-bold text-slate-900"}>{selectedSize.quantity}</span> sản
                       phẩm cho size {selectedSize.name}.
                     </p>
                   )}
@@ -461,15 +475,15 @@ const getErrorMessage = (err: any): string => {
                   <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-orange-300">
                     Số lượng
                   </h3>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/15 bg-black/20 p-1">
+                  <div className={isDark ? "inline-flex items-center gap-2 rounded-full border border-orange-500/15 bg-black/20 p-1" : "inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 p-1"}>
                     <Button
                       onClick={() => setQuantity(quantity - 1)}
                       disabled={quantity === 1}
-                      sx={{ minWidth: 42, borderRadius: "999px", color: "white" }}
+                      sx={{ minWidth: 42, borderRadius: "999px", color: isDark ? "white" : "#0f172a" }}
                     >
                       <Remove />
                     </Button>
-                    <span className="min-w-[28px] text-center font-bold text-white">
+                    <span className={isDark ? "min-w-[28px] text-center font-bold text-white" : "min-w-[28px] text-center font-bold text-slate-900"}>
                       {quantity}
                     </span>
                     <Button
@@ -494,7 +508,7 @@ const getErrorMessage = (err: any): string => {
 
                         setQuantity(quantity + 1);
                       }}
-                      sx={{ minWidth: 42, borderRadius: "999px", color: "white" }}
+                      sx={{ minWidth: 42, borderRadius: "999px", color: isDark ? "white" : "#0f172a" }}
                     >
                       <Add />
                     </Button>
@@ -544,7 +558,7 @@ const getErrorMessage = (err: any): string => {
                       color: "#fb923c",
                       "&:hover": {
                         borderColor: "#fb923c",
-                        backgroundColor: "rgba(249,115,22,0.08)",
+                        backgroundColor: isDark ? "rgba(249,115,22,0.08)" : "rgba(249,115,22,0.10)",
                       },
                     }}
                     onClick={handleWishlist}
@@ -564,23 +578,23 @@ const getErrorMessage = (err: any): string => {
                     fontWeight: 700,
                     fontSize: 14,
                     borderStyle: "dashed",
-                    borderColor: "rgba(255,255,255,0.18)",
-                    color: "white",
+                    borderColor: isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.12)",
+                    color: isDark ? "white" : "#0f172a",
                     "&:hover": {
                       borderColor: "#fb923c",
-                      backgroundColor: "rgba(255,255,255,0.03)",
+                      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(249,115,22,0.06)",
                     },
                   }}
-                  onClick={handleChatSeller}
+                  onClick={()=>navigate('/support')}
                 >
                   Nhắn tin với cửa hàng
                 </Button>
 
-                <div className="rounded-[1.4rem] border border-white/6 bg-black/20 p-5">
+                <div className={isDark ? "rounded-[1.4rem] border border-white/6 bg-black/20 p-5" : "rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5"}>
                   <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-orange-300">
                     Mô tả sản phẩm
                   </h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">
+                  <p className={isDark ? "mt-3 text-sm leading-7 text-slate-300" : "mt-3 text-sm leading-7 text-slate-600"}>
                     {product?.description || "Chưa có mô tả cho sản phẩm này."}
                   </p>
                 </div>
@@ -594,7 +608,7 @@ const getErrorMessage = (err: any): string => {
           whileInView="show"
           viewport={{ once: true }}
           variants={fadeUp}
-          className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.22)] lg:p-8"
+          className={isDark ? "rounded-[2rem] border border-orange-500/12 bg-[#101010] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.22)] lg:p-8" : "rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] lg:p-8"}
         >
           <Review reviews={product?.reviews || []} product={product || null} />
         </motion.div>
@@ -604,17 +618,20 @@ const getErrorMessage = (err: any): string => {
           whileInView="show"
           viewport={{ once: true }}
           variants={fadeUp}
-          className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.22)] lg:p-8"
+          className={isDark ? "rounded-[2rem] border border-orange-500/12 bg-[#101010] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.22)] lg:p-8" : "rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] lg:p-8"}
         >
           <div className="mb-6">
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
               Sản phẩm liên quan
             </p>
-            <h2 className="mt-2 text-2xl font-black text-white">
-              Các món có cùng nhóm và mức giá
-            </h2>
           </div>
-          <SimilarProduct products={products.products} />
+<SimilarProduct
+  products={
+    auth.user?.id
+      ? recommendationSlice.recommendations?.items || []
+      : recommendationSlice.sameProducts?.items || []
+  }
+/>
         </motion.div>
       </div>
 
@@ -637,3 +654,8 @@ const getErrorMessage = (err: any): string => {
 };
 
 export default PageDetails;
+
+
+
+
+

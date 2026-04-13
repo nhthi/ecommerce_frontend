@@ -6,7 +6,7 @@ import {
   LocalShipping,
   Pending,
 } from "@mui/icons-material";
-import { Avatar, Button, Chip } from "@mui/material";
+import { Avatar, Box, Button, Chip } from "@mui/material";
 import React from "react";
 import { Order, OrderStatus } from "../../../types/OrderType";
 import { format } from "date-fns";
@@ -106,6 +106,20 @@ const OrderItem = ({ order }: { order: Order }) => {
       currency: "VND",
     }).format(value);
 
+  const isReturnAvailable = (deliveryDate?: string) => {
+    if (!deliveryDate) return false;
+
+    const delivered = new Date(deliveryDate);
+    if (Number.isNaN(delivered.getTime())) return false;
+
+    const deadline = new Date(delivered);
+    deadline.setDate(deadline.getDate() + 7);
+
+    return new Date() <= deadline;
+  };
+
+  const canReturn = order.orderStatus === "DELIVERED" && isReturnAvailable(order.deliveryDate);
+
   return (
     <div
       className="space-y-5 rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:border-orange-400/25 cursor-pointer lg:p-6"
@@ -127,7 +141,7 @@ const OrderItem = ({ order }: { order: Order }) => {
                 {statusConfig.label}
               </h2>
               <Chip
-                label={`#${order.id}`}
+                label={`#${order?.orderCode || order.id}`}
                 size="small"
                 sx={{
                   borderRadius: "999px",
@@ -211,7 +225,10 @@ const OrderItem = ({ order }: { order: Order }) => {
                       {formatVND(item.mrpPrice)}
                     </p>
                     <p className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-200">
-                      Giam {formatVND((item.mrpPrice - item.sellingPrice) * (item.quantity || 1))}
+                      Giảm{" "}
+                      {formatVND(
+                        (item.mrpPrice - item.sellingPrice) * (item.quantity || 1)
+                      )}
                     </p>
                   </>
                 )}
@@ -221,24 +238,24 @@ const OrderItem = ({ order }: { order: Order }) => {
         ))}
       </div>
 
-      {order.orderStatus === "DELIVERED" && (
-        <div className="flex justify-end pt-1">
+      <Box className="flex flex-wrap justify-end gap-3 pt-1">
+        <Button
+          variant="outlined"
+          size="small"
+          sx={secondaryButtonSx}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/account/orders/${order.id}`);
+          }}
+        >
+          Xem chi tiết
+        </Button>
+
+        {order.orderStatus === "DELIVERED" && (
           <Button
             variant="outlined"
             size="small"
-            sx={{
-              textTransform: "none",
-              borderRadius: "999px",
-              fontSize: "0.95rem",
-              fontWeight: 700,
-              borderColor: "rgba(249,115,22,0.3)",
-              color: "#fb923c",
-              px: 2.5,
-              "&:hover": {
-                borderColor: "#fb923c",
-                backgroundColor: "rgba(249,115,22,0.08)",
-              },
-            }}
+            sx={secondaryButtonSx}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/account/orders/${order.id}/review`);
@@ -246,10 +263,38 @@ const OrderItem = ({ order }: { order: Order }) => {
           >
             Viết đánh giá
           </Button>
-        </div>
-      )}
+        )}
+
+        {canReturn && (
+          <Button
+            variant="outlined"
+            size="small"
+            sx={secondaryButtonSx}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/account/orders/${order.id}`);
+            }}
+          >
+            Trả hàng
+          </Button>
+        )}
+      </Box>
     </div>
   );
+};
+
+const secondaryButtonSx = {
+  textTransform: "none",
+  borderRadius: "999px",
+  fontSize: "0.95rem",
+  fontWeight: 700,
+  borderColor: "rgba(249,115,22,0.3)",
+  color: "#fb923c",
+  px: 2.5,
+  "&:hover": {
+    borderColor: "#fb923c",
+    backgroundColor: "rgba(249,115,22,0.08)",
+  },
 };
 
 export default OrderItem;

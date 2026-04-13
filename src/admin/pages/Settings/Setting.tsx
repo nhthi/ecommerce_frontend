@@ -49,11 +49,6 @@ export default function AdminSettings() {
           Cài đặt hệ thống
         </Typography>
       </Stack>
-
-      <Typography sx={{ mt: 0.8, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
-        Cấu hình nhanh các thông số vận hành giúp quản trị viên quản lý hệ thống dễ dàng hơn.
-      </Typography>
-
       <Tabs
         value={value}
         onChange={(_, next) => setValue(next)}

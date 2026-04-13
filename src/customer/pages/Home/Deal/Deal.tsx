@@ -33,14 +33,14 @@ const Deal = ({ products }: { products: Product[] }) => {
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className={isDark ? "text-2xl font-black text-white" : "text-2xl font-black text-slate-900"}>
-            San pham dang co gia tot
+            Sản phẩm đang có giá tốt
           </h2>
           <p className={isDark ? "mt-1 text-sm text-slate-300" : "mt-1 text-sm text-slate-600"}>
-            Tap trung vao cac san pham co gia de tiep can, phu hop cho nguoi moi bat dau.
+            Sản phẩm giá tốt, phù hợp cho người mới bắt đầu.
           </p>
         </div>
         <span className="hidden rounded-full border border-orange-500/25 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-orange-400 md:inline-flex">
-          Cap nhat lien tuc
+          Cập nhật liên tục
         </span>
       </div>
 

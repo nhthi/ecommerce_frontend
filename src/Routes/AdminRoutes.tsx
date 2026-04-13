@@ -31,6 +31,8 @@ import AddEditExerciseForm from "../admin/pages/Workout/AddEditExerciseForm";
 import EditWorkoutPlanPage from "../admin/pages/Workout/EditWorkoutPlanPage";
 import EditWorkoutPlanDayPage from "../admin/pages/Workout/EditWorkoutPlanDayPage";
 import EditExercisePage from "../admin/pages/Workout/EditExercisePage";
+import AdminSupportPage from "../admin/pages/Support/AdminSupportPage";
+import AdminReturnRequestPage from "../admin/pages/ReturnRequest/AdminReturnRequestPage";
 
 const AdminRoutes = () => {
   const { user } = useAppSelector((store) => store.auth);
@@ -71,6 +73,8 @@ const AdminRoutes = () => {
         <Route path="/workout/day/edit/:id" element={<EditWorkoutPlanDayPage />} />
         <Route path="/workout/exercise/create" element={<AddEditExerciseForm />} />
         <Route path="/workout/exercise/edit/:id" element={<EditExercisePage />} />
+        <Route path="/support-page" element={<AdminSupportPage />} />
+      <Route path="/return-requests" element={<AdminReturnRequestPage />} />
       </Routes>
     </div>
   );

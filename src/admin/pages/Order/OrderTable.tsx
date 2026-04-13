@@ -16,15 +16,18 @@ import {
   tableCellClasses,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
+  TextField,
   Typography,
+  InputAdornment,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
-  ExpandMore,
   LocalShipping,
   KeyboardArrowDown,
   KeyboardArrowUp,
+  Search,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
@@ -36,6 +39,7 @@ import {
 import { OrderStatus } from "../../../types/OrderType";
 import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
@@ -58,19 +62,7 @@ const StyledTableRow = styled(TableRow)({
   "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
 });
 
-const panelSx = {
-  borderRadius: "28px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background:
-    "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-  overflow: "hidden",
-};
-
-const orderStatusColors: Record<
-  string,
-  { color: string; label: string }
-> = {
+const orderStatusColors: Record<string, { color: string; label: string }> = {
   PENDING: { color: "#fdba74", label: "Chờ xử lý" },
   PLACED: { color: "#fb923c", label: "Đã đặt" },
   CONFIRMED: { color: "#facc15", label: "Đã xác nhận" },
@@ -81,14 +73,45 @@ const orderStatusColors: Record<
 };
 
 export default function OrderTable() {
+  const { isDark } = useSiteThemeMode();
+
   const dispatch = useAppDispatch();
   const { sellerOrder } = useAppSelector((store) => store);
+
   const [loading, setLoading] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(6);
   const [menuState, setMenuState] = React.useState<{
     anchorEl: HTMLElement | null;
     orderId: number | null;
   }>({ anchorEl: null, orderId: null });
   const [openRow, setOpenRow] = React.useState<number | null>(null);
+
+  const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
+  const TEXT_SECONDARY = isDark
+    ? "rgba(255,255,255,0.62)"
+    : "rgba(17,24,39,0.68)";
+  const TEXT_MUTED = isDark
+    ? "rgba(255,255,255,0.52)"
+    : "rgba(17,24,39,0.52)";
+  const BORDER_SOFT = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
+
+  const panelSx = {
+    borderRadius: "28px",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
+      : "linear-gradient(180deg, #ffffff, #fff7ed)",
+    boxShadow: isDark
+      ? "0 24px 60px rgba(0,0,0,0.28)"
+      : "0 18px 45px rgba(15,23,42,0.08)",
+    overflow: "hidden",
+  };
 
   React.useEffect(() => {
     dispatch(getAllOrders());
@@ -110,41 +133,150 @@ export default function OrderTable() {
     value: OrderStatus
   ) => {
     setLoading(true);
-    await dispatch(updateOrderStatus({
-      orderId,
-      orderStatus: value,
-    }));
+    await dispatch(
+      updateOrderStatus({
+        orderId,
+        orderStatus: value,
+      })
+    );
     await dispatch(fetchSellerOrders());
     setLoading(false);
     handleCloseMenuStatus();
   };
 
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredOrders = React.useMemo(() => {
+    const orders = sellerOrder.orders || [];
+
+    if (!normalizedSearch) return orders;
+
+    return orders.filter((order: any) => {
+      const orderId = String(order.orderCode?.toLowerCase() || "");
+      const customerName = order.user?.fullName?.toLowerCase() || "";
+      const phone = order.shippingAddress?.phoneNumber?.toLowerCase() || "";
+      const paymentMethod = order.paymentMethod?.toLowerCase() || "";
+      const paymentStatus = order.paymentStatus?.toLowerCase() || "";
+      const orderStatus = order.orderStatus?.toLowerCase() || "";
+      const receiverName =
+        order.shippingAddress?.receiverName?.toLowerCase() || "";
+      const address = [
+        order.shippingAddress?.streetDetail,
+        order.shippingAddress?.ward,
+        order.shippingAddress?.district,
+        order.shippingAddress?.province,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const productText = Array.isArray(order.orderItems)
+        ? order.orderItems
+            .map(
+              (item: any) =>
+                `${item.product?.title || ""} ${item.product?.color || ""} ${item.size?.name || ""}`
+            )
+            .join(" ")
+            .toLowerCase()
+        : "";
+
+      return (
+        orderId.includes(normalizedSearch) ||
+        customerName.includes(normalizedSearch) ||
+        phone.includes(normalizedSearch) ||
+        paymentMethod.includes(normalizedSearch) ||
+        paymentStatus.includes(normalizedSearch) ||
+        orderStatus.includes(normalizedSearch) ||
+        receiverName.includes(normalizedSearch) ||
+        address.includes(normalizedSearch) ||
+        productText.includes(normalizedSearch)
+      );
+    });
+  }, [sellerOrder.orders, normalizedSearch]);
+
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
+  React.useEffect(() => {
+    const maxPage = Math.max(
+      0,
+      Math.ceil(filteredOrders.length / rowsPerPage) - 1
+    );
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [filteredOrders.length, page, rowsPerPage]);
+
+  const paginatedOrders = filteredOrders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Paper elevation={0} sx={panelSx}>
-      {loading && (
-        <CustomLoading message="Đang cập nhật đơn hàng..." />
-      )}
+      {loading && <CustomLoading message="Đang cập nhật đơn hàng..." />}
 
       <Box
         sx={{
           px: 3,
           py: 3,
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
         }}
       >
-        <Typography fontSize={26} fontWeight={800} color="white">
-          Đơn hàng
-        </Typography>
-
-        <Typography
-          sx={{
-            mt: 0.7,
-            color: "rgba(255,255,255,0.62)",
-            fontSize: 14.5,
-          }}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          justifyContent="space-between"
+          spacing={2}
         >
-          Xem nhanh thanh toán, chi tiết sản phẩm và cập nhật trạng thái vận chuyển.
-        </Typography>
+          <Box>
+            <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
+              Đơn hàng
+            </Typography>
+
+          </Box>
+
+          <TextField
+            size="small"
+            placeholder="Tìm theo mã đơn, khách hàng, sản phẩm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              minWidth: { xs: "100%", md: 320 },
+              "& .MuiOutlinedInput-root": {
+                color: TEXT_PRIMARY,
+                borderRadius: "999px",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(255,255,255,0.82)",
+                "& fieldset": {
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.10)"
+                    : "rgba(15,23,42,0.10)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(249,115,22,0.34)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#f97316",
+                },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: TEXT_MUTED,
+                opacity: 1,
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: "#fb923c", fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Stack>
       </Box>
 
       <TableContainer>
@@ -154,7 +286,6 @@ export default function OrderTable() {
               <StyledTableCell />
               <StyledTableCell>Đơn hàng</StyledTableCell>
               <StyledTableCell>Khách hàng</StyledTableCell>
-              <StyledTableCell>Người bán</StyledTableCell>
               <StyledTableCell>Thanh toán</StyledTableCell>
               <StyledTableCell align="right">Tổng tiền</StyledTableCell>
               <StyledTableCell align="center">Trạng thái</StyledTableCell>
@@ -163,13 +294,12 @@ export default function OrderTable() {
           </TableHead>
 
           <TableBody>
-            {sellerOrder.orders?.length ? (
-              sellerOrder.orders.map((order) => {
-                const status =
-                  orderStatusColors[order.orderStatus] || {
-                    color: "#d4d4d8",
-                    label: order.orderStatus,
-                  };
+            {paginatedOrders.length ? (
+              paginatedOrders.map((order: any) => {
+                const status = orderStatusColors[order.orderStatus] || {
+                  color: "#d4d4d8",
+                  label: order.orderStatus,
+                };
 
                 return (
                   <React.Fragment key={order.id}>
@@ -178,9 +308,7 @@ export default function OrderTable() {
                         <Button
                           size="small"
                           onClick={() =>
-                            setOpenRow(
-                              openRow === order.id ? null : order.id
-                            )
+                            setOpenRow(openRow === order.id ? null : order.id)
                           }
                           sx={{ minWidth: 0, color: "#fb923c" }}
                         >
@@ -193,30 +321,28 @@ export default function OrderTable() {
                       </StyledTableCell>
 
                       <StyledTableCell>
-                        <Typography fontWeight={700}>
-                          #{order.id}
+                        <Typography fontWeight={700} color={TEXT_PRIMARY}>
+                          #{order.orderCode}
                         </Typography>
                         <Typography
                           sx={{
-                            color: "rgba(255,255,255,0.52)",
+                            color: TEXT_MUTED,
                             fontSize: 12.5,
                           }}
                         >
-                          {format(
-                            new Date(order.orderDate),
-                            "dd/MM/yyyy HH:mm",
-                            { locale: vi }
-                          )}
+                          {format(new Date(order.orderDate), "dd/MM/yyyy HH:mm", {
+                            locale: vi,
+                          })}
                         </Typography>
                       </StyledTableCell>
 
                       <StyledTableCell>
-                        <Typography fontWeight={700}>
+                        <Typography fontWeight={700} color={TEXT_PRIMARY}>
                           {order.user.fullName}
                         </Typography>
                         <Typography
                           sx={{
-                            color: "rgba(255,255,255,0.52)",
+                            color: TEXT_MUTED,
                             fontSize: 12.5,
                           }}
                         >
@@ -224,13 +350,12 @@ export default function OrderTable() {
                         </Typography>
                       </StyledTableCell>
 
-                      <StyledTableCell>
-                        {(order as any).seller?.businessDetails
-                          ?.businessName || "Không rõ"}
-                      </StyledTableCell>
+                     
 
                       <StyledTableCell>
-                        <Typography>{order.paymentMethod}</Typography>
+                        <Typography color={TEXT_PRIMARY}>
+                          {order.paymentMethod}
+                        </Typography>
                         <Chip
                           size="small"
                           label={order.paymentStatus}
@@ -256,7 +381,7 @@ export default function OrderTable() {
 
                       <StyledTableCell
                         align="right"
-                        sx={{ fontWeight: 700 }}
+                        sx={{ fontWeight: 700, color: TEXT_PRIMARY }}
                       >
                         {formatCurrencyVND(order.totalPrice)}
                       </StyledTableCell>
@@ -280,16 +405,18 @@ export default function OrderTable() {
                           size="small"
                           variant="outlined"
                           startIcon={<LocalShipping />}
-                          onClick={(e) =>
-                            handleClickMenuStatus(e, order.id)
-                          }
+                          onClick={(e) => handleClickMenuStatus(e, order.id)}
                           sx={{
                             textTransform: "none",
                             borderRadius: 999,
                             px: 2,
-                            color: "#fff7ed",
-                            borderColor:
-                              "rgba(255,255,255,0.16)",
+                            color: TEXT_PRIMARY,
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.16)"
+                              : "rgba(15,23,42,0.12)",
+                            backgroundColor: isDark
+                              ? "transparent"
+                              : "rgba(255,255,255,0.68)",
                           }}
                         >
                           Cập nhật
@@ -301,39 +428,51 @@ export default function OrderTable() {
                           onClose={handleCloseMenuStatus}
                           PaperProps={{
                             sx: {
-                              backgroundColor: "#171717",
-                              color: "white",
-                              border:
-                                "1px solid rgba(255,255,255,0.08)",
+                              background: isDark
+                                ? "#171717"
+                                : "linear-gradient(180deg, #ffffff, #fff7ed)",
+                              color: isDark ? "white" : "#111827",
+                              border: isDark
+                                ? "1px solid rgba(255,255,255,0.08)"
+                                : "1px solid rgba(15,23,42,0.08)",
                               borderRadius: "18px",
+                              boxShadow: isDark
+                                ? "0 18px 40px rgba(0,0,0,0.28)"
+                                : "0 14px 32px rgba(15,23,42,0.08)",
                               mt: 1,
+                              ".MuiMenuItem-root": {
+                                color: isDark ? "white" : "#111827",
+                              },
+                              ".MuiMenuItem-root:hover": {
+                                backgroundColor: isDark
+                                  ? "rgba(249,115,22,0.1)"
+                                  : "rgba(249,115,22,0.08)",
+                              },
                             },
                           }}
                         >
-                          {Object.entries(orderStatusColors).map(
-                            ([key, item]) => (
-                              <MenuItem
-                                key={key}
-                                onClick={() =>
-                                  handleUpdateOrderStatus(
-                                    order.id,
-                                    key as OrderStatus
-                                  )
-                                }
-                              >
-                                <Box
-                                  sx={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 999,
-                                    backgroundColor: item.color,
-                                    mr: 1.2,
-                                  }}
-                                />
-                                {item.label}
-                              </MenuItem>
-                            )
-                          )}
+                          {Object.entries(orderStatusColors).map(([key, item]) => (
+                            <MenuItem
+                              key={key}
+                              onClick={() =>
+                                handleUpdateOrderStatus(
+                                  order.id,
+                                  key as OrderStatus
+                                )
+                              }
+                            >
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: 999,
+                                  backgroundColor: item.color,
+                                  mr: 1.2,
+                                }}
+                              />
+                              {item.label}
+                            </MenuItem>
+                          ))}
                         </Menu>
                       </StyledTableCell>
                     </StyledTableRow>
@@ -344,7 +483,9 @@ export default function OrderTable() {
                         sx={{
                           p: 0,
                           border: 0,
-                          backgroundColor: "#0d0d0d",
+                          background: isDark
+                            ? "#0d0d0d"
+                            : "linear-gradient(180deg, rgba(255,247,237,0.72), rgba(255,255,255,0.92))",
                         }}
                       >
                         <Collapse
@@ -364,25 +505,25 @@ export default function OrderTable() {
                                 <Typography
                                   fontWeight={800}
                                   fontSize={18}
+                                  color={TEXT_PRIMARY}
                                 >
                                   Sản phẩm trong đơn
                                 </Typography>
 
-                                <Stack
-                                  spacing={1.2}
-                                  sx={{ mt: 1.5 }}
-                                >
-                                  {order.orderItems.map((item) => (
+                                <Stack spacing={1.2} sx={{ mt: 1.5 }}>
+                                  {order.orderItems.map((item: any) => (
                                     <Paper
                                       key={item.id}
                                       elevation={0}
                                       sx={{
                                         p: 1.5,
                                         borderRadius: "20px",
-                                        border:
-                                          "1px solid rgba(255,255,255,0.08)",
-                                        backgroundColor:
-                                          "rgba(255,255,255,0.03)",
+                                        border: isDark
+                                          ? "1px solid rgba(255,255,255,0.08)"
+                                          : "1px solid rgba(15,23,42,0.08)",
+                                        background: isDark
+                                          ? "rgba(255,255,255,0.03)"
+                                          : "rgba(255,255,255,0.86)",
                                       }}
                                     >
                                       <Stack
@@ -392,9 +533,7 @@ export default function OrderTable() {
                                       >
                                         <Avatar
                                           variant="rounded"
-                                          src={
-                                            item.product.images[0]
-                                          }
+                                          src={item.product.images[0]}
                                           sx={{
                                             width: 64,
                                             height: 64,
@@ -403,18 +542,23 @@ export default function OrderTable() {
                                         />
 
                                         <Box>
-                                          <Typography fontWeight={700}>
+                                          <Typography
+                                            fontWeight={700}
+                                            color={TEXT_PRIMARY}
+                                          >
                                             {item.product.title}
                                           </Typography>
 
                                           <Typography
                                             sx={{
-                                              color:
-                                                "rgba(255,255,255,0.58)",
+                                              color: isDark
+                                                ? "rgba(255,255,255,0.58)"
+                                                : "rgba(17,24,39,0.58)",
                                               fontSize: 13.5,
                                             }}
                                           >
-                                            Màu {item.product.color} • Size {item.size.name}
+                                            Màu {item.product.color} • Size{" "}
+                                            {item.size.name}
                                           </Typography>
 
                                           <Typography
@@ -424,10 +568,8 @@ export default function OrderTable() {
                                               fontSize: 13.5,
                                             }}
                                           >
-                                            {formatCurrencyVND(
-                                              item.sellingPrice
-                                            )}{" "}
-                                            × {item.quantity}
+                                            {formatCurrencyVND(item.sellingPrice)} ×{" "}
+                                            {item.quantity}
                                           </Typography>
                                         </Box>
                                       </Stack>
@@ -440,6 +582,7 @@ export default function OrderTable() {
                                 <Typography
                                   fontWeight={800}
                                   fontSize={18}
+                                  color={TEXT_PRIMARY}
                                 >
                                   Thông tin giao hàng
                                 </Typography>
@@ -450,38 +593,36 @@ export default function OrderTable() {
                                     mt: 1.5,
                                     p: 1.8,
                                     borderRadius: "20px",
-                                    border:
-                                      "1px solid rgba(255,255,255,0.08)",
-                                    backgroundColor:
-                                      "rgba(255,255,255,0.03)",
+                                    border: isDark
+                                      ? "1px solid rgba(255,255,255,0.08)"
+                                      : "1px solid rgba(15,23,42,0.08)",
+                                    background: isDark
+                                      ? "rgba(255,255,255,0.03)"
+                                      : "rgba(255,255,255,0.86)",
                                   }}
                                 >
-                                  <Typography fontWeight={700}>
-                                    {
-                                      order.shippingAddress
-                                        .receiverName
-                                    }
+                                  <Typography fontWeight={700} color={TEXT_PRIMARY}>
+                                    {order.shippingAddress.receiverName}
                                   </Typography>
 
                                   <Typography
                                     sx={{
                                       mt: 0.5,
-                                      color:
-                                        "rgba(255,255,255,0.68)",
+                                      color: isDark
+                                        ? "rgba(255,255,255,0.68)"
+                                        : "rgba(17,24,39,0.68)",
                                       fontSize: 13.5,
                                     }}
                                   >
-                                    {
-                                      order.shippingAddress
-                                        .phoneNumber
-                                    }
+                                    {order.shippingAddress.phoneNumber}
                                   </Typography>
 
                                   <Typography
                                     sx={{
                                       mt: 1,
-                                      color:
-                                        "rgba(255,255,255,0.68)",
+                                      color: isDark
+                                        ? "rgba(255,255,255,0.68)"
+                                        : "rgba(17,24,39,0.68)",
                                       fontSize: 13.5,
                                     }}
                                   >
@@ -507,16 +648,53 @@ export default function OrderTable() {
                   align="center"
                   sx={{
                     py: 8,
-                    color: "rgba(255,255,255,0.6)",
+                    color: TEXT_SECONDARY,
                   }}
                 >
-                  Chưa có đơn hàng nào.
+                  {searchTerm
+                    ? "Không tìm thấy đơn hàng phù hợp."
+                    : "Chưa có đơn hàng nào."}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={filteredOrders.length}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[6, 10, 20]}
+        labelRowsPerPage="Số dòng mỗi trang:"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+        }
+        sx={{
+          color: TEXT_SECONDARY,
+          borderTop: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
+          ".MuiTablePagination-selectIcon": {
+            color: "#fb923c",
+          },
+          ".MuiTablePagination-actions button": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-select": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-displayedRows": {
+            color: TEXT_SECONDARY,
+          },
+        }}
+      />
     </Paper>
   );
 }

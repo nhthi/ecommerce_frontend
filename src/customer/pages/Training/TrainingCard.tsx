@@ -6,16 +6,16 @@ import { TrainingSchedule } from "./trainingData";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const levelTone: Record<TrainingSchedule["level"], { color: string; bg: string }> = {
-  Beginner: { color: "#fdba74", bg: "rgba(249,115,22,0.12)" },
-  Intermediate: { color: "#fcd34d", bg: "rgba(250,204,21,0.12)" },
-  Advanced: { color: "#fca5a5", bg: "rgba(239,68,68,0.12)" },
+  Beginner: { color: "#111111", bg: "#f5f5f5" },
+  Intermediate: { color: "#ffffff", bg: "#525252" },
+  Advanced: { color: "#ffffff", bg: "#111111" },
 };
 
 const goalTone: Record<TrainingSchedule["goal"], { color: string; bg: string }> = {
-  "Fat Loss": { color: "#fb923c", bg: "rgba(249,115,22,0.12)" },
-  "Muscle Gain": { color: "#86efac", bg: "rgba(34,197,94,0.12)" },
-  Mobility: { color: "#93c5fd", bg: "rgba(59,130,246,0.12)" },
-  Strength: { color: "#f5d0fe", bg: "rgba(168,85,247,0.12)" },
+  "Fat Loss": { color: "#111111", bg: "#e5e5e5" },
+  "Muscle Gain": { color: "#111111", bg: "#d4d4d4" },
+  Mobility: { color: "#ffffff", bg: "#737373" },
+  Strength: { color: "#ffffff", bg: "#262626" },
 };
 
 const TrainingCard = ({ item }: { item: TrainingSchedule }) => {
@@ -48,12 +48,17 @@ const TrainingCard = ({ item }: { item: TrainingSchedule }) => {
             <Chip size="small" label={item.goal} sx={{ color: goalTone[item.goal].color, backgroundColor: goalTone[item.goal].bg }} />
           </Stack>
 
-          {item.featured && <Chip size="small" label="Noi bat" sx={{ color: "#050505", backgroundColor: "#fb923c", fontWeight: 700 }} />}
+          {item.featured && <Chip size="small" label="Nổi bật" sx={{ color: "#050505", backgroundColor: "#fb923c", fontWeight: 700 }} />}
         </Stack>
 
         <Box sx={{ position: "absolute", left: 18, right: 18, bottom: 18 }}>
-          <Typography fontSize={24} fontWeight={800} sx={{ color: "#fff" }}>{item.title}</Typography>
-          <Typography sx={{ mt: 0.6, color: "rgba(255,255,255,0.78)", fontSize: 14.5 }}>{item.summary}</Typography>
+          <p className="text-[24px] font-extrabold text-slate-50">
+  {item.title}
+</p>
+
+<p className="mt-[6px] text-[14.5px] text-slate-100">
+  {item.summary}
+</p>
         </Box>
       </Box>
 
@@ -72,21 +77,58 @@ const TrainingCard = ({ item }: { item: TrainingSchedule }) => {
 
           <Stack direction="row" spacing={1} alignItems="flex-start">
             <FitnessCenter sx={{ fontSize: 18, color: "#fb923c", mt: 0.2 }} />
-            <Typography sx={{ color: isDark ? "rgba(255,255,255,0.76)" : "#475569", fontSize: 14 }}>{item.equipment.join(" � ")}</Typography>
+            <Typography sx={{ color: isDark ? "rgba(255,255,255,0.76)" : "#475569", fontSize: 14 }}>{item.equipment.join(" / ")}</Typography>
           </Stack>
         </Stack>
 
-        <Box sx={{ mt: 2.2, borderRadius: "20px", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.78)", p: 1.6 }}>
-          <Typography fontWeight={700} sx={{ color: isDark ? "#fff" : "#0f172a", mb: 1.1 }}>Lich tap mau</Typography>
-          <Stack spacing={0.8}>
-            {item.schedule.map((line) => (
-              <Typography key={line} sx={{ color: isDark ? "rgba(255,255,255,0.7)" : "#475569", fontSize: 13.5 }}>{line}</Typography>
-            ))}
-          </Stack>
-        </Box>
+        <Box
+  sx={{
+    mt: 2.2,
+    borderRadius: "20px",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    backgroundColor: isDark
+      ? "rgba(255,255,255,0.03)"
+      : "rgba(255,255,255,0.78)",
+    p: 1.6,
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
+  <Typography
+    fontWeight={700}
+    sx={{ color: isDark ? "#fff" : "#0f172a", mb: 1.1 }}
+  >
+    Lịch tập mẫu
+  </Typography>
+
+  <Stack
+    spacing={0.8}
+    sx={{
+      minHeight: 120,
+      justifyContent: "flex-start",
+      overflow: "hidden",
+    }}
+  >
+    {item.schedule.map((line) => (
+      <Typography
+        key={line}
+        sx={{
+          color: isDark ? "rgba(255,255,255,0.7)" : "#475569",
+          fontSize: 13.5,
+          lineHeight: 1.55,
+        }}
+      >
+        {line}
+      </Typography>
+    ))}
+  </Stack>
+</Box>
 
         <Button variant="contained" fullWidth onClick={() => navigate(`/training/${item.slug}`)} sx={{ mt: 2.2, borderRadius: 999, textTransform: "none", py: 1.15, fontWeight: 700, background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
-          Xem chi tiet lich tap
+          Xem chi tiết lịch tập
         </Button>
       </Box>
     </Paper>

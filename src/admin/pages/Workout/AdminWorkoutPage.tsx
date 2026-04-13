@@ -6,44 +6,47 @@ import SportsGymnasticsOutlinedIcon from "@mui/icons-material/SportsGymnasticsOu
 import WorkoutPlanTable from "./WorkoutPlanTable";
 import WorkoutPlanDayTable from "./WorkoutPlanDayTable";
 import ExerciseTable from "./ExerciseTable";
-
-const pageWrapSx = {
-  minHeight: "100%",
-  background:
-    "radial-gradient(circle at top, rgba(249,115,22,0.08), transparent 30%), #0a0a0a",
-  p: { xs: 2, md: 3 },
-};
-
-const heroCardSx = {
-  borderRadius: "30px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background:
-    "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-  px: { xs: 2.2, md: 3 },
-  py: { xs: 2.2, md: 3 },
-  mb: 3,
-};
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 export default function AdminWorkoutPage() {
   const [tab, setTab] = React.useState(0);
+  const { isDark } = useSiteThemeMode();
+
+  const pageWrapSx = {
+    minHeight: "100%",
+    background: isDark
+      ? "radial-gradient(circle at top, rgba(249,115,22,0.08), transparent 30%), #0a0a0a"
+      : "radial-gradient(circle at top, rgba(249,115,22,0.10), transparent 32%), #fffaf5",
+    p: { xs: 2, md: 3 },
+  };
+
+  const heroCardSx = {
+    borderRadius: "30px",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
+      : "linear-gradient(180deg, #ffffff, #fff7ed)",
+    boxShadow: isDark
+      ? "0 24px 60px rgba(0,0,0,0.28)"
+      : "0 18px 45px rgba(15,23,42,0.08)",
+    px: { xs: 2.2, md: 3 },
+    py: { xs: 2.2, md: 3 },
+    mb: 3,
+  };
+
+  const textPrimary = isDark ? "white" : "#111827";
 
   return (
     <Box sx={pageWrapSx}>
       <Box sx={heroCardSx}>
-        <Typography fontSize={{ xs: 26, md: 34 }} fontWeight={900} color="white">
-          Quản lý Workout & Bài tập
-        </Typography>
-
         <Typography
-          sx={{
-            mt: 1,
-            color: "rgba(255,255,255,0.64)",
-            fontSize: 14.5,
-            maxWidth: 860,
-          }}
+          fontSize={{ xs: 26, md: 34 }}
+          fontWeight={900}
+          color={textPrimary}
         >
-          Quản lý kế hoạch tập luyện, từng ngày tập và thư viện bài tập trong một khu vực, đồng bộ với giao diện quản trị hiện tại.
+          Quản lý Workout & Bài tập
         </Typography>
 
         <Tabs
@@ -57,10 +60,19 @@ export default function AdminWorkoutPage() {
               borderRadius: 999,
             },
             "& .MuiTab-root": {
-              color: "rgba(255,255,255,0.64)",
+              color: isDark
+                ? "rgba(255,255,255,0.64)"
+                : "rgba(17,24,39,0.64)",
               textTransform: "none",
               fontWeight: 700,
               minHeight: 44,
+              borderRadius: "12px",
+              transition: "all 0.2s ease",
+            },
+            "& .MuiTab-root:hover": {
+              backgroundColor: isDark
+                ? "rgba(255,255,255,0.04)"
+                : "rgba(249,115,22,0.08)",
             },
             "& .Mui-selected": {
               color: "#fdba74 !important",

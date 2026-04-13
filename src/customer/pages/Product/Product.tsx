@@ -2,26 +2,40 @@ import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./ProductCard";
 import FilterSection from "./FilterSection";
 import {
+  Button,
+  Collapse,
   FormControl,
   MenuItem,
   Pagination,
   Select,
 } from "@mui/material";
+import { AutoAwesome, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { fetchAllProducts } from "../../../state/customer/productSlice";
-import { useParams, useSearchParams } from "react-router-dom";
 import { Product as ProductType } from "../../../types/ProductType";
 import { getWishlistByUser } from "../../../state/customer/wishlistSlice";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import { fetchRecommendations, RecommendedProductDto } from "../../../state/customer/recommendationSlice";
+import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
+const sourceLabelMap: Record<string, string> = {
+  GUEST_POPULAR: "Phổ biến",
+  USER_CF: "Dành riêng cho bạn",
+  CONTENT_PURCHASE: "Liên quan đến mua sắm",
+  CONTENT_CART: "Liên quan đến giỏ hàng",
+  FALLBACK: "Gợi ý",
+};
 
 const Product = () => {
   const [sort, setSort] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const { isDark } = useSiteThemeMode();
+  const navigate = useNavigate();
 
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
-  const product = useAppSelector((store) => store.product);
+  const { product, recommendationSlice, auth } = useAppSelector((store) => store);
   const { category } = useParams();
   const keyword = searchParams.get("keyword") || "";
 
@@ -47,6 +61,21 @@ const Product = () => {
       },
     }),
     [isDark]
+  );
+
+  const recommendationButtonSx = useMemo(
+    () => ({
+      borderRadius: "999px",
+      px: 2,
+      color: isDark ? "#ffffff" : "#0f172a",
+      borderColor: isDark ? "rgba(249,115,22,0.25)" : "rgba(249,115,22,0.28)",
+      backgroundColor: showRecommendations
+        ? isDark
+          ? "rgba(249,115,22,0.12)"
+          : "rgba(249,115,22,0.08)"
+        : "transparent",
+    }),
+    [isDark, showRecommendations]
   );
 
   const handleSortChange = (e: any) => {
@@ -78,14 +107,19 @@ const Product = () => {
           minDiscount,
           pageNumber,
           sort: sort || undefined,
-        }),
+        })
       );
     };
     fetchData();
   }, [searchParams, page, category, sort, dispatch]);
 
+  useEffect(() => {
+    dispatch(fetchRecommendations(auth.user?.id ?? null));
+  }, [dispatch, auth.user?.id]);
+
   const totalPages = product.totalPages || 1;
   const heading = keyword || (category ? `${category}` : "Tat ca san pham");
+  const recommendations = (recommendationSlice.recommendations?.items || []).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-12 xl:px-20">
@@ -94,7 +128,7 @@ const Product = () => {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
               <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
-                Product
+                Sản phẩm
               </span>
               <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
                 {heading}
@@ -121,16 +155,86 @@ const Product = () => {
 
           <div className="space-y-5">
             <div className="flex flex-col gap-3 rounded-[1.6rem] border border-white/10 bg-[#121212] px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.28)] sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-semibold text-neutral-300">{product.products.length || 0} san pham</p>
+              <p className="text-sm font-semibold text-neutral-300">{product.products.length || 0} sản phẩm</p>
 
-              <FormControl size="small" sx={selectSx}>
-                <Select value={sort} displayEmpty onChange={handleSortChange}>
-                  <MenuItem value="">Mac dinh</MenuItem>
-                  <MenuItem value="price_low">Gia thap den cao</MenuItem>
-                  <MenuItem value="price_high">Gia cao den thap</MenuItem>
-                </Select>
-              </FormControl>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  variant="outlined"
+                  startIcon={<AutoAwesome />}
+                  endIcon={showRecommendations ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                  onClick={() => setShowRecommendations((prev) => !prev)}
+                  sx={recommendationButtonSx}
+                >
+                  Xem gợi ý dành cho bạn
+                </Button>
+
+                <FormControl size="small" sx={selectSx}>
+                  <Select value={sort} displayEmpty onChange={handleSortChange}>
+                    <MenuItem value="">Mặc định</MenuItem>
+                    <MenuItem value="price_low">Giá thấp đến cao</MenuItem>
+                    <MenuItem value="price_high">Giá cao đến thấp</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
             </div>
+
+            <Collapse in={showRecommendations} timeout={280} unmountOnExit>
+              <section className="overflow-hidden rounded-[1.7rem] border border-orange-500/15 bg-[linear-gradient(135deg,rgba(249,115,22,0.12),rgba(255,255,255,0.02))] px-4 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.24)] sm:px-5">
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">Recommendation</p>
+                    <h2 className="mt-2 text-2xl font-black text-white">Danh sách gợi ý dành cho bạn</h2>
+                  </div>
+                  <p className="max-w-[460px] text-sm text-slate-300">
+                    Hiển thị tối đa 8 sản phẩm được đề xuất từ hệ thống gợi ý để bạn có thêm lựa chọn nhanh ngay trên trang sản phẩm.
+                  </p>
+                </div>
+
+                {recommendationSlice.loading ? (
+                  <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
+                    Đang tải gợi ý...
+                  </div>
+                ) : recommendations.length === 0 ? (
+                  <div className="rounded-[1.2rem] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
+                    Chưa có gợi ý phù hợp
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {recommendations.map((item: RecommendedProductDto) => (
+                      <button
+                        key={item.productId}
+                        type="button"
+                        onClick={() => navigate(`/product-details/${item.title.replaceAll("/", "_")}/${item.productId}`)}
+                        className="group overflow-hidden rounded-[1.2rem] border border-white/10 bg-[#101010] text-left transition duration-300 hover:-translate-y-1 hover:border-orange-400/35 hover:shadow-[0_20px_40px_rgba(249,115,22,0.12)]"
+                      >
+                        <div className="aspect-[4/3] overflow-hidden bg-white/[0.04]">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <div className="mb-3 inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300">
+                            {sourceLabelMap[item.source] || "Goi y"}
+                          </div>
+                          <h3 className="min-h-[3.2rem] text-sm font-black leading-6 text-white">{item.title}</h3>
+                          <div className="mt-4 flex items-end justify-between gap-3">
+                            <div>
+                              <p className="text-base font-black text-orange-400">{formatCurrencyVND(item.sellingPrice)}</p>
+                              <p className="mt-1 text-xs text-slate-500 line-through">{formatCurrencyVND(item.mrpPrice)}</p>
+                            </div>
+                            {/* <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                              Score {item.score.toFixed(1)}
+                            </div> */}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </Collapse>
 
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {product.products.map((item: ProductType) => (
@@ -139,7 +243,7 @@ const Product = () => {
 
               {product.products.length === 0 && (
                 <div className="col-span-full rounded-[1.6rem] border border-dashed border-white/10 bg-[#121212] px-6 py-12 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
-                  <p className="text-2xl font-black tracking-tight text-white">Khong co san pham</p>
+                  <p className="text-2xl font-black tracking-tight text-white">Không có sản phẩm</p>
                 </div>
               )}
             </section>

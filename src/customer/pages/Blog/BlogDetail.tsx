@@ -91,7 +91,7 @@ const BlogDetail = () => {
             px: 2.2,
           }}
         >
-          Quay lai blog
+          Quay lại
         </Button>
 
         {error && (
@@ -196,11 +196,9 @@ const BlogDetail = () => {
                   >
                     <Box>
                       <Typography fontSize={21} fontWeight={800}>
-                        Tom tat bai viet bang AI
+                        Tóm tắt bài viết bằng AI
                       </Typography>
-                      <Typography sx={{ mt: 0.7, color: isDark ? "rgba(255,255,255,0.7)" : "#475569", fontSize: 14.5 }}>
-                        Day la UI placeholder de ban noi logic AI sau. Hien tai no mo khung tom tat mau dua tren noi dung that cua bai viet.
-                      </Typography>
+                     
                     </Box>
                     <Button
                       startIcon={<AutoAwesome />}
@@ -213,7 +211,7 @@ const BlogDetail = () => {
                         background: "linear-gradient(135deg, #f97316, #ea580c)",
                       }}
                     >
-                      Nho AI tom tat
+                      Nhờ AI tóm tắt
                     </Button>
                   </Stack>
 
@@ -229,7 +227,7 @@ const BlogDetail = () => {
                       }}
                     >
                       <Typography fontWeight={700} sx={{ color: isDark ? "#fff" : "#0f172a" }}>
-                        Tom tat mau
+                        Tóm tắt nhanh
                       </Typography>
                       <Typography sx={{ mt: 0.8, color: isDark ? "rgba(255,255,255,0.74)" : "#475569", fontSize: 14.8, lineHeight: 1.75 }}>
                         {buildSummary(post)}
@@ -290,7 +288,7 @@ const BlogDetail = () => {
             {relatedPosts.length > 0 && (
               <Box sx={{ mt: 2.8 }}>
                 <Typography fontSize={28} fontWeight={800} color={isDark ? "white" : "#0f172a"}>
-                  Bai viet lien quan
+                 Bài viết liên quan
                 </Typography>
                 <Stack spacing={1.4} sx={{ mt: 1.6 }}>
                   {relatedPosts.map((item) => (
@@ -316,7 +314,7 @@ const BlogDetail = () => {
                         to={`/blog/${normalizeBlogSlug(item.slug)}`}
                         sx={{ mt: 1.1, px: 0, textTransform: "none", color: "#fb923c", fontWeight: 700 }}
                       >
-                        Doc tiep
+                        Đọc tiếp
                       </Button>
                     </Paper>
                   ))}

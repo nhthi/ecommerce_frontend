@@ -36,10 +36,10 @@ const HomeBlogSection = ({ posts }: { posts: BlogPost[] }) => {
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-400">
-              Blog noi bat
+              Blog nổi bật
             </p>
             <h2 className={isDark ? "mt-2 text-3xl font-black text-white md:text-4xl" : "mt-2 text-3xl font-black text-slate-900 md:text-4xl"}>
-              Bai viet moi va de doc nhanh
+              Bài viết mới
             </h2>
           </div>
           <Button
@@ -98,7 +98,7 @@ const HomeBlogSection = ({ posts }: { posts: BlogPost[] }) => {
                     </span>
                     <span className="inline-flex items-center gap-2">
                       <VisibilityOutlined sx={{ fontSize: 17, color: "#fb923c" }} />
-                      {post.viewCount || 0} luot xem
+                      {post.viewCount || 0} luọt xem
                     </span>
                   </div>
                 </div>

@@ -8,7 +8,7 @@ import {
   Select,
 } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
-import { fetchAllProducts } from "../../../state/customer/productSlice";
+import { fetchAllProducts, smartSearchProduct } from "../../../state/customer/productSlice";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Product as ProductType } from "../../../types/ProductType";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
@@ -64,17 +64,25 @@ const SearchProduct = () => {
     const minDiscount = searchParams.get("discount") ? Number(searchParams.get("discount")) : undefined;
     const pageNumber = page - 1;
 
-    dispatch(
-      fetchAllProducts({
-        color: color || undefined,
-        brand: brand || undefined,
-        minPrice: minPrice ? Number(minPrice) : undefined,
+  //   dispatch(
+  //     fetchAllProducts({
+  //       color: color || undefined,
+  //       brand: brand || undefined,
+  //       minPrice: minPrice ? Number(minPrice) : undefined,
+  //       maxPrice: maxPrice ? Number(maxPrice) : undefined,
+  //       minDiscount,
+  //       pageNumber,
+  //       category,
+  //       keyword: keywordQuery || undefined,
+  //       sort: sort || undefined,
+  //     }),
+  //   );
+  // }, [searchParams, page, category, sort, dispatch]);
+      dispatch(
+      smartSearchProduct({
+        query: keywordQuery || "",
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        minDiscount,
-        pageNumber,
-        category,
-        keyword: keywordQuery || undefined,
-        sort: sort || undefined,
+        limit:20
       }),
     );
   }, [searchParams, page, category, sort, dispatch]);

@@ -33,6 +33,10 @@ import adminWorkoutPlanSlice from "./admin/adminWorkoutPlanSlice";
 import adminWorkoutPlanDaySlice from "./admin/adminWorkoutPlanDaySlice";
 import adminExerciseSlice from "./admin/adminExerciseSlice";
 import adminDashboardSlice from "./admin/adminDashboardSlice";
+import searchSlice from "./customer/searchSlice";
+import supportSlice from "./customer/supportSlice";
+import recommendationSlice from "./customer/recommendationSlice";
+import returnRequestSlice from "./customer/returnRequestSlice";
 
 const rootReducer = combineReducers({
   seller: sellerSlice,
@@ -48,6 +52,10 @@ const rootReducer = combineReducers({
   review: reviewSlice,
   chatbot: chatbotSlice,
   chatSlice: chatSlice,
+  searchSlice:searchSlice,
+  supportSlice:supportSlice,
+  recommendationSlice:recommendationSlice,
+  returnRequestSlice:returnRequestSlice,
   //seller
   sellerOrder: sellerOrderSlice,
   transaction: transactionSlice,

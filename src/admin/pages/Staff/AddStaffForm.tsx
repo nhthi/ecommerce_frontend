@@ -19,34 +19,7 @@ import {
   fetchAllStaff,
 } from "../../../state/admin/adminUserSlice";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
-
-const inputSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "18px",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    color: "white",
-    "& fieldset": {
-      borderColor: "rgba(249,115,22,0.16)",
-    },
-    "&:hover fieldset": {
-      borderColor: "rgba(249,115,22,0.45)",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#f97316",
-      boxShadow: "0 0 0 1px rgba(249,115,22,0.22)",
-    },
-  },
-  "& .MuiInputLabel-root": {
-    color: "#94a3b8",
-  },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "#fb923c",
-  },
-  "& .MuiFormHelperText-root": {
-    color: "#fca5a5",
-    marginLeft: "6px",
-  },
-};
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 type AddStaffFormProps = {
   open: boolean;
@@ -54,7 +27,9 @@ type AddStaffFormProps = {
 };
 
 const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
+  const { isDark } = useSiteThemeMode();
   const dispatch = useAppDispatch();
+
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -66,6 +41,40 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
     severity: "success",
   });
 
+  const inputSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "18px",
+      backgroundColor: isDark
+        ? "rgba(255,255,255,0.03)"
+        : "rgba(255,255,255,0.88)",
+      color: isDark ? "white" : "#111827",
+      "& fieldset": {
+        borderColor: isDark
+          ? "rgba(249,115,22,0.16)"
+          : "rgba(249,115,22,0.14)",
+      },
+      "&:hover fieldset": {
+        borderColor: "rgba(249,115,22,0.45)",
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: "#f97316",
+        boxShadow: isDark
+          ? "0 0 0 1px rgba(249,115,22,0.22)"
+          : "0 0 0 3px rgba(249,115,22,0.10)",
+      },
+    },
+    "& .MuiInputLabel-root": {
+      color: isDark ? "#94a3b8" : "rgba(17,24,39,0.62)",
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+      color: "#fb923c",
+    },
+    "& .MuiFormHelperText-root": {
+      color: "#fca5a5",
+      marginLeft: "6px",
+    },
+  };
+
   const formik = useFormik({
     initialValues: {
       fullName: "",
@@ -74,14 +83,14 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
       confirmPassword: "",
     },
     validationSchema: Yup.object({
-      fullName: Yup.string().min(2, "Nhap it nhat 2 ky tu").required("Bat buoc"),
-      email: Yup.string().email("Email khong hop le").required("Bat buoc"),
+      fullName: Yup.string().min(2, "Nhập ít nhất 2 ký tự").required("Bắt buộc"),
+      email: Yup.string().email("Email không hợp lệ").required("Bắt buộc"),
       password: Yup.string()
-        .min(6, "Mat khau toi thieu 6 ky tu")
-        .required("Bat buoc"),
+        .min(6, "Mật khẩu tối thiểu 6 ký tự")
+        .required("Bắt buộc"),
       confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password")], "Mat khau xac nhan khong khop")
-        .required("Bat buoc"),
+        .oneOf([Yup.ref("password")], "Mật khẩu xác nhận không khớp")
+        .required("Bắt buộc"),
     }),
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
@@ -91,12 +100,12 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
             email: values.email,
             fullName: values.fullName,
             password: values.password,
-          }),
+          })
         ).unwrap();
         await dispatch(fetchAllStaff());
         setSnackbar({
           open: true,
-          message: "Da tao tai khoan nhan vien.",
+          message: "Đã tạo tài khoản nhân viên.",
           severity: "success",
         });
         resetForm();
@@ -104,7 +113,7 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
       } catch (error: any) {
         setSnackbar({
           open: true,
-          message: error || "Tao tai khoan nhan vien that bai.",
+          message: error || "Tạo tài khoản nhân viên thất bại.",
           severity: "error",
         });
       } finally {
@@ -120,7 +129,8 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
 
   return (
     <>
-      {loading && <CustomLoading message="Dang xu ly tai khoan nhan vien..." />}
+      {loading && <CustomLoading message="Đang xử lý tài khoản nhân viên..." />}
+
       <Dialog
         open={open}
         onClose={handleClose}
@@ -129,22 +139,35 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
             width: "100%",
             maxWidth: 560,
             borderRadius: "26px",
-            background:
-              "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))",
-            color: "white",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: isDark
+              ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
+              : "linear-gradient(180deg, #ffffff, #fff7ed)",
+            color: isDark ? "white" : "#111827",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            boxShadow: isDark
+              ? "0 24px 60px rgba(0,0,0,0.28)"
+              : "0 18px 45px rgba(15,23,42,0.08)",
           },
         }}
       >
-        <DialogTitle sx={{ fontSize: 24, fontWeight: 800 }}>
-          Them nhan vien
+        <DialogTitle
+          sx={{
+            fontSize: 24,
+            fontWeight: 800,
+            color: isDark ? "white" : "#111827",
+          }}
+        >
+          Thêm nhân viên
         </DialogTitle>
+
         <DialogContent sx={{ pt: "8px !important" }}>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               fullWidth
               name="fullName"
-              label="Ho va ten"
+              label="Họ và tên"
               value={formik.values.fullName}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -152,6 +175,7 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
               helperText={formik.touched.fullName && formik.errors.fullName}
               sx={inputSx}
             />
+
             <TextField
               fullWidth
               name="email"
@@ -163,11 +187,12 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
               helperText={formik.touched.email && formik.errors.email}
               sx={inputSx}
             />
+
             <TextField
               fullWidth
               name="password"
               type="password"
-              label="Password"
+              label="Mật khẩu"
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -175,37 +200,62 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
               helperText={formik.touched.password && formik.errors.password}
               sx={inputSx}
             />
+
             <TextField
               fullWidth
               name="confirmPassword"
               type="password"
-              label="Nhap lai password"
+              label="Nhập lại mật khẩu"
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
-              helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
+              error={
+                formik.touched.confirmPassword &&
+                Boolean(formik.errors.confirmPassword)
+              }
+              helperText={
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+              }
               sx={inputSx}
             />
+
             <Box
               sx={{
                 borderRadius: "18px",
                 px: 2,
                 py: 1.5,
-                backgroundColor: "rgba(249,115,22,0.08)",
-                border: "1px solid rgba(249,115,22,0.16)",
-                color: "rgba(255,237,213,0.82)",
+                backgroundColor: isDark
+                  ? "rgba(249,115,22,0.08)"
+                  : "rgba(255,247,237,0.92)",
+                border: isDark
+                  ? "1px solid rgba(249,115,22,0.16)"
+                  : "1px solid rgba(249,115,22,0.14)",
+                color: isDark
+                  ? "rgba(255,237,213,0.82)"
+                  : "rgba(17,24,39,0.78)",
                 fontSize: 13.5,
               }}
             >
-              Tai khoan moi se duoc tao voi role <strong>ROLE_STAFF</strong>.
+              Tài khoản mới sẽ được tạo với role <strong>ROLE_STAFF</strong>.
             </Box>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, justifyContent: "space-between" }}>
-          <Button onClick={handleClose} sx={{ color: "rgba(255,255,255,0.72)" }}>
-            Huy
+
+        <DialogActions
+          sx={{ px: 3, pb: 3, justifyContent: "space-between" }}
+        >
+          <Button
+            onClick={handleClose}
+            sx={{
+              color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
+              backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.68)",
+              borderRadius: 999,
+              textTransform: "none",
+            }}
+          >
+            Hủy
           </Button>
+
           <Button
             variant="contained"
             onClick={() => formik.handleSubmit()}
@@ -216,7 +266,7 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
               background: "linear-gradient(135deg, #f97316, #ea580c)",
             }}
           >
-            Tao tai khoan
+            Tạo tài khoản
           </Button>
         </DialogActions>
       </Dialog>

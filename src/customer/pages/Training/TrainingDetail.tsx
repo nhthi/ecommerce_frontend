@@ -113,7 +113,7 @@ const TrainingDetail = () => {
     <Box sx={{ minHeight: "100vh", background: isDark ? "linear-gradient(180deg, #070707 0%, #111111 30%, #090909 100%)" : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 28%, #f6f7fb 100%)", px: { xs: 2, md: 3 }, py: { xs: 3, lg: 4 } }}>
       <Box sx={{ mx: "auto", maxWidth: "1460px" }}>
         <Button component={Link} to="/training" startIcon={<ArrowBack />} sx={{ mb: 2.4, textTransform: "none", color: isDark ? "#fff7ed" : "#0f172a", borderRadius: 999, border: "1px solid rgba(249,115,22,0.22)", px: 2.2 }}>
-          Quay lai lich tap
+          Quay lại
         </Button>
 
         <Paper elevation={0} sx={{ overflow: "hidden", borderRadius: "34px", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", background: isDark ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))" : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))", boxShadow: isDark ? "0 28px 80px rgba(0,0,0,0.34)" : "0 28px 80px rgba(15,23,42,0.08)", color: isDark ? "white" : "#0f172a" }}>
@@ -139,14 +139,14 @@ const TrainingDetail = () => {
                 </Typography>
 
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} flexWrap="wrap" useFlexGap sx={{ mt: 2.5 }}>
-                  <Chip icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />} label={`${training.durationWeeks} tuan`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
-                  <Chip icon={<TimerOutlined sx={{ color: "#fb923c !important" }} />} label={`${training.sessionsPerWeek} buoi / tuan`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
+                  <Chip icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />} label={`${training.durationWeeks} tuần`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
+                  <Chip icon={<TimerOutlined sx={{ color: "#fb923c !important" }} />} label={`${training.sessionsPerWeek} buổi / tuần`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
                   <Chip icon={<PersonOutline sx={{ color: "#fb923c !important" }} />} label={training.sessionLength} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }} />
                 </Stack>
 
                 <Box sx={{ mt: 2.5, borderRadius: "22px", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)", p: 1.8 }}>
                   <Typography fontWeight={800} sx={{ mb: 1.2 }}>
-                    Ket qua huong den
+                    Kết quả hướng đến
                   </Typography>
 
                   <Stack spacing={0.9}>
@@ -176,11 +176,11 @@ const TrainingDetail = () => {
                         {day.title}
                       </Typography>
                       <Typography sx={{ mt: 0.6, color: isDark ? "rgba(255,255,255,0.68)" : "#475569", fontSize: 14.5 }}>
-                        {day.duration} � Cuong do {day.intensity}
+                        {day.duration} - Cường độ {day.intensity}
                       </Typography>
                     </Box>
 
-                    <Chip icon={<FitnessCenter sx={{ color: "#fb923c !important" }} />} label={`${day.exercises.length} bai tap`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)", alignSelf: "flex-start" }} />
+                    <Chip icon={<FitnessCenter sx={{ color: "#fb923c !important" }} />} label={`${day.exercises.length} Bài tập`} variant="outlined" sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)", alignSelf: "flex-start" }} />
                   </Stack>
 
                   <Stack spacing={1.4} sx={{ mt: 2 }}>
@@ -208,7 +208,7 @@ const TrainingDetail = () => {
                                 <Stack alignItems="center" justifyContent="center" spacing={1} sx={{ width: "100%", height: "100%", color: "#fed7aa" }}>
                                   <FitnessCenter sx={{ fontSize: 34 }} />
                                   <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
-                                    Dang cap nhat hinh bai tap
+                                    Đang cập nhật
                                   </Typography>
                                 </Stack>
                               )}
@@ -216,7 +216,7 @@ const TrainingDetail = () => {
                               <Box sx={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.66) 100%)" }} />
 
                               <Chip
-                                label={`Bai ${index + 1}`}
+                                label={`Bài ${index + 1}`}
                                 sx={{
                                   position: "absolute",
                                   top: 12,
@@ -238,7 +238,7 @@ const TrainingDetail = () => {
                                   {exercise.focus}
                                 </Typography>
                                 <Typography sx={{ mt: 0.8, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: 14.5 }}>
-                                  Do kho {exercise.difficulty}
+                                  Độ khó {exercise.difficulty}
                                 </Typography>
                                 <Typography sx={{ mt: 0.8, color: "#ea580c", fontSize: 13.5 }}>
                                   {exercise.note}
@@ -267,7 +267,7 @@ const TrainingDetail = () => {
           <Grid size={{ xs: 12, lg: 3.5 }}>
             <Stack spacing={2.2}>
               <Paper elevation={0} sx={{ borderRadius: "28px", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", background: isDark ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))" : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))", boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.28)" : "0 24px 60px rgba(15,23,42,0.08)", color: isDark ? "white" : "#0f172a", p: 2.2 }}>
-                <Typography fontSize={22} fontWeight={800}>Thong tin nhanh</Typography>
+                <Typography fontSize={22} fontWeight={800}>Thông tin nhanh</Typography>
 
                 <Stack spacing={1} sx={{ mt: 1.6 }}>
                   {training.equipment.map((item) => (
@@ -279,7 +279,7 @@ const TrainingDetail = () => {
 
                 <Divider sx={{ my: 2, borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)" }} />
 
-                <Typography fontWeight={800}>Lich trong tuan</Typography>
+                <Typography fontWeight={800}>Lịch trong tuần</Typography>
 
                 <Stack spacing={1} sx={{ mt: 1.4 }}>
                   {training.schedule.map((item) => (
@@ -292,7 +292,7 @@ const TrainingDetail = () => {
 
               {relatedSchedules.length > 0 && (
                 <Paper elevation={0} sx={{ borderRadius: "28px", border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)", background: isDark ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))" : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))", boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.28)" : "0 24px 60px rgba(15,23,42,0.08)", color: isDark ? "white" : "#0f172a", p: 2.2 }}>
-                  <Typography fontSize={22} fontWeight={800}>Lich cung muc tieu</Typography>
+                  <Typography fontSize={22} fontWeight={800}>Lịch cùng mục tiêu</Typography>
 
                   <Stack spacing={1.4} sx={{ mt: 1.6 }}>
                     {relatedSchedules.map((item) => (
@@ -300,7 +300,7 @@ const TrainingDetail = () => {
                         <Typography sx={{ color: isDark ? "white" : "#0f172a" }} fontWeight={700}>{item.title}</Typography>
                         <Typography sx={{ mt: 0.5, color: isDark ? "rgba(255,255,255,0.66)" : "#475569", fontSize: 13.5 }}>{item.summary}</Typography>
                         <Button component={Link} to={`/training/${item.slug}`} sx={{ mt: 1, px: 0, textTransform: "none", color: "#fb923c" }}>
-                          Xem lich nay
+                          Xem lịch nay
                         </Button>
                       </Paper>
                     ))}

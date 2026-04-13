@@ -115,7 +115,7 @@ const BlogCard = ({ post }: { post: BlogPost }) => {
           onClick={() => navigate(`/blog/${normalizeBlogSlug(post.slug)}`)}
           sx={{ mt: 2.1, px: 0, textTransform: "none", color: "#fb923c", fontWeight: 700 }}
         >
-          Doc bai viet
+          Đọc bài viết
         </Button>
       </Box>
     </Paper>

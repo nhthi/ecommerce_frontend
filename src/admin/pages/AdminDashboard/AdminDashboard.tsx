@@ -1,10 +1,10 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, Stack } from "@mui/material";
 import DashboardHero from "./components/DashboardHero";
 import DashboardQuickFilters from "./components/DashboardQuickFilters";
 import DashboardTabPanel from "./components/DashboardTabPanel";
 import DashboardTabsNav from "./components/DashboardTabsNav";
-import { pageBg, primary } from "./dashboardData";
+import { getDashboardPageBg, primary } from "./dashboardData";
 import OverviewTab from "./tabs/OverviewTab";
 import OrdersTab from "./tabs/OrdersTab";
 import ProductsTab from "./tabs/ProductsTab";
@@ -19,6 +19,7 @@ import {
   fetchDashboardProductSection,
   setDashboardFilter,
 } from "../../../state/admin/adminDashboardSlice";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const AdminDashboardPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +38,7 @@ const AdminDashboardPage: React.FC = () => {
     contentSectionLoading,
     contentSectionError,
   } = useAppSelector((store) => store.adminDashboard);
+  const { isDark } = useSiteThemeMode();
 
   const [overviewFilter, setOverviewFilter] = useState<"month" | "year">(
     currentFilter.filterType
@@ -66,7 +68,7 @@ const AdminDashboardPage: React.FC = () => {
   }, [orderSection]);
 
   return (
-    <Box sx={{ backgroundColor: pageBg, minHeight: "100%", p: { xs: 2, md: 3 } }}>
+    <Box sx={{  }}>
       <Stack spacing={3}>
         <DashboardHero />
         <DashboardQuickFilters

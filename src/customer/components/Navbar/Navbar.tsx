@@ -65,36 +65,35 @@ const Navbar = () => {
   };
 
   const navItems = useMemo<NavItem[]>(() => [
-    { label: "Trang chu", path: "/" },
-    { label: "San pham", path: "/products/all" },
-    {
-      label: "Dung cu",
-      children: [
-        { label: "Ta va banh ta", path: "/search?keyword=ta" },
-        { label: "May cardio", path: "/search?keyword=cardio" },
-        { label: "Phu kien tap", path: "/search?keyword=phu%20kien%20tap%20gym" },
-      ],
-    },
-    {
-      label: "Blog",
-      children: [
-        { label: "Tat ca bai viet", path: "/blog" },
-        { label: "Tap luyen", path: "/blog?category=Tap%20luyen" },
-        { label: "Tin tuc", path: "/blog?category=Tin%20tuc" },
-      ],
-    },
-    { label: "Lich tap", path: "/training" },
-    {
-      label: "Ho tro",
-      children: [
-        { label: "FAQ", path: "/policy/faq" },
-        { label: "Van chuyen", path: "/policy/delivery" },
-        { label: "Quy dinh doi hang", path: "/policy/exchange" },
-        { label: "Chinh sach thanh toan", path: "/policy/payment" },
-      ],
-    },
-  ], []);
-
+  { label: "Trang chủ", path: "/" },
+  { label: "Sản phẩm", path: "/products/all" },
+  {
+    label: "Dụng cụ",
+    children: [
+      { label: "Tạ và bánh tạ", path: "/search?keyword=ta" },
+      { label: "Máy cardio", path: "/search?keyword=cardio" },
+      { label: "Phụ kiện tập", path: "/search?keyword=phu%20kien%20tap%20gym" },
+    ],
+  },
+  {
+    label: "Blog",
+    children: [
+      { label: "Tất cả bài viết", path: "/blog" },
+      { label: "Tập luyện", path: "/blog?category=Tap%20luyen" },
+      { label: "Tin tức", path: "/blog?category=Tin%20tuc" },
+    ],
+  },
+  { label: "Lịch tập", path: "/training" },
+  {
+    label: "Hỗ trợ",
+    children: [
+      { label: "Câu hỏi thường gặp", path: "/policy/faq" },
+      { label: "Vận chuyển", path: "/policy/delivery" },
+      { label: "Quy định đổi hàng", path: "/policy/exchange" },
+      { label: "Chính sách thanh toán", path: "/policy/payment" },
+    ],
+  },
+], []);
   const handleClickAvatar = () => {
     if (auth.user?.role === "ROLE_ADMIN" || auth.user?.role === "ROLE_STAFF") {
       navigate("/admin");
@@ -206,7 +205,7 @@ const Navbar = () => {
               </div>
             )}
 
-            <IconButton onClick={() => handleNavigate("/message")} sx={iconButtonSx}>
+            <IconButton onClick={() => handleNavigate("/support")} sx={iconButtonSx}>
               <ChatBubbleOutline sx={{ fontSize: 22 }} />
             </IconButton>
 

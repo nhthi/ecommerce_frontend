@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Paper,
@@ -14,7 +15,9 @@ import {
   tableCellClasses,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -23,12 +26,14 @@ import AddIcon from "@mui/icons-material/Add";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import SearchIcon from "@mui/icons-material/Search";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import {
   deleteBlogTag,
   fetchAllBlogTags,
 } from "../../../state/admin/adminBlogTagSlice";
 import { useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
@@ -51,26 +56,80 @@ const StyledTableRow = styled(TableRow)({
   "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
 });
 
-const panelSx = {
-  borderRadius: "28px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background: "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-  overflow: "hidden",
-};
-
 export default function BlogTagTable() {
+  const { isDark } = useSiteThemeMode();
+
   const dispatch = useAppDispatch();
   const { tags, loading } = useAppSelector((store) => store.blogTag);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(6);
   const [menuState, setMenuState] = React.useState<{
     anchorEl: HTMLElement | null;
     tagId: number | null;
   }>({ anchorEl: null, tagId: null });
 
+  const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
+  const TEXT_SECONDARY = isDark
+    ? "rgba(255,255,255,0.62)"
+    : "rgba(17,24,39,0.64)";
+  const TEXT_MUTED = isDark
+    ? "rgba(255,255,255,0.52)"
+    : "rgba(17,24,39,0.52)";
+
+  const panelSx = {
+    borderRadius: "28px",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
+      : "linear-gradient(180deg, #ffffff, #fff7ed)",
+    boxShadow: isDark
+      ? "0 24px 60px rgba(0,0,0,0.28)"
+      : "0 18px 45px rgba(15,23,42,0.08)",
+    overflow: "hidden",
+  };
+
   React.useEffect(() => {
     dispatch(fetchAllBlogTags());
   }, [dispatch]);
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredTags = React.useMemo(() => {
+    if (!normalizedSearch) return tags || [];
+
+    return (tags || []).filter((tag: any) => {
+      const name = tag.name?.toLowerCase() || "";
+      const slug = tag.slug?.toLowerCase() || "";
+      const id = String(tag.id || "");
+      const postsCount = String(tag.blogPosts?.length || 0);
+
+      return (
+        name.includes(normalizedSearch) ||
+        slug.includes(normalizedSearch) ||
+        id.includes(normalizedSearch) ||
+        postsCount.includes(normalizedSearch)
+      );
+    });
+  }, [tags, normalizedSearch]);
+
+  React.useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
+  React.useEffect(() => {
+    const maxPage = Math.max(0, Math.ceil(filteredTags.length / rowsPerPage) - 1);
+    if (page > maxPage) setPage(maxPage);
+  }, [filteredTags.length, page, rowsPerPage]);
+
+  const paginatedTags = filteredTags.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const handleOpenMenu = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -79,10 +138,8 @@ export default function BlogTagTable() {
     setMenuState({ anchorEl: event.currentTarget, tagId });
   };
 
-    const handleClick = (
-    tagId: number
-  ) => {
-    navigate(`/admin/blog/tag/edit/${tagId}`)
+  const handleClick = (tagId: number) => {
+    navigate(`/admin/blog/tag/edit/${tagId}`);
   };
 
   const handleCloseMenu = () => {
@@ -100,7 +157,9 @@ export default function BlogTagTable() {
         sx={{
           px: 3,
           py: 3,
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -109,30 +168,75 @@ export default function BlogTagTable() {
         }}
       >
         <Box>
-          <Typography fontSize={26} fontWeight={800} color="white">
+          <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
             Quản lý tag blog
           </Typography>
           <Typography
-            sx={{ mt: 0.7, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}
+            sx={{ mt: 0.7, color: TEXT_SECONDARY, fontSize: 14.5 }}
           >
             Quản lý các thẻ như gym, whey, cardio, fat-loss, hypertrophy...
           </Typography>
         </Box>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{
-            borderRadius: 999,
-            textTransform: "none",
-            px: 2.2,
-            fontWeight: 700,
-            background: "linear-gradient(135deg, #f97316, #ea580c)",
-          }}
-          onClick={()=>navigate('/admin/blog/tag/create')}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.2}
+          alignItems={{ xs: "stretch", sm: "center" }}
         >
-          Thêm tag
-        </Button>
+          <TextField
+            size="small"
+            placeholder="Tìm theo tên tag, slug..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              minWidth: { xs: "100%", sm: 320 },
+              "& .MuiOutlinedInput-root": {
+                color: TEXT_PRIMARY,
+                borderRadius: "999px",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(255,255,255,0.82)",
+                "& fieldset": {
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.10)"
+                    : "rgba(15,23,42,0.10)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(249,115,22,0.34)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#f97316",
+                },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: TEXT_MUTED,
+                opacity: 1,
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "#fb923c", fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 2.2,
+              fontWeight: 700,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+            }}
+            onClick={() => navigate("/admin/blog/tag/create")}
+          >
+            Thêm tag
+          </Button>
+        </Stack>
       </Box>
 
       <TableContainer>
@@ -147,8 +251,8 @@ export default function BlogTagTable() {
           </TableHead>
 
           <TableBody>
-            {tags?.length ? (
-              tags.map((tag: any) => (
+            {paginatedTags.length ? (
+              paginatedTags.map((tag: any) => (
                 <StyledTableRow key={tag.id}>
                   <StyledTableCell>
                     <Stack direction="row" spacing={1.2} alignItems="center">
@@ -167,9 +271,11 @@ export default function BlogTagTable() {
                         <LocalOfferOutlinedIcon fontSize="small" />
                       </Box>
                       <Box>
-                        <Typography fontWeight={700}>{tag.name}</Typography>
+                        <Typography fontWeight={700} color={TEXT_PRIMARY}>
+                          {tag.name}
+                        </Typography>
                         <Typography
-                          sx={{ color: "rgba(255,255,255,0.52)", fontSize: 12.5 }}
+                          sx={{ color: TEXT_MUTED, fontSize: 12.5 }}
                         >
                           ID: #{tag.id}
                         </Typography>
@@ -197,8 +303,13 @@ export default function BlogTagTable() {
                     <IconButton
                       onClick={(e) => handleOpenMenu(e, tag.id)}
                       sx={{
-                        color: "#fff7ed",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        color: TEXT_PRIMARY,
+                        border: isDark
+                          ? "1px solid rgba(255,255,255,0.12)"
+                          : "1px solid rgba(15,23,42,0.12)",
+                        backgroundColor: isDark
+                          ? "transparent"
+                          : "rgba(255,255,255,0.68)",
                       }}
                     >
                       <MoreHorizIcon />
@@ -210,21 +321,36 @@ export default function BlogTagTable() {
                       onClose={handleCloseMenu}
                       PaperProps={{
                         sx: {
-                          backgroundColor: "#171717",
-                          color: "white",
-                          border: "1px solid rgba(255,255,255,0.08)",
+                          background: isDark
+                            ? "#171717"
+                            : "linear-gradient(180deg, #ffffff, #fff7ed)",
+                          color: isDark ? "white" : "#111827",
+                          border: isDark
+                            ? "1px solid rgba(255,255,255,0.08)"
+                            : "1px solid rgba(15,23,42,0.08)",
                           borderRadius: "18px",
+                          boxShadow: isDark
+                            ? "0 18px 40px rgba(0,0,0,0.28)"
+                            : "0 14px 32px rgba(15,23,42,0.08)",
                           mt: 1,
+                          ".MuiMenuItem-root": {
+                            color: isDark ? "white" : "#111827",
+                          },
+                          ".MuiMenuItem-root:hover": {
+                            backgroundColor: isDark
+                              ? "rgba(249,115,22,0.1)"
+                              : "rgba(249,115,22,0.08)",
+                          },
                         },
                       }}
                     >
-                      <MenuItem onClick={()=>handleClick(tag.id)}>
+                      <MenuItem onClick={() => handleClick(tag.id)}>
                         <EditOutlinedIcon sx={{ mr: 1.2, fontSize: 18 }} />
                         Chỉnh sửa
                       </MenuItem>
                       <MenuItem
                         onClick={() => handleDelete(tag.id)}
-                        sx={{ color: "#fca5a5" }}
+                        sx={{ color: "#fca5a5 !important" }}
                       >
                         <DeleteOutlineIcon sx={{ mr: 1.2, fontSize: 18 }} />
                         Xóa tag
@@ -238,15 +364,54 @@ export default function BlogTagTable() {
                 <TableCell
                   colSpan={4}
                   align="center"
-                  sx={{ py: 8, color: "rgba(255,255,255,0.6)" }}
+                  sx={{ py: 8, color: TEXT_SECONDARY }}
                 >
-                  {loading ? "Đang tải tag..." : "Chưa có tag blog nào."}
+                  {loading
+                    ? "Đang tải tag..."
+                    : searchTerm
+                    ? "Không tìm thấy tag phù hợp."
+                    : "Chưa có tag blog nào."}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={filteredTags.length}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[6, 10, 20]}
+        labelRowsPerPage="Số dòng mỗi trang:"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+        }
+        sx={{
+          color: TEXT_SECONDARY,
+          borderTop: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
+          ".MuiTablePagination-selectIcon": {
+            color: "#fb923c",
+          },
+          ".MuiTablePagination-actions button": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-select": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-displayedRows": {
+            color: TEXT_SECONDARY,
+          },
+        }}
+      />
     </Paper>
   );
 }

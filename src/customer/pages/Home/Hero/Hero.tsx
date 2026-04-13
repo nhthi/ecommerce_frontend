@@ -15,46 +15,46 @@ const HERO_IMAGES = [
 
 const slides = [
   {
-    eyebrow: "Thiet bi fitness",
-    title: "Dung cu gym cho nguoi tap tai nha",
-    highlight: "Dep, gon, de chon",
+    eyebrow: "Thiết bị fitness",
+    title: "Dụng cụ gym cho người tập tại nhà",
+    highlight: "Đẹp, gọn, dễ chọn",
     description:
-      "May cardio, ta, ghe tap va phu kien duoc sap xep theo nhu cau thuc te, giup ban tim nhanh va de dang hon.",
-    primaryLabel: "Xem san pham",
+      "Máy cardio, tạ, ghế tập và phụ kiện được sắp xếp theo nhu cầu thực tế, giúp bạn tìm nhanh và dễ dàng hơn.",
+    primaryLabel: "Xem sản phẩm",
     primaryPath: "/products/all",
-    secondaryLabel: "Xem blog tap luyen",
-    secondaryPath: "/search?keyword=tap%20luyen%20fitness",
-    metricLabel: "Danh muc noi bat",
+    secondaryLabel: "Xem blog tập luyện",
+    secondaryPath: "/blog",
+    metricLabel: "Danh mục nổi bật",
     metricValue: "320+",
-    metricItems: ["May cardio", "Ta va banh ta", "Phu kien tap luyen"],
+    metricItems: ["Máy cardio", "Tạ và bánh tạ", "Phụ kiện tập luyện"],
   },
   {
-    eyebrow: "Blog & khoa hoc",
-    title: "Hoc cach tap dung truoc khi mua them",
-    highlight: "De hieu, de ap dung",
+    eyebrow: "Blog & khóa học",
+    title: "Học cách tập đúng trước khi mua thêm",
+    highlight: "Dễ hiểu, dễ áp dụng",
     description:
-      "Noi dung tap trung vao ky thuat, lich tap va cach chon dung cu phu hop voi tung muc tieu.",
-    primaryLabel: "Xem khoa hoc",
-    primaryPath: "/search?keyword=khoa%20hoc%20fitness",
-    secondaryLabel: "Doc tin tuc",
-    secondaryPath: "/search?keyword=tin%20tuc%20fitness",
-    metricLabel: "Noi dung huu ich",
+      "Nội dung tập trung vào kỹ thuật, lịch tập và cách chọn dụng cụ phù hợp với từng mục tiêu.",
+    primaryLabel: "Xem khóa học",
+    primaryPath: "/training",
+    secondaryLabel: "Đọc tin tức",
+    secondaryPath: "/blog",
+    metricLabel: "Nội dung hữu ích",
     metricValue: "80+",
-    metricItems: ["Huong dan ky thuat", "Lich tap co ban", "Meo chon dung cu"],
+    metricItems: ["Hướng dẫn kỹ thuật", "Lịch tập cơ bản", "Mẹo chọn dụng cụ"],
   },
   {
-    eyebrow: "Goi y setup",
-    title: "Chon nhanh combo dung cu theo muc tieu tap",
-    highlight: "Khong can tim tung mon",
+    eyebrow: "Gợi ý setup",
+    title: "Chọn nhanh combo dụng cụ theo mục tiêu tập",
+    highlight: "Không cần tìm từng món",
     description:
-      "Neu ban chua biet nen mua gi truoc, cac goi y san co se giup bat dau nhanh gon va tiet kiem hon.",
-    primaryLabel: "Nhan tu van",
+      "Nếu bạn chưa biết nên mua gì trước, các gợi ý sẵn có sẽ giúp bắt đầu nhanh gọn và tiết kiệm hơn.",
+    primaryLabel: "Nhận tư vấn",
     primaryPath: "/message",
-    secondaryLabel: "Xem phu kien",
+    secondaryLabel: "Xem phụ kiện",
     secondaryPath: "/search?keyword=phu%20kien%20tap%20gym",
-    metricLabel: "Combo goi y",
+    metricLabel: "Combo gợi ý",
     metricValue: "24",
-    metricItems: ["Giam mo tai nha", "Tang co co ban", "Setup phong gym mini"],
+    metricItems: ["Giảm mỡ tại nhà", "Tăng cơ cơ bản", "Setup phòng gym mini"],
   },
 ];
 
@@ -87,7 +87,7 @@ const Hero = () => {
       <motion.img
         key={activeSlide}
         src={HERO_IMAGES[activeSlide % HERO_IMAGES.length]}
-        alt="Banner tap luyen fitness"
+        alt="Banner tập luyện fitness"
         className="h-[520px] w-full object-cover object-center md:h-[740px]"
         initial={{ scale: 1.08, opacity: 0.82 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -205,13 +205,13 @@ const Hero = () => {
                 className="mt-10 grid max-w-[620px] grid-cols-1 gap-3 sm:grid-cols-3"
               >
                 <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
-                  Chon nhanh theo nhu cau
+                  Chọn nhanh theo nhu cầu
                 </div>
                 <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
-                  Giao hang toan quoc
+                  Giao hàng toàn quốc
                 </div>
                 <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
-                  Co blog va khoa hoc
+                  Có blog & khóa học
                 </div>
               </motion.div>
             </div>
@@ -258,7 +258,7 @@ const Hero = () => {
             <button
               key={slide.title}
               type="button"
-              aria-label={`Chuyen den slide ${index + 1}`}
+              aria-label={`Chuyển đến slide ${index + 1}`}
               onClick={() => setActiveSlide(index)}
               className={`h-2.5 rounded-full transition-all ${
                 activeSlide === index ? "w-12 bg-orange-500" : isDark ? "w-2.5 bg-white/35" : "w-2.5 bg-slate-400/70"

@@ -50,9 +50,6 @@ const Address = () => {
 
       <div>
         <h1 className="text-3xl font-black text-white">Địa chỉ</h1>
-        <p className="mt-2 text-base leading-7 text-slate-300">
-          Nơi lưu các địa chỉ nhận hàng để đặt mua nhanh hơn ở những lần sau.
-        </p>
       </div>
 
       {activeAddresses.length > 0 ? (

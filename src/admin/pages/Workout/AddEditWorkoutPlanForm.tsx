@@ -208,23 +208,12 @@ const AddEditWorkoutPlanForm = ({
   return (
     <Paper elevation={0} sx={{ ...cardSx, p: { xs: 3, lg: 4 } }}>
       {(loading || uploading) && (
-        <CustomLoading message={uploading ? "Dang tai anh..." : "Dang xu ly..."} />
-      )}
+  <CustomLoading message={uploading ? "Đang tải ảnh..." : "Đang xử lý..."} />
+)}
 
-      <Typography fontSize={28} fontWeight={800} color="white">
-        {isEdit ? "Cap nhat chuong trinh tap" : "Them chuong trinh tap moi"}
-      </Typography>
-      <Typography
-        sx={{
-          mt: 0.8,
-          mb: 3,
-          color: "rgba(255,255,255,0.62)",
-          fontSize: 14.5,
-        }}
-      >
-        Tao chuong trinh tap de giao cho nguoi dung theo muc tieu, cap do va so
-        buoi moi tuan.
-      </Typography>
+<Typography fontSize={28} fontWeight={800} color="white">
+  {isEdit ? "Cập nhật chương trình tập" : "Thêm chương trình tập mới"}
+</Typography>
 
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Grid container spacing={2.2}>
@@ -238,7 +227,7 @@ const AddEditWorkoutPlanForm = ({
               }}
             >
               <Typography fontWeight={700} color="white" sx={{ mb: 1.5 }}>
-                Anh cover
+                Ảnh cover
               </Typography>
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center" }}>
                 <Button
@@ -252,7 +241,7 @@ const AddEditWorkoutPlanForm = ({
                     borderColor: "rgba(249,115,22,0.24)",
                   }}
                 >
-                  Chon anh
+                  Chọn ảnh
                   <input hidden type="file" accept="image/*" onChange={handleThumbnailChange} />
                 </Button>
 
@@ -293,7 +282,7 @@ const AddEditWorkoutPlanForm = ({
             <TextField
               fullWidth
               name="name"
-              label="Ten chuong trinh"
+              label="Tên chương trình"
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -309,7 +298,7 @@ const AddEditWorkoutPlanForm = ({
               multiline
               minRows={4}
               name="description"
-              label="Mo ta"
+              label="Mô tả"
               value={formik.values.description}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -321,15 +310,15 @@ const AddEditWorkoutPlanForm = ({
 
           <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth sx={fieldSx}>
-              <InputLabel>Muc tieu</InputLabel>
+              <InputLabel>Mục tiêu</InputLabel>
               <Select
                 name="goal"
-                label="Muc tieu"
+                label="Mục tiêu"
                 value={formik.values.goal}
                 onChange={formik.handleChange}
               >
                 <MenuItem value="">
-                  <em>Khong chon</em>
+                  <em>Không chọn</em>
                 </MenuItem>
                 {GoalTypeOptions.map((goal) => (
                   <MenuItem key={goal.value} value={goal.value}>
@@ -342,15 +331,15 @@ const AddEditWorkoutPlanForm = ({
 
           <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth sx={fieldSx}>
-              <InputLabel>Cap do</InputLabel>
+              <InputLabel>Cấp độ</InputLabel>
               <Select
                 name="level"
-                label="Cap do"
+                label="Cấp độ"
                 value={formik.values.level}
                 onChange={formik.handleChange}
               >
                 <MenuItem value="">
-                  <em>Khong chon</em>
+                  <em>Không chọn</em>
                 </MenuItem>
                 {LEVEL_OPTIONS.map((level) => (
                   <MenuItem key={level.value} value={level.value}>
@@ -363,10 +352,10 @@ const AddEditWorkoutPlanForm = ({
 
           <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth sx={fieldSx}>
-              <InputLabel>Trang thai</InputLabel>
+              <InputLabel>Trạng thái</InputLabel>
               <Select
                 name="status"
-                label="Trang thai"
+                label="Trạng thái"
                 value={formik.values.status}
                 onChange={formik.handleChange}
               >
@@ -384,7 +373,7 @@ const AddEditWorkoutPlanForm = ({
               fullWidth
               type="number"
               name="durationWeeks"
-              label="Thoi luong (tuan)"
+              label="Thời lượng (tuần)"
               value={formik.values.durationWeeks}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -399,7 +388,7 @@ const AddEditWorkoutPlanForm = ({
               fullWidth
               type="number"
               name="daysPerWeek"
-              label="So buoi moi tuan"
+              label="Số buổi mỗi tuần"
               value={formik.values.daysPerWeek}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -421,7 +410,7 @@ const AddEditWorkoutPlanForm = ({
               }
               label={
                 <Typography color="rgba(255,255,255,0.78)">
-                  Danh dau la mau workout
+                  Đánh dấu là mẫu
                 </Typography>
               }
             />
@@ -441,7 +430,7 @@ const AddEditWorkoutPlanForm = ({
                   borderColor: "rgba(255,255,255,0.12)",
                 }}
               >
-                Huy
+                Hủy
               </Button>
               <Button
                 type="submit"
@@ -454,7 +443,7 @@ const AddEditWorkoutPlanForm = ({
                   background: "linear-gradient(135deg, #f97316, #ea580c)",
                 }}
               >
-                {isEdit ? "Luu thay doi" : "Tao chuong trinh tap"}
+                {isEdit ? "Lưu thay đổi" : "Tạo lịch tập"}
               </Button>
             </Stack>
           </Grid>

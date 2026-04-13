@@ -1,4 +1,4 @@
-﻿import {
+import {
   Alert,
   Box,
   Button,
@@ -22,6 +22,7 @@ import {
 } from "../../../state/customer/orderSlice";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
 import { NavigateFunction, useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const modalStyle = {
   position: "absolute" as const,
@@ -74,6 +75,7 @@ const Checkout = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const { isDark } = useSiteThemeMode();
   const { auth, address, cart } = useAppSelector((store) => store);
   const addresses: Address[] = auth.user?.addresses
     ? [...auth.user.addresses]
@@ -101,47 +103,57 @@ const Checkout = () => {
     }
   }, [activeAddresses, selectedId]);
 
-  const handleCheckout = async () => {
-    if (!selectedId) {
+const handleCheckout = async () => {
+  if (!selectedId) {
+    setSnackbar({
+      open: true,
+      message: "Vui lòng chọn địa chỉ giao hàng trước khi thanh toán.",
+      severity: "error",
+    });
+    return;
+  }
+
+  const req = {
+    addressId: Number(selectedId),
+    paymentGateway,
+    navigate,
+  };
+
+  try {
+    setLoading(true);
+
+    const res = await dispatch(createOrder(req)).unwrap();
+
+    if (paymentGateway === "SEPAY") {
+      setSepayInfo(res);
+    }
+
+    if (paymentGateway === "COD") {
       setSnackbar({
         open: true,
-        message: "Vui lòng ch?n d?a ch? giao hàng tru?c khi thanh toán.",
-        severity: "error",
+        message: "Đặt hàng thành công. Bạn sẽ thanh toán khi nhận hàng.",
+        severity: "success",
       });
-      return;
+
+      setTimeout(() => {
+        navigate("/ordersuccess");
+      }, 1200);
     }
 
-    const req: {
-      addressId: Number;
-      paymentGateway: string;
-      navigate: NavigateFunction;
-    } = {
-      addressId: Number(selectedId),
-      paymentGateway: paymentGateway,
-      navigate,
-    };
+  } catch (error: any) {
+    console.error("Create order error:", error);
 
-    try {
-      setLoading(true);
-      const res = await dispatch(createOrder(req)).unwrap();
-      if (paymentGateway === "SEPAY") {
-        setSepayInfo(res);
-      }
-      if (paymentGateway === "COD") {
-        setSnackbar({
-          open: true,
-          message: "Ð?t hàng thành công. B?n s? thanh toán khi nh?n hàng.",
-          severity: "success",
-        });
+    // Ưu tiên message từ backend
+    setSnackbar({
+      open: true,
+      message: error,
+      severity: "error",
+    });
 
-        setTimeout(() => {
-          navigate("/ordersuccess");
-        }, 1200);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   React.useEffect(() => {
     if (!sepayInfo) return;
@@ -200,14 +212,14 @@ const Checkout = () => {
   return (
     <>
       <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-16 xl:px-24">
-        {loading && <CustomLoading message="Ðang x? lý don hàng..." />}
+        {loading && <CustomLoading message="Đang xử lý đơn hàng..." />}
 
         <div className="mx-auto max-w-7xl">
           <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.2),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#0f0f0f_100%)] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl space-y-3">
                 <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
-                  Checkout
+                  Thanh toán
                 </span>
                 <div className="space-y-2">
                   <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
@@ -233,7 +245,7 @@ const Checkout = () => {
                     Tổng đơn
                   </p>
                   <p className="mt-2 text-2xl font-black text-orange-400">
-                    {(cart.cart?.totalCouponPrice || 0).toLocaleString()}d
+                    {(cart.cart?.totalCouponPrice || 0).toLocaleString()}đ
                   </p>
                 </div>
               </div>
@@ -249,7 +261,7 @@ const Checkout = () => {
                   Giao hàng
                 </p>
                 <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
-                  Địa chỉ giao hang
+                  Địa chỉ giao hàng
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-neutral-400">
                   Chọn địa chỉ bạn muốn sử dụng cho đơn này
@@ -326,7 +338,7 @@ const Checkout = () => {
                 Thanh toán
               </p>
               <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
-                Phuong thức thanh toán
+                Phương thức thanh toán
               </h2>
               <p className="mt-1 text-sm leading-6 text-neutral-400">
                 Chọn cách thanh toán phù hợp cho đơn hàng hiện tại.
@@ -443,35 +455,49 @@ const Checkout = () => {
 
       <Modal open={!!sepayInfo} onClose={() => setSepayInfo(null)}>
         <Box sx={modalStyle}>
-          <div className="mx-auto w-[95%] max-w-[420px] rounded-[1.8rem] border border-orange-500/16 bg-[#111111] p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,0.5)]">
+          <div
+            className={`mx-auto w-[95%] max-w-[420px] rounded-[1.8rem] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.25)] ${
+              isDark
+                ? "border border-orange-500/16 bg-[#111111] text-white"
+                : "border border-slate-200 bg-white text-slate-900"
+            }`}
+          >
             {showSuccessMessage ? (
               <div className="flex flex-col items-center justify-center py-6 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-orange-500/12">
+                <div
+                  className={`flex h-20 w-20 items-center justify-center rounded-full ${
+                    isDark ? "bg-orange-500/12" : "bg-orange-100"
+                  }`}
+                >
                   <img
                     src="https://cdn-icons-png.flaticon.com/512/845/845646.png"
                     alt="success"
                     className="h-14 w-14"
                   />
                 </div>
-                <h3 className="mt-4 text-2xl font-black tracking-tight text-orange-300">
+                <h3 className="mt-4 text-2xl font-black tracking-tight text-orange-400">
                   Thanh toán thành công
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-neutral-400">
+                <p className={`mt-2 text-sm leading-6 ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
                   Hệ thống đang chuyển bạn đến trang xác nhận đơn hàng
                 </p>
               </div>
             ) : (
               <>
                 <div className="space-y-2 text-center">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-400">
                     Thanh toán QR
                   </p>
-                  <h2 className="text-2xl font-black tracking-tight text-white">
+                  <h2 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
                     Quét QR để chuyển khoản
                   </h2>
                 </div>
 
-                <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/8 bg-white p-4">
+                <div
+                  className={`mt-5 overflow-hidden rounded-[1.5rem] border p-4 ${
+                    isDark ? "border-white/8 bg-white" : "border-slate-200 bg-slate-50"
+                  }`}
+                >
                   <img
                     className="mx-auto h-56 w-56"
                     alt="QR Payment"
@@ -479,23 +505,39 @@ const Checkout = () => {
                   />
                 </div>
 
-                <Divider sx={{ my: 3, borderColor: "rgba(255,255,255,0.08)" }} />
+                <Divider
+                  sx={{
+                    my: 3,
+                    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+                  }}
+                />
 
-                <div className="space-y-2 text-sm text-neutral-300">
-                  <p><b className="text-white">Ngân hàng:</b> {sepayInfo?.bankName}</p>
-                  <p><b className="text-white">Số TK:</b> {sepayInfo?.accountNumber}</p>
-                  <p><b className="text-white">Chủ TK:</b> {sepayInfo?.accountName}</p>
-                  <p className="font-semibold text-orange-300">Nội dung: {sepayInfo?.paymentCode}</p>
-                  <p className="text-base font-black text-white">Số tiền: {sepayInfo?.amount?.toLocaleString()} d</p>
+                <div className={`space-y-2 text-sm ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Ngân hàng:</b>{" "}
+                    {sepayInfo?.bankName}
+                  </p>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Số TK:</b>{" "}
+                    {sepayInfo?.accountNumber}
+                  </p>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Chủ TK:</b>{" "}
+                    {sepayInfo?.accountName}
+                  </p>
+                  <p className="font-semibold text-orange-400">Nội dung: {sepayInfo?.paymentCode}</p>
+                  <p className={`text-base font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+                    Số tiền: {sepayInfo?.amount?.toLocaleString()}đ
+                  </p>
                 </div>
 
                 <Alert severity="info" sx={{ mt: 2 }}>
                   Hệ thống sẽ tự động xác nhận sau khi giao dịch thành công.
                 </Alert>
 
-                <p className="mt-3 text-center text-sm text-neutral-400">
+                <p className={`mt-3 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
                   Thời gian còn lại:{" "}
-                  <b className={remainingTime <= 30 ? "text-red-400" : "text-orange-300"}>
+                  <b className={remainingTime <= 30 ? "text-red-400" : "text-orange-400"}>
                     {Math.floor(remainingTime / 60)}:
                     {(remainingTime % 60).toString().padStart(2, "0")}
                   </b>
@@ -510,4 +552,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-

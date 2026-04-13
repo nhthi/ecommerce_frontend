@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   Alert,
   Box,
@@ -21,8 +21,8 @@ import {
   OrderStatusSummaryDto,
   RecentOrderDto,
 } from "../../../../state/admin/adminDashboardSlice";
-import { getStatusChip } from "../dashboardData";
-import { cardSx, sectionTitleSx } from "../dashboardStyles";
+import { getCardSx, getSectionTitleSx, getStatusChip } from "../dashboardData";
+import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 
 interface OrdersTabProps {
   filteredOrders: RecentOrderDto[];
@@ -41,7 +41,14 @@ const statusColorMap: Record<string, string> = {
   CANCELLED: "#ef4444",
 };
 
-const fallbackPalette = ["#f97316", "#f59e0b", "#3b82f6", "#16a34a", "#ef4444", "#8b5cf6"];
+const fallbackPalette = [
+  "#f97316",
+  "#f59e0b",
+  "#3b82f6",
+  "#16a34a",
+  "#ef4444",
+  "#8b5cf6",
+];
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -52,7 +59,7 @@ const formatCurrency = (value: number) => {
 };
 
 const formatDateTime = (value: string) => {
-  if (!value) return "Khong ro";
+  if (!value) return "Không rõ";
   return new Date(value).toLocaleString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -84,17 +91,17 @@ const normalizeStatusLabel = (status: string) => {
 const formatStatusDisplay = (status: string) => {
   switch (status) {
     case "DELIVERED":
-      return "Da giao";
+      return "Đã giao";
     case "PENDING":
-      return "Cho xu ly";
+      return "Chờ xử lý";
     case "CANCELLED":
-      return "Da huy";
+      return "Đã hủy";
     case "CONFIRMED":
-      return "Da xac nhan";
+      return "Đã xác nhận";
     case "SHIPPING":
-      return "Dang giao";
+      return "Đang giao";
     case "COMPLETED":
-      return "Hoan thanh";
+      return "Hoàn thành";
     default:
       return status;
   }
@@ -107,12 +114,30 @@ const OrdersTab = ({
   loading,
   error,
 }: OrdersTabProps) => {
+  const { isDark } = useSiteThemeMode();
+  const cardSx = getCardSx(isDark);
+  const sectionTitleSx = getSectionTitleSx(isDark);
+  const tableBorder = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
+  const muted = isDark ? "rgba(255,255,255,0.62)" : "#64748b";
+  const tooltipStyle = {
+    background: isDark ? "#101010" : "#ffffff",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    borderRadius: "14px",
+    color: isDark ? "#ffffff" : "#0f172a",
+  };
+
   const statusChartData = useMemo(
     () =>
       orderStatusSummary.map((item, index) => ({
         name: formatStatusDisplay(item.label),
         value: item.value,
-        color: statusColorMap[item.label] || fallbackPalette[index % fallbackPalette.length],
+        color:
+          statusColorMap[item.label] ||
+          fallbackPalette[index % fallbackPalette.length],
       })),
     [orderStatusSummary]
   );
@@ -128,19 +153,35 @@ const OrdersTab = ({
       <Grid size={{ xs: 12, xl: 4 }}>
         <Paper elevation={0} sx={{ ...cardSx, p: 2.5, height: "100%" }}>
           <Typography sx={sectionTitleSx}>Trạng thái đơn hàng</Typography>
+
           <Box sx={{ mt: 1.2, height: 260 }}>
             {loading && statusChartData.length === 0 ? (
-              <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }} spacing={1.2}>
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={{ height: "100%" }}
+                spacing={1.2}
+              >
                 <CircularProgress sx={{ color: primary }} />
-                <Typography sx={{ color: "#64748b" }}>Đang tải trạng thái đơn hàng...</Typography>
+                <Typography sx={{ color: muted }}>
+                  Đang tải trạng thái đơn hàng...
+                </Typography>
               </Stack>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={statusChartData} dataKey="value" innerRadius={54} outerRadius={84} paddingAngle={3}>
-                    {statusChartData.map((item) => <Cell key={item.name} fill={item.color} />)}
+                  <Pie
+                    data={statusChartData}
+                    dataKey="value"
+                    innerRadius={54}
+                    outerRadius={84}
+                    paddingAngle={3}
+                  >
+                    {statusChartData.map((item) => (
+                      <Cell key={item.name} fill={item.color} />
+                    ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -150,46 +191,121 @@ const OrdersTab = ({
 
       <Grid size={{ xs: 12, xl: 8 }}>
         <Paper elevation={0} sx={{ ...cardSx, p: 2.5, height: "100%" }}>
-          <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1.2}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            spacing={1.2}
+          >
             <Box>
               <Typography sx={sectionTitleSx}>Đơn hàng gần đây</Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 14.5, mt: 0.4 }}>
-                Dữ liệu lấy từ API dashboard, đồng bộ theo tháng hoặc năm.
+              <Typography sx={{ color: muted, fontSize: 14.5, mt: 0.4 }}>
+                Dữ liệu được đồng bộ theo bộ lọc tháng hoặc năm.
               </Typography>
             </Box>
-            <Button component={Link} to="/admin/orders" variant="text" sx={{ textTransform: "none", color: primary, fontWeight: 700, alignSelf: "flex-start" }}>
+
+            <Button
+              component={Link}
+              to="/admin/orders"
+              variant="text"
+              sx={{
+                textTransform: "none",
+                color: primary,
+                fontWeight: 700,
+                alignSelf: "flex-start",
+              }}
+            >
               Xem tất cả
             </Button>
           </Stack>
+
           <Box sx={{ mt: 1.6, overflowX: "auto" }}>
             {loading && filteredOrders.length === 0 ? (
-              <Stack alignItems="center" justifyContent="center" sx={{ py: 6 }} spacing={1.2}>
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={{ py: 6 }}
+                spacing={1.2}
+              >
                 <CircularProgress sx={{ color: primary }} />
-                <Typography sx={{ color: "#64748b" }}>Đang tải danh sách đơn hàng...</Typography>
+                <Typography sx={{ color: muted }}>
+                  Đang tải danh sách đơn hàng...
+                </Typography>
               </Stack>
             ) : (
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Mã đơn</TableCell>
-                    <TableCell>Khách hàng</TableCell>
-                    <TableCell>Thanh toán</TableCell>
-                    <TableCell>Giá trị</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell>Ngày đặt</TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Mã đơn
+                    </TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Khách hàng
+                    </TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Thanh toán
+                    </TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Giá trị
+                    </TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Trạng thái
+                    </TableCell>
+                    <TableCell sx={{ color: muted, borderColor: tableBorder }}>
+                      Ngày đặt
+                    </TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {filteredOrders.map((order) => {
                     const statusLabel = normalizeStatusLabel(order.status);
                     const statusStyle = getStatusChip(statusLabel);
+
                     return (
                       <TableRow key={order.orderCode} hover>
-                        <TableCell sx={{ fontWeight: 700 }}>{order.orderCode}</TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{order.paymentMethod || "Khong ro"}</TableCell>
-                        <TableCell sx={{ color: primary, fontWeight: 800 }}>{formatCurrency(order.amount)}</TableCell>
-                        <TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 700,
+                            color: isDark ? "#ffffff" : "#0f172a",
+                            borderColor: tableBorder,
+                          }}
+                        >
+                          {order.orderCode}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            color: isDark
+                              ? "rgba(255,255,255,0.78)"
+                              : "#334155",
+                            borderColor: tableBorder,
+                          }}
+                        >
+                          {order.customerName}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            color: isDark
+                              ? "rgba(255,255,255,0.78)"
+                              : "#334155",
+                            borderColor: tableBorder,
+                          }}
+                        >
+                          {order.paymentMethod || "Không rõ"}
+                        </TableCell>
+
+                        <TableCell
+                          sx={{
+                            color: primary,
+                            fontWeight: 800,
+                            borderColor: tableBorder,
+                          }}
+                        >
+                          {formatCurrency(order.amount)}
+                        </TableCell>
+
+                        <TableCell sx={{ borderColor: tableBorder }}>
                           <Chip
                             label={formatStatusDisplay(order.status)}
                             size="small"
@@ -202,15 +318,33 @@ const OrdersTab = ({
                             }}
                           />
                         </TableCell>
-                        <TableCell>{formatDateTime(order.orderDate)}</TableCell>
+
+                        <TableCell
+                          sx={{
+                            color: isDark
+                              ? "rgba(255,255,255,0.78)"
+                              : "#334155",
+                            borderColor: tableBorder,
+                          }}
+                        >
+                          {formatDateTime(order.orderDate)}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
 
                   {!loading && filteredOrders.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: "center", py: 4, color: "#64748b" }}>
-                        Khong co don hang nao phu hop voi bo loc hien tai.
+                      <TableCell
+                        colSpan={6}
+                        sx={{
+                          textAlign: "center",
+                          py: 4,
+                          color: muted,
+                          borderColor: tableBorder,
+                        }}
+                      >
+                        Không có đơn hàng nào phù hợp với bộ lọc hiện tại.
                       </TableCell>
                     </TableRow>
                   )}

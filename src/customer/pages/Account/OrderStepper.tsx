@@ -3,6 +3,7 @@ import React from "react";
 import { CheckCircle, FiberManualRecord, ElectricBolt, LocalShipping, Cancel, Pending, Inventory } from "@mui/icons-material";
 import { format } from "date-fns";
 import { OrderStatus } from "../../../types/OrderType";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const getStatusConfig = (status: OrderStatus) => {
   switch (status) {
@@ -89,7 +90,8 @@ interface Props { orderStatus: OrderStatus; deliveryDate?: string; }
 const OrderStepper: React.FC<Props> = ({ orderStatus, deliveryDate }) => {
   const steps = orderStatus === "CANCELLED" ? CANCELLED_STEPS : ORDER_STEPS;
   const currentIndex = steps.findIndex((s) => s === orderStatus);
-
+    const { isDark } = useSiteThemeMode();
+  
   return (
     <Box className="mx-auto my-4 sm:my-6">
       {steps.map((status, index) => {
@@ -101,7 +103,20 @@ const OrderStepper: React.FC<Props> = ({ orderStatus, deliveryDate }) => {
           <div key={status} className="mb-5 flex px-1 sm:px-2">
             <div className="flex flex-col items-center">
               <Avatar sx={{ bgcolor: config.color, width: 40, height: 40, fontSize: 20 }}>{isCurrent || isCompleted ? config.icon : <FiberManualRecord sx={{ fontSize: 14 }} />}</Avatar>
-              {index < steps.length - 1 && <div className="mt-1 w-[2px]" style={{ height: 76, backgroundColor: index < currentIndex ? config.color : "rgba(255,255,255,0.12)" }} />}
+              {index < steps.length - 1 && (
+  <div
+    className="mt-1 w-[2px]"
+    style={{
+      height: 76,
+      backgroundColor:
+        index < currentIndex
+          ? config.color
+          : isDark
+          ? "rgba(255,255,255,0.12)"
+          : "rgba(0,0,0,0.16)",
+    }}
+  />
+)}
             </div>
             <div className="ml-4 w-full -mt-1">
               <div className={`rounded-[1.2rem] px-4 py-3 ${isCurrent ? "text-black" : "text-white"}`} style={{ backgroundColor: isCurrent ? config.color : "rgba(255,255,255,0.03)" }}>

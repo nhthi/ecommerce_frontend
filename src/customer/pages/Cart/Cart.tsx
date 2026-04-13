@@ -61,6 +61,13 @@ const Cart = () => {
 
   const isEmpty = !cart.cart?.cartItems || cart.cart.cartItems.length === 0;
 
+  // ✅ THÊM: kiểm tra hết hàng / không đủ tồn kho
+  const hasOutOfStock = cart.cart?.cartItems?.some(
+    (item) =>
+      Number(item.size?.quantity || 0) === 0 ||
+      Number(item.size?.quantity || 0) < item.quantity
+  );
+
   return (
     <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-16 xl:px-24">
       {loading && <CustomLoading message="Dang ap dung ma giam gia..." />}
@@ -173,109 +180,45 @@ const Cart = () => {
                       {cart.cart.coupon.name} - Giam {cart.cart.coupon.discountPercentage}%
                     </p>
                   </div>
-                  <IconButton
-                    onClick={handleRemoveCoupon}
-                    size="small"
-                    sx={{
-                      textTransform: "none",
-                      minWidth: 0,
-                      px: 1.8,
-                      py: 0.8,
-                      borderRadius: "999px",
-                      fontWeight: 700,
-                      color: "#fdba74",
-                      backgroundColor: "rgba(249,115,22,0.08)",
-                      "&:hover": {
-                        backgroundColor: "rgba(249,115,22,0.16)",
-                      },
-                    }}
-                  >
-                    <Close/>
+                  <IconButton onClick={handleRemoveCoupon} size="small">
+                    <Close />
                   </IconButton>
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <TextField
-                    placeholder="Nhap ma giam gia"
+                    placeholder="Nhập mã giảm giá"
                     size="small"
-                    variant="outlined"
                     value={couponCode}
                     onChange={handleChangeCouponCode}
                     fullWidth
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "999px",
-                        color: "white",
-                        backgroundColor: "rgba(255,255,255,0.03)",
-                        "& fieldset": { borderColor: "rgba(255,255,255,0.12)" },
-                        "&:hover fieldset": { borderColor: "rgba(249,115,22,0.35)" },
-                        "&.Mui-focused fieldset": { borderColor: "#f97316" },
-                      },
-                      "& .MuiInputBase-input::placeholder": {
-                        color: "rgba(255,255,255,0.45)",
-                        opacity: 1,
-                      },
-                    }}
                   />
-                  <Button
-                    size="small"
-                    variant="contained"
-                    onClick={handleApplyCoupon}
-                    sx={{
-                      whiteSpace: "nowrap",
-                      textTransform: "none",
-                      borderRadius: "999px",
-                      px: 2.8,
-                      fontWeight: 800,
-                      color: "#111111",
-                      background:
-                        "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
-                      boxShadow: "0 14px 30px rgba(249,115,22,0.3)",
-                      "&:hover": {
-                        background:
-                          "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
-                      },
-                    }}
-                  >
-                    Áp dụng
-                  </Button>
+                  <Button onClick={handleApplyCoupon}>Áp dụng</Button>
                 </div>
               )}
 
-              {errorMessage && (
-                <Typography
-                  variant="body2"
-                  sx={{ mt: 1.5, fontSize: "0.88rem", color: "#fca5a5" }}
-                >
-                  {errorMessage}
-                </Typography>
-              )}
+              {errorMessage && <Typography color="error">{errorMessage}</Typography>}
             </div>
 
             <div className="overflow-hidden rounded-[1.8rem] border border-orange-500/12 bg-[#121212] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
               <PricingCart />
+
+              {/* ⚠️ CẢNH BÁO */}
+              {hasOutOfStock && (
+                <div className="mx-5 my-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                  Có sản phẩm trong giỏ đã <b>hết hàng</b> hoặc không đủ số lượng.
+                  Vui lòng xóa hoặc cập nhật lại trước khi thanh toán.
+                </div>
+              )}
+
               <div className="p-5 pt-0">
                 <Button
                   onClick={() => navigate("/checkout")}
                   fullWidth
                   variant="contained"
-                  sx={{
-                    py: "12px",
-                    borderRadius: "999px",
-                    textTransform: "none",
-                    fontWeight: 800,
-                    fontSize: "0.98rem",
-                    color: "#111111",
-                    background:
-                      "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
-                    boxShadow: "0 18px 35px rgba(249,115,22,0.35)",
-                    "&:hover": {
-                      background:
-                        "linear-gradient(135deg, #fdba74 0%, #ea580c 100%)",
-                    },
-                  }}
+                  disabled={hasOutOfStock}
                 >
-                  Sang bước thanh toán
+                  {hasOutOfStock ? "Không thể thanh toán" : "Sang bước thanh toán"}
                 </Button>
               </div>
             </div>

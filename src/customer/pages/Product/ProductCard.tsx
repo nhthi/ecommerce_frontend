@@ -86,16 +86,51 @@ const ProductCard = ({ product }: { product: Product }) => {
 
             <div className="product-card__overlay">
               <div className="product-card__actions">
-                <Button className="product-card__icon-btn" onClick={handleWishlist}>
-                  {isWishlist(wishlist.wishlist?.products, Number(product.id)) ? (
-                    <Favorite sx={{ color: "#111111", fontSize: 18 }} />
-                  ) : (
-                    <FavoriteBorderOutlined sx={{ color: "#111111", fontSize: 18 }} />
-                  )}
-                </Button>
-                <Button className="product-card__icon-btn" onClick={handleOpenChat}>
-                  <ModeComment sx={{ color: "#111111", fontSize: 18 }} />
-                </Button>
+                <Button
+  className="product-card__icon-btn"
+  onClick={handleWishlist}
+  sx={{
+    minWidth: 0,
+    color: "#111111",
+    "&:hover": {
+      backgroundColor: "transparent",
+      color: "#111111",
+    },
+    "&:active": {
+      color: "#111111",
+    },
+    "&:focus": {
+      color: "#111111",
+    },
+  }}
+>
+  {isWishlist(wishlist.wishlist?.products, Number(product.id)) ? (
+    <Favorite sx={{ color: "#111111", fontSize: 18 }} />
+  ) : (
+    <FavoriteBorderOutlined sx={{ color: "#111111", fontSize: 18 }} />
+  )}
+</Button>
+
+<Button
+  className="product-card__icon-btn"
+  onClick={handleOpenChat}
+  sx={{
+    minWidth: 0,
+    color: "#111111",
+    "&:hover": {
+      backgroundColor: "transparent",
+      color: "#111111",
+    },
+    "&:active": {
+      color: "#111111",
+    },
+    "&:focus": {
+      color: "#111111",
+    },
+  }}
+>
+  <ModeComment sx={{ color: "#111111", fontSize: 18 }} />
+</Button>
               </div>
             </div>
           </div>

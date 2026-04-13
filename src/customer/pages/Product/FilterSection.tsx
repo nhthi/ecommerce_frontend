@@ -67,7 +67,9 @@ const FilterSection = () => {
     boxShadow: "none",
     backgroundColor: "transparent",
     color: isDark ? "#ffffff" : "#0f172a",
-    borderBottom: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
+    borderBottom: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
     "&::before": { display: "none" },
     "& .MuiAccordionSummary-root": {
       minHeight: 50,
@@ -88,10 +90,12 @@ const FilterSection = () => {
     items: { label: string; value: string }[],
     selectedValue: string,
     paramName: string,
-    defaultExpanded = false,
+    defaultExpanded = false
   ) => (
     <Accordion disableGutters defaultExpanded={defaultExpanded} sx={accordionSx}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "#fb923c" }} />}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon sx={{ color: "#fb923c" }} />}
+      >
         <Typography
           sx={{
             fontSize: 12,
@@ -113,11 +117,13 @@ const FilterSection = () => {
                 key={`${paramName}-${item.value}`}
                 type="button"
                 onClick={() => updateFilterValue(paramName, item.value)}
-                className={active
-                  ? "rounded-2xl bg-orange-500 px-4 py-3 text-left text-sm font-semibold text-black transition"
-                  : isDark
-                  ? "rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-white/[0.06]"
-                  : "rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 transition hover:bg-slate-50"}
+                className={
+                  active
+                    ? "rounded-2xl bg-orange-500 px-4 py-3 text-left text-sm font-semibold text-black transition"
+                    : isDark
+                    ? "rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-white/[0.06]"
+                    : "rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                }
               >
                 {item.label}
               </button>
@@ -137,8 +143,6 @@ const FilterSection = () => {
         spacing={1.2}
         sx={{ mb: 1.2 }}
       >
-        
-
         <Button
           size="small"
           onClick={clearAllFilters}
@@ -158,25 +162,25 @@ const FilterSection = () => {
             },
           }}
         >
-          Xóa
+          Xóa bộ lọc
         </Button>
       </Stack>
 
-      {renderGroup("Danh muc", productCategories, selectedCategory, "keyword", true)}
+      {renderGroup("Danh mục", productCategories, selectedCategory, "keyword", true)}
       {renderGroup(
-        "Khoang gia",
+        "Khoảng giá",
         prices.map((item) => ({ label: item.price, value: item.value })),
         selectedPrice,
         "price"
       )}
       {renderGroup(
-        "Muc giam gia",
+        "Mức giảm giá",
         discounts.map((item) => ({ label: item.name, value: item.value })),
         selectedDiscount,
         "discount"
       )}
       {renderGroup(
-        "Mau sac",
+        "Màu sắc",
         colors.slice(0, 10).map((item) => ({ label: item.name, value: item.name })),
         selectedColor,
         "color"

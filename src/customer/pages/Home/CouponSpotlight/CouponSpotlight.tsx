@@ -110,10 +110,10 @@ const CouponRowCard = ({
       <div className="grid flex-1 gap-3 md:grid-cols-[1.1fr_1fr_1fr_auto] md:items-center">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-400">
-            Uu dai
+            Ưu đãi
           </p>
           <p className={isDark ? "mt-1 text-sm text-slate-200" : "mt-1 text-sm text-slate-700"}>
-            Giam {coupon.discountPercentage}%
+            Giảm {coupon.discountPercentage}%
             {coupon.name ? ` / ${coupon.name}` : ""}
           </p>
         </div>
@@ -122,7 +122,7 @@ const CouponRowCard = ({
           <AccessTimeIcon sx={{ fontSize: 18, color: "#fb923c", marginTop: "2px" }} />
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-400">
-              Thoi gian
+              Thời gian
             </p>
             <p className={isDark ? "mt-1 text-sm text-slate-200" : "mt-1 text-sm text-slate-700"}>
               {formatDate(coupon.validityStartDate)} - {formatDate(coupon.validityEndDate)}
@@ -134,7 +134,7 @@ const CouponRowCard = ({
           <ShoppingBagOutlinedIcon sx={{ fontSize: 18, color: "#fb923c", marginTop: "2px" }} />
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-orange-400">
-              Don toi thieu
+              Đơn tối thiểu
             </p>
             <p className={isDark ? "mt-1 text-sm text-slate-200" : "mt-1 text-sm text-slate-700"}>
               {formatCurrency(coupon.minimumOrderValue)}
@@ -162,7 +162,7 @@ const CouponRowCard = ({
               },
             }}
           >
-            {copied ? "Da sao chep" : "Sao chep"}
+            {copied ? "Đã sao chép" : "Sao chép"}
           </Button>
         </div>
       </div>
@@ -185,11 +185,11 @@ const CouponSpotlight = ({ coupons, loading }: { coupons: Coupon[]; loading: boo
 
     const activeCoupons = sorted
       .filter((coupon) => isCouponActiveNow(coupon, now))
-      .map((coupon) => ({ coupon, badge: "Dang ap dung", badgeColor: "#f97316" }));
+      .map((coupon) => ({ coupon, badge: "Đang áp dụng", badgeColor: "#f97316" }));
 
     const upcomingCoupons = sorted
       .filter((coupon) => isCouponUpcoming(coupon, now))
-      .map((coupon) => ({ coupon, badge: "Sap mo", badgeColor: "#fdba74" }));
+      .map((coupon) => ({ coupon, badge: "Sắp mở", badgeColor: "#fdba74" }));
 
     return {
       visibleCoupons: [...activeCoupons, ...upcomingCoupons].slice(0, 6),
@@ -206,10 +206,10 @@ const CouponSpotlight = ({ coupons, loading }: { coupons: Coupon[]; loading: boo
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-400">
-              Coupon dang co
+              Coupon đang có
             </p>
             <h2 className={isDark ? "mt-2 text-3xl font-black text-white md:text-4xl" : "mt-2 text-3xl font-black text-slate-900 md:text-4xl"}>
-              Ma giam gia hien tai va sap ap dung
+              Mã giảm giá khả dụng
             </h2>
           </div>
           <Button
@@ -224,7 +224,7 @@ const CouponSpotlight = ({ coupons, loading }: { coupons: Coupon[]; loading: boo
               fontWeight: 700,
             }}
           >
-            Den gio hang de ap dung
+            Đến giỏ hàng
           </Button>
         </div>
 

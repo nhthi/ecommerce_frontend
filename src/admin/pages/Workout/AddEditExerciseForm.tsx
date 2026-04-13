@@ -86,9 +86,7 @@ const AddEditExerciseForm = ({ initialData, isEdit = false }: AddEditExerciseFor
       <Typography fontSize={28} fontWeight={800} color="white">
         {isEdit ? "Cập nhật bài tập" : "Thêm bài tập mới"}
       </Typography>
-      <Typography sx={{ mt: 0.8, mb: 3, color: "rgba(255,255,255,0.62)", fontSize: 14.5 }}>
-        Xây dựng thư viện bài tập để tái sử dụng cho các buổi tập và kế hoạch tập luyện.
-      </Typography>
+      
 
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Grid container spacing={2.2}>

@@ -47,9 +47,7 @@ const getEmptyText = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-black text-white lg:text-4xl">Đơn hàng</h1>
-        <p className="mt-2 text-base leading-7 text-slate-300 lg:text-lg">
-  Theo dõi trạng thái đơn hàng, tiến trình giao hàng và các thao tác sau mua tại đây.
-</p>
+        
       </div>
 
       <Tabs

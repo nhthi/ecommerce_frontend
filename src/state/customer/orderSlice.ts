@@ -68,7 +68,7 @@ export const getPaymentOrderStatus = createAsyncThunk<
 export const createOrder = createAsyncThunk<
   any,
   {
-    addressId: Number;
+    addressId: number;
     paymentGateway: string;
     navigate: NavigateFunction;
   }
@@ -82,21 +82,22 @@ export const createOrder = createAsyncThunk<
           addressId: addressId,
         },
       });
-      console.log("create order: ", response.data);
-      // if (response.data.payment_link_url) {
-      //   window.location.href = response.data.payment_link_url;
-      //   return;
-      // }
-      // navigate(`/ordersuccess`);
-
-      console.log(response.data);
 
       return response.data;
+
     } catch (error: any) {
       console.log("error----", error);
-      return rejectWithValue("Failed to create order");
+
+      // 🔥 Lấy message từ backend
+      const message =
+        error?.response?.data?.message || 
+        error?.response?.data || 
+        error?.message || 
+        "Đặt hàng thất bại";
+
+      return rejectWithValue(message);
     }
-  },
+  }
 );
 
 export const fetchOrderItemById = createAsyncThunk<OrderItem, number>(

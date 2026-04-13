@@ -33,6 +33,7 @@ import {
 } from "../../../state/customer/reviewSlice";
 import { MyReview as MyReviewType } from "../../../types/OrderType";
 import { useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const chipSx = (active: boolean) => ({
   borderRadius: "999px",
@@ -53,8 +54,6 @@ const chipSx = (active: boolean) => ({
 const cardSx = {
   borderRadius: "26px",
   border: "1px solid rgba(249,115,22,0.10)",
-  background:
-    "linear-gradient(180deg, rgba(17,17,17,0.98) 0%, rgba(12,12,12,0.98) 100%)",
   boxShadow: "0 20px 60px rgba(0,0,0,0.22)",
 };
 
@@ -72,7 +71,8 @@ const sectionTitleSx = {
 const MyReview = () => {
   const dispatch = useAppDispatch();
   const { review } = useAppSelector((store) => store);
-
+    const { isDark } = useSiteThemeMode();
+  
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [imageFilter, setImageFilter] = useState<"all" | "with" | "without">("all");
   const [reviewToDelete, setReviewToDelete] = useState<MyReviewType | null>(null);
@@ -150,10 +150,6 @@ const MyReview = () => {
             <h2 className="mt-3 text-3xl font-black text-white lg:text-4xl">
               Đánh giá của bạn
             </h2>
-            <p className="mt-3 text-sm leading-7 text-slate-400 lg:text-base">
-              Theo dõi toàn bộ đánh giá bạn đã gửi, lọc nhanh theo số sao và kiểm
-              tra các review có ảnh hoặc không có ảnh.
-            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -166,7 +162,7 @@ const MyReview = () => {
 
             <div className="rounded-[22px] border border-white/6 bg-white/[0.03] p-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                Có ảnh
+                Có ảnh Review
               </p>
               <p className="mt-2 text-3xl font-black text-orange-300">
                 {stats.withImages}
@@ -320,7 +316,7 @@ const MyReview = () => {
             );
 
             return (
-              <div key={item.reviewId} className="p-0" style={cardSx}>
+              <div key={item.reviewId}  style={cardSx} className={`p-0 ${isDark ? '' : 'bg-slate-100'}`}>
                 <div className="grid gap-5 p-5 lg:grid-cols-[128px_minmax(0,1fr)_auto] lg:p-6">
                   <div>
                     <p style={sectionTitleSx as any}>

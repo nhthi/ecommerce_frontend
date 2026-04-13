@@ -168,16 +168,7 @@ const AddEditWorkoutPlanDayForm = ({ initialData, isEdit = false }: AddEditWorko
         {isEdit ? "Cập nhật ngày tập" : "Thêm ngày tập mới"}
       </Typography>
 
-      <Typography
-        sx={{
-          mt: 0.8,
-          mb: 3,
-          color: "rgba(255,255,255,0.62)",
-          fontSize: 14.5,
-        }}
-      >
-        Cấu hình từng ngày tập, liên kết với kế hoạch tập và gán danh sách bài tập từ thư viện.
-      </Typography>
+
 
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Grid container spacing={2.2}>

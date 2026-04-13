@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   Box,
   Button,
   Chip,
   Divider,
+  InputAdornment,
   Menu,
   MenuItem,
   Paper,
@@ -14,14 +15,20 @@ import {
   tableCellClasses,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Block, KeyboardArrowDown, Person } from "@mui/icons-material";
+import { Block, KeyboardArrowDown, Person, Search } from "@mui/icons-material";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
-import { fetchAllCustomer, updateUserStatus } from "../../../state/admin/adminUserSlice";
+import {
+  fetchAllCustomer,
+  updateUserStatus,
+} from "../../../state/admin/adminUserSlice";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
@@ -44,21 +51,40 @@ const StyledTableRow = styled(TableRow)({
   "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
 });
 
-const panelSx = {
-  borderRadius: "28px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background:
-    "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-  overflow: "hidden",
-};
-
 const CustomerTable: React.FC = () => {
+  const { isDark } = useSiteThemeMode();
+
   const dispatch = useAppDispatch();
   const { adminUser } = useAppSelector((store) => store);
+
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(6);
+
+  const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
+  const TEXT_SECONDARY = isDark
+    ? "rgba(255,255,255,0.62)"
+    : "rgba(17,24,39,0.68)";
+  const TEXT_MUTED = isDark
+    ? "rgba(255,255,255,0.52)"
+    : "rgba(17,24,39,0.52)";
+
+  const panelSx = {
+    borderRadius: "28px",
+    border: isDark
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(15,23,42,0.08)",
+    background: isDark
+      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
+      : "linear-gradient(180deg, #ffffff, #fff7ed)",
+    boxShadow: isDark
+      ? "0 24px 60px rgba(0,0,0,0.28)"
+      : "0 18px 45px rgba(15,23,42,0.08)",
+    overflow: "hidden",
+  };
 
   useEffect(() => {
     dispatch(fetchAllCustomer());
@@ -87,30 +113,128 @@ const CustomerTable: React.FC = () => {
     handleCloseMenu();
   };
 
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredCustomers = useMemo(() => {
+    const customers = adminUser.customers || [];
+
+    if (!normalizedSearch) return customers;
+
+    return customers.filter((customer: any) => {
+      const fullName = customer.fullName?.toLowerCase() || "";
+      const email = customer.email?.toLowerCase() || "";
+      const mobile = customer.mobile?.toLowerCase() || "";
+      const status = customer.status?.toLowerCase() || "";
+      const id = String(customer.id || "");
+      const province = customer.addresses?.[0]?.province?.toLowerCase() || "";
+      const addressText = Array.isArray(customer.addresses)
+        ? customer.addresses
+            .map(
+              (addr: any) =>
+                `${addr.streetDetail || ""} ${addr.ward || ""} ${addr.district || ""} ${addr.province || ""}`
+            )
+            .join(" ")
+            .toLowerCase()
+        : "";
+
+      return (
+        fullName.includes(normalizedSearch) ||
+        email.includes(normalizedSearch) ||
+        mobile.includes(normalizedSearch) ||
+        status.includes(normalizedSearch) ||
+        id.includes(normalizedSearch) ||
+        province.includes(normalizedSearch) ||
+        addressText.includes(normalizedSearch)
+      );
+    });
+  }, [adminUser.customers, normalizedSearch]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const maxPage = Math.max(
+      0,
+      Math.ceil(filteredCustomers.length / rowsPerPage) - 1
+    );
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [filteredCustomers.length, page, rowsPerPage]);
+
+  const paginatedCustomers = filteredCustomers.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Paper elevation={0} sx={panelSx}>
-      {loading && <CustomLoading message="Đang cập nhật trạng thái khách hàng..." />}
+      {loading && (
+        <CustomLoading message="Đang cập nhật trạng thái khách hàng..." />
+      )}
 
       <Box
         sx={{
           px: 3,
           py: 3,
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
         }}
       >
-        <Typography fontSize={26} fontWeight={800} color="white">
-          Khách hàng
-        </Typography>
-
-        <Typography
-          sx={{
-            mt: 0.7,
-            color: "rgba(255,255,255,0.62)",
-            fontSize: 14.5,
-          }}
+        <Box
+          display="flex"
+          flexWrap="wrap"
+          justifyContent="space-between"
+          alignItems="center"
+          gap={2}
         >
-          Theo dõi tài khoản đang hoạt động, khóa tài khoản khi cần và xem nhanh địa chỉ giao hàng mặc định.
-        </Typography>
+          <Box>
+            <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
+              Khách hàng
+            </Typography>
+          </Box>
+
+          <TextField
+            size="small"
+            placeholder="Tìm theo tên, email, số điện thoại..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              minWidth: { xs: "100%", sm: 320 },
+              "& .MuiOutlinedInput-root": {
+                color: TEXT_PRIMARY,
+                borderRadius: "999px",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(255,255,255,0.82)",
+                "& fieldset": {
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.10)"
+                    : "rgba(15,23,42,0.10)",
+                },
+                "&:hover fieldset": {
+                  borderColor: "rgba(249,115,22,0.34)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#f97316",
+                },
+              },
+              "& .MuiInputBase-input::placeholder": {
+                color: TEXT_MUTED,
+                opacity: 1,
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search sx={{ color: "#fb923c", fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
       </Box>
 
       <TableContainer>
@@ -127,9 +251,10 @@ const CustomerTable: React.FC = () => {
           </TableHead>
 
           <TableBody>
-            {adminUser.customers?.length ? (
-              adminUser.customers.map((customer: any) => {
+            {paginatedCustomers.length ? (
+              paginatedCustomers.map((customer: any) => {
                 const active = customer.status === "ACTIVE";
+
                 return (
                   <StyledTableRow key={customer.id}>
                     <StyledTableCell>
@@ -150,12 +275,12 @@ const CustomerTable: React.FC = () => {
                         </Avatar>
 
                         <Box>
-                          <Typography fontWeight={700}>
+                          <Typography fontWeight={700} color={TEXT_PRIMARY}>
                             {customer.fullName}
                           </Typography>
                           <Typography
                             sx={{
-                              color: "rgba(255,255,255,0.52)",
+                              color: TEXT_MUTED,
                               fontSize: 12.5,
                             }}
                           >
@@ -166,12 +291,11 @@ const CustomerTable: React.FC = () => {
                     </StyledTableCell>
 
                     <StyledTableCell>{customer.email}</StyledTableCell>
+
+                    <StyledTableCell>{customer.mobile || "-"}</StyledTableCell>
+
                     <StyledTableCell>
-                      {customer.mobile || "-"}
-                    </StyledTableCell>
-                    <StyledTableCell>
-                      {customer.addresses?.[0]?.province ||
-                        "Chưa có địa chỉ"}
+                      {customer.addresses?.[0]?.province || "Chưa có địa chỉ"}
                     </StyledTableCell>
 
                     <StyledTableCell align="center">
@@ -197,15 +321,18 @@ const CustomerTable: React.FC = () => {
                         size="small"
                         variant="outlined"
                         endIcon={<KeyboardArrowDown />}
-                        onClick={(e) =>
-                          handleOpenMenu(e, customer.id || 0)
-                        }
+                        onClick={(e) => handleOpenMenu(e, customer.id || 0)}
                         sx={{
                           textTransform: "none",
                           borderRadius: 999,
                           px: 2,
-                          color: "#fff7ed",
-                          borderColor: "rgba(255,255,255,0.16)",
+                          color: TEXT_PRIMARY,
+                          borderColor: isDark
+                            ? "rgba(255,255,255,0.16)"
+                            : "rgba(15,23,42,0.12)",
+                          backgroundColor: isDark
+                            ? "transparent"
+                            : "rgba(255,255,255,0.68)",
                         }}
                       >
                         Thay đổi trạng thái
@@ -221,10 +348,12 @@ const CustomerTable: React.FC = () => {
                   align="center"
                   sx={{
                     py: 8,
-                    color: "rgba(255,255,255,0.6)",
+                    color: TEXT_SECONDARY,
                   }}
                 >
-                  Chưa có khách hàng nào.
+                  {searchTerm
+                    ? "Không tìm thấy khách hàng phù hợp."
+                    : "Chưa có khách hàng nào."}
                 </TableCell>
               </TableRow>
             )}
@@ -232,7 +361,13 @@ const CustomerTable: React.FC = () => {
         </Table>
       </TableContainer>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
+      <Divider
+        sx={{
+          borderColor: isDark
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(15,23,42,0.08)",
+        }}
+      />
 
       <Box
         sx={{
@@ -241,15 +376,17 @@ const CustomerTable: React.FC = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1.5,
         }}
       >
         <Typography
           sx={{
-            color: "rgba(255,255,255,0.5)",
+            color: isDark ? "rgba(255,255,255,0.5)" : "rgba(17,24,39,0.5)",
             fontSize: 13.5,
           }}
         >
-          {adminUser.customers?.length || 0} tài khoản khách hàng trong hệ thống
+          {filteredCustomers.length} tài khoản khách hàng trong hệ thống
         </Typography>
 
         <Chip
@@ -257,11 +394,47 @@ const CustomerTable: React.FC = () => {
           label="Kiểm soát tài khoản nhanh"
           variant="outlined"
           sx={{
-            color: "#fff7ed",
+            color: TEXT_PRIMARY,
             borderColor: "rgba(249,115,22,0.28)",
+            backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.68)",
           }}
         />
       </Box>
+
+      <TablePagination
+        component="div"
+        count={filteredCustomers.length}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(0);
+        }}
+        rowsPerPageOptions={[6, 10, 20]}
+        labelRowsPerPage="Số dòng mỗi trang:"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+        }
+        sx={{
+          color: TEXT_SECONDARY,
+          borderTop: isDark
+            ? "1px solid rgba(255,255,255,0.08)"
+            : "1px solid rgba(15,23,42,0.08)",
+          ".MuiTablePagination-selectIcon": {
+            color: "#fb923c",
+          },
+          ".MuiTablePagination-actions button": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-select": {
+            color: TEXT_PRIMARY,
+          },
+          ".MuiTablePagination-displayedRows": {
+            color: TEXT_SECONDARY,
+          },
+        }}
+      />
 
       <Menu
         anchorEl={menuAnchor}
@@ -269,11 +442,26 @@ const CustomerTable: React.FC = () => {
         onClose={handleCloseMenu}
         PaperProps={{
           sx: {
-            backgroundColor: "#171717",
-            color: "white",
-            border: "1px solid rgba(255,255,255,0.08)",
+            background: isDark
+              ? "#171717"
+              : "linear-gradient(180deg, #ffffff, #fff7ed)",
+            color: isDark ? "white" : "#111827",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
             borderRadius: "18px",
+            boxShadow: isDark
+              ? "0 18px 40px rgba(0,0,0,0.28)"
+              : "0 14px 32px rgba(15,23,42,0.08)",
             mt: 1,
+            ".MuiMenuItem-root": {
+              color: isDark ? "white" : "#111827",
+            },
+            ".MuiMenuItem-root:hover": {
+              backgroundColor: isDark
+                ? "rgba(249,115,22,0.1)"
+                : "rgba(249,115,22,0.08)",
+            },
           },
         }}
       >

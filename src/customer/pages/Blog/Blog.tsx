@@ -8,11 +8,16 @@ import {
   Paper,
   Stack,
   Typography,
+  TextField,
+  InputAdornment,
+  FormControl,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   AutoStories,
   CalendarMonth,
-  LocalFireDepartment,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import BlogCard from "./BlogCard";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
@@ -43,7 +48,7 @@ const formatDate = (value?: string | null) => {
 const getPostSummary = (post: BlogPost) => {
   return (
     post.shortDescription?.trim() ||
-    stripHtml(post.content).slice(0, 180) ||
+    stripHtml(post.content).slice(0, 140) ||
     "Bai viet dang duoc cap nhat noi dung."
   );
 };
@@ -54,8 +59,10 @@ const Blog = () => {
   const { posts, loading, error } = useAppSelector((store) => store.blogPost);
   const { categories } = useAppSelector((store) => store.blogCategory);
   const { tags } = useAppSelector((store) => store.blogTag);
-  const [page, setPage] = useState(1);
   const { isDark } = useSiteThemeMode();
+
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     dispatch(fetchAllBlogPosts());
@@ -73,7 +80,7 @@ const Blog = () => {
           const second = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
           return second - first;
         }),
-    [posts],
+    [posts]
   );
 
   const categoryOptions = useMemo(
@@ -81,19 +88,34 @@ const Blog = () => {
       { label: "Tat ca", value: "" },
       ...categories.map((item) => ({ label: item.name, value: item.slug })),
     ],
-    [categories],
+    [categories]
   );
 
   const activeCategory = searchParams.get("category") || "";
 
   const filteredPosts = useMemo(() => {
-    if (!activeCategory) return publishedPosts;
-    return publishedPosts.filter((item) => item.category?.slug === activeCategory);
-  }, [activeCategory, publishedPosts]);
+    let result = publishedPosts;
+
+    if (activeCategory) {
+      result = result.filter((item) => item.category?.slug === activeCategory);
+    }
+
+    if (search.trim()) {
+      const keyword = search.toLowerCase();
+      result = result.filter((item) => {
+        return (
+          item.title?.toLowerCase().includes(keyword) ||
+          stripHtml(item.content).toLowerCase().includes(keyword)
+        );
+      });
+    }
+
+    return result;
+  }, [activeCategory, search, publishedPosts]);
 
   useEffect(() => {
     setPage(1);
-  }, [activeCategory]);
+  }, [activeCategory, search]);
 
   const pageCount = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
   const currentPage = Math.min(page, pageCount);
@@ -104,7 +126,6 @@ const Blog = () => {
   }, [currentPage, filteredPosts]);
 
   const featuredPost = filteredPosts[0];
-  const highlightedTags = tags.slice(0, 4);
 
   const handleCategoryChange = (categorySlug: string) => {
     setPage(1);
@@ -119,216 +140,155 @@ const Blog = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: isDark
-          ? "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)"
-          : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 28%, #f6f7fb 100%)",
+        background: isDark ? "#0b0b0b" : "#f8fafc",
         px: { xs: 2, md: 3 },
         py: { xs: 3, lg: 4 },
       }}
     >
-      <Box sx={{ mx: "auto", maxWidth: "1460px" }}>
+      <Box sx={{ mx: "auto", maxWidth: "1200px" }}>
+        {/* HEADER */}
         <Paper
           elevation={0}
           sx={{
-            overflow: "hidden",
-            borderRadius: "34px",
-            border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
-            background: isDark
-              ? "radial-gradient(circle at top left, rgba(249,115,22,0.22), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
-              : "radial-gradient(circle at top left, rgba(249,115,22,0.14), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
-            boxShadow: isDark ? "0 28px 80px rgba(0,0,0,0.34)" : "0 28px 80px rgba(15,23,42,0.08)",
-            color: isDark ? "white" : "#0f172a",
-            p: { xs: 2.5, md: 4 },
+            borderRadius: "20px",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            background: isDark ? "#111" : "#fff",
+            boxShadow: isDark
+              ? "0 10px 30px rgba(0,0,0,0.4)"
+              : "0 10px 30px rgba(0,0,0,0.06)",
+            p: 3,
           }}
         >
-          <Grid container spacing={3} alignItems="center">
-            <Grid size={{ xs: 12, lg: 7 }}>
+          <Stack spacing={2}>
+            <Typography fontSize={26} fontWeight={800}>
+              Blog
+            </Typography>
+
+            <Stack direction="row" spacing={1}>
               <Chip
-                label="Noi dung blog tu he thong admin"
-                variant="outlined"
-                sx={{
-                  color: isDark ? "#fed7aa" : "#c2410c",
-                  borderColor: "rgba(249,115,22,0.3)",
-                  backgroundColor: "rgba(249,115,22,0.1)",
-                }}
+                icon={<AutoStories />}
+                label={`${publishedPosts.length} bai viet`}
               />
-              <Typography fontSize={{ xs: 34, md: 54 }} fontWeight={900} lineHeight={1.02} sx={{ mt: 1.8 }}>
-                Blog chia se kinh nghiem tap luyen, dinh duong va phuc hoi.
-              </Typography>
-              <Typography
-                sx={{ mt: 1.5, maxWidth: 760, color: isDark ? "rgba(255,255,255,0.72)" : "#475569", fontSize: { xs: 15, md: 17 } }}
-              >
-                Toan bo bai viet duoi day duoc lay tu du lieu that tu admin. Ban co the loc theo danh muc va doc chi tiet tung bai theo slug.
-              </Typography>
+              <Chip
+                icon={<CalendarMonth />}
+                label={`${categories.length} danh muc`}
+              />
+            </Stack>
 
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} sx={{ mt: 2.4 }} useFlexGap flexWrap="wrap">
-                <Chip
-                  icon={<AutoStories sx={{ color: "#fb923c !important" }} />}
-                  label={`${publishedPosts.length} bai viet da xuat ban`}
-                  variant="outlined"
-                  sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
-                />
-                <Chip
-                  icon={<CalendarMonth sx={{ color: "#fb923c !important" }} />}
-                  label={`${categories.length} danh muc`}
-                  variant="outlined"
-                  sx={{ color: isDark ? "#fff7ed" : "#0f172a", borderColor: "rgba(249,115,22,0.22)" }}
-                />
-              </Stack>
-
-              {highlightedTags.length > 0 && (
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2.2 }}>
-                  {highlightedTags.map((tag) => (
-                    <Chip
-                      key={tag.id}
-                      label={`#${tag.name}`}
-                      sx={{
-                        color: isDark ? "#fff7ed" : "#0f172a",
-                        backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.04)",
-                        border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
-                      }}
-                    />
-                  ))}
-                </Stack>
-              )}
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 5 }}>
-              {featuredPost ? (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    borderRadius: "26px",
-                    overflow: "hidden",
-                    border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
-                    backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={
-                      featuredPost.thumbnailUrl ||
-                      featuredPost.category?.imageUrl ||
-                      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80"
-                    }
-                    alt={featuredPost.title}
-                    sx={{ width: "100%", height: 250, objectFit: "cover" }}
-                  />
-                  <Box sx={{ p: 2.2 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.2}>
-                      <Typography fontSize={22} fontWeight={800} sx={{ color: isDark ? "white" : "#0f172a" }}>
-                        {featuredPost.title}
-                      </Typography>
-                      <LocalFireDepartment sx={{ color: "#fb923c" }} />
-                    </Stack>
-                    <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.7)" : "#475569", fontSize: 14.5 }}>
-                      {getPostSummary(featuredPost)}
-                    </Typography>
-                    <Typography sx={{ mt: 1.4, color: isDark ? "rgba(255,255,255,0.45)" : "#64748b", fontSize: 12.5 }}>
-                      Dang ngay {formatDate(featuredPost.publishedAt)}
-                    </Typography>
-                  </Box>
-                </Paper>
-              ) : (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    borderRadius: "26px",
-                    border: isDark ? "1px dashed rgba(255,255,255,0.12)" : "1px dashed rgba(15,23,42,0.14)",
-                    backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
-                    p: 3,
-                    color: isDark ? "rgba(255,255,255,0.72)" : "#475569",
-                  }}
-                >
-                  Chua co bai viet nao da xuat ban.
-                </Paper>
-              )}
-            </Grid>
-          </Grid>
+            {featuredPost && (
+              <Box>
+                <Typography fontWeight={700}>
+                  {featuredPost.title}
+                </Typography>
+                <Typography fontSize={14} sx={{ opacity: 0.7 }}>
+                  {getPostSummary(featuredPost)}
+                </Typography>
+                <Typography fontSize={12} sx={{ opacity: 0.5 }}>
+                  {formatDate(featuredPost.publishedAt)}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
         </Paper>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2.4, mb: 2.2 }}>
-          {categoryOptions.map((category) => (
-            <Chip
-              key={category.value || "all"}
-              label={category.label}
-              onClick={() => handleCategoryChange(category.value)}
-              sx={{
-                color: activeCategory === category.value ? "#050505" : isDark ? "#fff7ed" : "#0f172a",
-                backgroundColor: activeCategory === category.value ? "#fb923c" : isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.8)",
-                border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(15,23,42,0.08)",
-                fontWeight: 700,
-              }}
-            />
-          ))}
-        </Stack>
-
-        {error && (
-          <Paper
-            elevation={0}
+        {/* SEARCH + CATEGORY */}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={1.5}
+          justifyContent="space-between"
+          sx={{ mt: 2 }}
+        >
+          <TextField
+            placeholder="Tim kiem bai viet..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
             sx={{
-              mb: 2,
-              borderRadius: "22px",
-              border: "1px solid rgba(248,113,113,0.22)",
-              backgroundColor: "rgba(127,29,29,0.18)",
-              color: "#fecaca",
-              p: 2,
+              width: { xs: "100%", md: 320 },
+              background: isDark ? "#111" : "#fff",
+              borderRadius: "12px",
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <FormControl
+            size="small"
+            sx={{
+              minWidth: { xs: "100%", md: 240 },
+              background: isDark ? "#111" : "#fff",
+              borderRadius: "12px",
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "12px",
+              },
             }}
           >
+            <Select
+              displayEmpty
+              value={activeCategory}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              renderValue={(selected) => {
+                if (!selected) return "Tat ca danh muc";
+                return (
+                  categoryOptions.find((item) => item.value === selected)?.label ||
+                  "Tat ca danh muc"
+                );
+              }}
+              sx={{
+                fontWeight: 600,
+                color: isDark ? "#fff" : "#0f172a",
+              }}
+            >
+              {categoryOptions.map((category) => (
+                <MenuItem
+                  key={category.value || "all"}
+                  value={category.value}
+                >
+                  {category.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+
+        {/* ERROR */}
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
             {error}
-          </Paper>
+          </Typography>
         )}
 
-        <Grid container spacing={2.2}>
+        {/* POSTS */}
+        <Grid container spacing={2} sx={{ mt: 1 }}>
           {paginatedPosts.map((post) => (
-            <Grid key={post.id} size={{ xs: 12, xl: 4 }}>
+            <Grid key={post.id} size={{ xs: 12, md: 6, lg: 4 }}>
               <BlogCard post={post} />
             </Grid>
           ))}
 
           {!loading && filteredPosts.length === 0 && (
-            <Grid size={12}>
-              <Paper
-                elevation={0}
-                sx={{
-                  borderRadius: "28px",
-                  border: isDark ? "1px dashed rgba(255,255,255,0.12)" : "1px dashed rgba(15,23,42,0.14)",
-                  backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.72)",
-                  color: isDark ? "white" : "#0f172a",
-                  p: 4,
-                  textAlign: "center",
-                }}
-              >
-                <Typography fontSize={24} fontWeight={800}>
-                  Chua co bai viet phu hop
-                </Typography>
-                <Typography sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.68)" : "#475569" }}>
-                  Thu doi danh muc hoac dang them bai viet moi tu trang admin.
-                </Typography>
-              </Paper>
+            <Grid size={{ xs: 12 }}>
+              <Typography textAlign="center">
+                Khong co bai viet phu hop
+              </Typography>
             </Grid>
           )}
         </Grid>
 
+        {/* PAGINATION */}
         {!loading && filteredPosts.length > POSTS_PER_PAGE && (
           <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
             <Pagination
               count={pageCount}
               page={currentPage}
               onChange={(_, value) => setPage(value)}
-              shape="rounded"
-              sx={{
-                "& .MuiPaginationItem-root": {
-                  color: isDark ? "#fff7ed" : "#0f172a",
-                  borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
-                  backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.8)",
-                },
-                "& .Mui-selected": {
-                  backgroundColor: "#fb923c !important",
-                  color: "#050505",
-                  fontWeight: 800,
-                },
-              }}
             />
           </Box>
         )}

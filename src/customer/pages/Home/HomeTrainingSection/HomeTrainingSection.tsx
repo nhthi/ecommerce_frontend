@@ -54,10 +54,10 @@ const HomeTrainingSection = ({ items }: { items: TrainingSchedule[] }) => {
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-400">
-              Lich tap noi bat
+              Lịch tập nổi bật
             </p>
             <h2 className={isDark ? "mt-2 text-3xl font-black text-white md:text-4xl" : "mt-2 text-3xl font-black text-slate-900 md:text-4xl"}>
-              Chon lich tap qua phan xem nhanh
+              Chọn lịch tập nhanh
             </h2>
           </div>
           <Button
@@ -65,7 +65,7 @@ const HomeTrainingSection = ({ items }: { items: TrainingSchedule[] }) => {
             onClick={() => navigate("/training")}
             sx={{ color: "#fb923c", fontWeight: 700, textTransform: "none", alignSelf: "flex-start" }}
           >
-            Xem tat ca lich tap
+            Xem tất cả
           </Button>
         </div>
 
@@ -151,7 +151,7 @@ const HomeTrainingSection = ({ items }: { items: TrainingSchedule[] }) => {
                       color: "#050505",
                     }}
                   >
-                    Xem chi tiet lich tap
+                    Xem chi tiết
                   </Button>
                 </div>
               </div>
@@ -206,7 +206,7 @@ const HomeTrainingSection = ({ items }: { items: TrainingSchedule[] }) => {
                         {previewExercise?.name || item.summary}
                       </p>
                       <div className={isDark ? "mt-3 flex flex-wrap gap-3 text-xs text-slate-400" : "mt-3 flex flex-wrap gap-3 text-xs text-slate-500"}>
-                        <span>{item.sessionsPerWeek} buoi / tuan</span>
+                        <span>{item.sessionsPerWeek} buổi / tuần</span>
                         <span>{item.sessionLength}</span>
                       </div>
                     </div>
