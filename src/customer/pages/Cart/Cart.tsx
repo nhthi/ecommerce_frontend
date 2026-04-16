@@ -80,9 +80,7 @@ const Cart = () => {
                 Giỏ hàng
               </span>
               <div className="space-y-2">
-                <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                  Giỏ hàng sẵn sàng để chốt đơn
-                </h1>
+                
                 <p className="max-w-xl text-sm leading-6 text-neutral-300 sm:text-base">
                   Kiểm tra lại dụng cụ, mã giảm giá và tổng tiền trước khi qua bước thanh toán.
                 </p>

@@ -23,6 +23,7 @@ import {
   ProductSuggestion,
 } from "../../../state/customer/chatbotSlice";
 import { SmartToy, Bolt, FitnessCenter } from "@mui/icons-material";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 interface Props {
   productId?: number;
@@ -214,6 +215,7 @@ const ChatBotWidget: React.FC<Props> = () => {
   const [selectedQuantities, setSelectedQuantities] = useState<
     Record<number, number>
   >({});
+  const { isDark } = useSiteThemeMode();
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
 
   const dispatch = useAppDispatch();
@@ -673,133 +675,201 @@ const ChatBotWidget: React.FC<Props> = () => {
     );
   };
 
-  const renderOrderCard = (
-    item: OrderItem,
-    index: number,
-    isDetail = false
-  ) => {
-    const orderStatus = item.data?.orderStatus;
-    const paymentStatus = item.data?.paymentStatus;
-    const orderStatusStyles = getOrderStatusStyles(orderStatus);
-    const paymentStatusStyles = getPaymentStatusStyles(paymentStatus);
+const renderOrderCard = (
+  item: OrderItem,
+  index: number,
+  isDetail = false
+) => {
+  const orderStatus = item.data?.orderStatus;
+  const paymentStatus = item.data?.paymentStatus;
+  const orderStatusStyles = getOrderStatusStyles(orderStatus);
+  const paymentStatusStyles = getPaymentStatusStyles(paymentStatus);
 
-    return (
-      <div
-        key={`${item.data?.orderId || item.title}-${index}`}
-        className="overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
-      >
-        <div className="flex gap-3 p-3">
-          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#242424]">
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-neutral-500">
-                <ShoppingBagOutlinedIcon fontSize="small" />
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="line-clamp-2 text-sm font-bold text-white">
-              {item.title}
+  return (
+    <div
+      key={`${item.data?.orderId || item.title}-${index}`}
+      className={
+        isDark
+          ? "overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+          : "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+      }
+    >
+      <div className="flex gap-3 p-3">
+        <div
+          className={
+            isDark
+              ? "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#242424]"
+              : "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100"
+          }
+        >
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div
+              className={
+                isDark
+                  ? "flex h-full w-full items-center justify-center text-xs text-neutral-500"
+                  : "flex h-full w-full items-center justify-center text-xs text-slate-400"
+              }
+            >
+              <ShoppingBagOutlinedIcon fontSize="small" />
             </div>
-
-            {item.subtitle && (
-              <div className="mt-1 text-xs leading-5 text-neutral-400">
-                {item.subtitle}
-              </div>
-            )}
-
-            {item.description && (
-              <div className="mt-1 text-xs leading-5 text-neutral-300">
-                {item.description}
-              </div>
-            )}
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              <span
-                className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-                style={{
-                  color: orderStatusStyles.text,
-                  background: orderStatusStyles.bg,
-                  borderColor: orderStatusStyles.border,
-                }}
-              >
-                {getOrderStatusLabel(orderStatus)}
-              </span>
-
-              <span
-                className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-                style={{
-                  color: paymentStatusStyles.text,
-                  background: paymentStatusStyles.bg,
-                  borderColor: paymentStatusStyles.border,
-                }}
-              >
-                {getPaymentStatusLabel(paymentStatus)}
-              </span>
-            </div>
-
-            <div className="mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-400">
-              {item.data?.orderCode && (
-                <div>
-                  Mã đơn:{" "}
-                  <span className="font-semibold text-neutral-200">
-                    {item.data.orderCode}
-                  </span>
-                </div>
-              )}
-
-              {item.data?.createdAt && (
-                <div>
-                  Ngày tạo:{" "}
-                  <span className="font-semibold text-neutral-200">
-                    {formatDateTime(item.data.createdAt)}
-                  </span>
-                </div>
-              )}
-
-              {typeof item.data?.itemCount === "number" && (
-                <div>
-                  Số sản phẩm:{" "}
-                  <span className="font-semibold text-neutral-200">
-                    {item.data.itemCount}
-                  </span>
-                </div>
-              )}
-
-              {typeof item.data?.totalPrice === "number" && (
-                <div>
-                  Tổng tiền:{" "}
-                  <span className="font-bold text-orange-300">
-                    {formatPrice(item.data.totalPrice)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
-        {!!item.actions?.length && (
-          <div className="border-t border-white/8 px-3 py-3">
-            <button
-              type="button"
-              onClick={() => handleActionClick(item.actions?.[0])}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
-              {item.actions?.[0]?.label ||
-                (isDetail ? "Xem đơn hàng" : "Xem chi tiết")}
-            </button>
+        <div className="min-w-0 flex-1">
+          <div
+            className={
+              isDark
+                ? "line-clamp-2 text-sm font-bold text-white"
+                : "line-clamp-2 text-sm font-bold text-slate-900"
+            }
+          >
+            {item.title}
           </div>
-        )}
+
+          {item.subtitle && (
+            <div
+              className={
+                isDark
+                  ? "mt-1 text-xs leading-5 text-neutral-400"
+                  : "mt-1 text-xs leading-5 text-slate-500"
+              }
+            >
+              {item.subtitle}
+            </div>
+          )}
+
+          {item.description && (
+            <div
+              className={
+                isDark
+                  ? "mt-1 text-xs leading-5 text-neutral-300"
+                  : "mt-1 text-xs leading-5 text-slate-600"
+              }
+            >
+              {item.description}
+            </div>
+          )}
+
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span
+              className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+              style={{
+                color: orderStatusStyles.text,
+                background: orderStatusStyles.bg,
+                borderColor: orderStatusStyles.border,
+              }}
+            >
+              {getOrderStatusLabel(orderStatus)}
+            </span>
+
+            <span
+              className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+              style={{
+                color: paymentStatusStyles.text,
+                background: paymentStatusStyles.bg,
+                borderColor: paymentStatusStyles.border,
+              }}
+            >
+              {getPaymentStatusLabel(paymentStatus)}
+            </span>
+          </div>
+
+          <div
+            className={
+              isDark
+                ? "mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-400"
+                : "mt-3 grid grid-cols-1 gap-1 text-xs text-slate-500"
+            }
+          >
+            {item.data?.orderCode && (
+              <div>
+                Mã đơn:{" "}
+                <span
+                  className={
+                    isDark
+                      ? "font-semibold text-neutral-200"
+                      : "font-semibold text-slate-800"
+                  }
+                >
+                  {item.data.orderCode}
+                </span>
+              </div>
+            )}
+
+            {item.data?.createdAt && (
+              <div>
+                Ngày tạo:{" "}
+                <span
+                  className={
+                    isDark
+                      ? "font-semibold text-neutral-200"
+                      : "font-semibold text-slate-800"
+                  }
+                >
+                  {formatDateTime(item.data.createdAt)}
+                </span>
+              </div>
+            )}
+
+            {typeof item.data?.itemCount === "number" && (
+              <div>
+                Số sản phẩm:{" "}
+                <span
+                  className={
+                    isDark
+                      ? "font-semibold text-neutral-200"
+                      : "font-semibold text-slate-800"
+                  }
+                >
+                  {item.data.itemCount}
+                </span>
+              </div>
+            )}
+
+            {typeof item.data?.totalPrice === "number" && (
+              <div>
+                Tổng tiền:{" "}
+                <span className="font-bold text-orange-500">
+                  {formatPrice(item.data.totalPrice)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    );
-  };
+
+      {!!item.actions?.length && (
+        <div
+          className={
+            isDark
+              ? "border-t border-white/8 px-3 py-3"
+              : "border-t border-slate-200 px-3 py-3"
+          }
+        >
+          <button
+            type="button"
+            onClick={() => handleActionClick(item.actions?.[0])}
+            className={
+              isDark
+                ? "flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                : "flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            }
+          >
+            <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+            {item.actions?.[0]?.label ||
+              (isDetail ? "Xem đơn hàng" : "Xem chi tiết")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
   const renderStructuredContent = (msg: ExtendedChatMessage) => {
     if (msg.sender !== "bot") return null;
@@ -875,17 +945,17 @@ const ChatBotWidget: React.FC<Props> = () => {
       </div>
 
       <div
-        className={[
-          "fixed bottom-24 right-5 z-50 w-[calc(100vw-2rem)] max-w-[390px] origin-bottom-right transition-all duration-300",
-          open
-            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-            : "pointer-events-none translate-y-4 scale-95 opacity-0",
-        ].join(" ")}
-      >
+  className={[
+    "fixed bottom-24 right-5 z-50 w-[calc(100vw-2rem)] max-w-[520px] origin-bottom-right transition-all duration-300",
+    open
+      ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+      : "pointer-events-none translate-y-4 scale-95 opacity-0",
+  ].join(" ")}
+>
         <Paper
-          elevation={0}
-          className="flex h-[540px] flex-col overflow-hidden rounded-[1.8rem] border border-orange-500/16 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
-        >
+  elevation={0}
+  className="flex h-[680px] flex-col overflow-hidden rounded-[1.8rem] border border-orange-500/16 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
+>
           <div className="flex items-start justify-between border-b border-white/8 px-5 py-4 text-white">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -983,14 +1053,16 @@ const ChatBotWidget: React.FC<Props> = () => {
                       msg.sender === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <div
-                      className={[
-                        "max-w-[84%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 transition-all duration-200 whitespace-pre-line",
-                        msg.sender === "user"
-                          ? "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111] rounded-br-md font-semibold shadow-[0_12px_28px_rgba(249,115,22,0.22)]"
-                          : "border border-white/8 bg-[#1a1a1a] text-neutral-100 rounded-bl-md shadow-[0_10px_22px_rgba(0,0,0,0.14)]",
-                      ].join(" ")}
-                    >
+<div
+  className={[
+    "max-w-[84%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 transition-all duration-200 whitespace-pre-line",
+    msg.sender === "user"
+      ? "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111] rounded-br-md font-semibold shadow-[0_12px_28px_rgba(249,115,22,0.22)]"
+      : isDark
+      ? "border border-white/8 bg-[#1a1a1a] text-neutral-100 rounded-bl-md shadow-[0_10px_22px_rgba(0,0,0,0.14)]"
+      : "border border-slate-200 bg-white text-slate-800 rounded-bl-md shadow-[0_10px_22px_rgba(15,23,42,0.08)]",
+  ].join(" ")}
+>
                       {msg.text}
                     </div>
                   </div>

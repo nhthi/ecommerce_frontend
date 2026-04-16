@@ -186,7 +186,7 @@ const Product = () => {
                     <h2 className="mt-2 text-2xl font-black text-white">Danh sách gợi ý dành cho bạn</h2>
                   </div>
                   <p className="max-w-[460px] text-sm text-slate-300">
-                    Hiển thị tối đa 8 sản phẩm được đề xuất từ hệ thống gợi ý để bạn có thêm lựa chọn nhanh ngay trên trang sản phẩm.
+                    Dựa trên thói quen và nhu cầu của bạn, chúng tôi gợi ý các sản phẩm sau có thể bạn sẽ phù hợp với bạn
                   </p>
                 </div>
 

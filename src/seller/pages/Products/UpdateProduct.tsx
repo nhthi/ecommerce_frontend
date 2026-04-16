@@ -52,7 +52,7 @@ const UpdateProduct = () => {
   // ===========================
   useEffect(() => {
     dispatch(fetchAllCategory());
-    if (id) dispatch(fetchProductById(Number(id)));
+    if (id) dispatch(fetchProductById({productId:Number(id)}));
   }, [id]);
 
   const product = products.product;

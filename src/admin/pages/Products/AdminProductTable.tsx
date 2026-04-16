@@ -84,7 +84,10 @@ const StyledTableRow = styled(TableRow)({
 
 const PRODUCT_STATUSES = ["PENDING", "APPROVED", "REJECTED", "HIDDEN"] as const;
 type ProductStatus = (typeof PRODUCT_STATUSES)[number];
-
+const formatCurrencyVND = (value?: number | null) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return "0 đ";
+  return new Intl.NumberFormat("vi-VN").format(value) + " đ";
+};
 const getStatusChipProps = (status: ProductStatus | string | undefined) => {
   switch (status) {
     case "APPROVED":
@@ -425,10 +428,10 @@ export default function AdminProductTable() {
 
                       <StyledTableCell>
                         <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                          {item.sellingPrice}
+                          {formatCurrencyVND(item.sellingPrice)}
                         </Typography>
                         <Typography sx={{ color: TEXT_MUTED, fontSize: 12.5 }}>
-                          Giá gốc: {item.mrpPrice}
+                          Giá gốc: {formatCurrencyVND(item.mrpPrice)}
                         </Typography>
                       </StyledTableCell>
 

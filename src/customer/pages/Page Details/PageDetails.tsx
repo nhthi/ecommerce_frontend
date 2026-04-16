@@ -232,7 +232,12 @@ const getErrorMessage = (err: any): string => {
         setQuantity(1);
         setError("");
 
-        await dispatch(fetchProductById(numericProductId)).unwrap();
+        await dispatch(
+  fetchProductById({
+    productId: numericProductId,
+    userId: auth.user?.id, // 👈 thêm vào đây
+  })
+).unwrap();
       } catch (err: any) {
         setPageError(getErrorMessage(err));
       } finally {

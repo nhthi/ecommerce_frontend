@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { api } from "../../config/Api";
+import { api, publicApi } from "../../config/Api";
 
 export interface RecommendedProductDto {
   productId: number;
@@ -51,7 +51,7 @@ export const fetchRecommendations = createAsyncThunk<
   "recommendation/fetchRecommendations",
   async ({ userId, productId, topN = 8 }, { rejectWithValue }) => {
     try {
-      const response = await api.get("/api/recommendations", {
+      const response = await publicApi.get("/api/recommendations", {
         params: {
           ...(userId ? { userId } : {}),
           ...(productId ? { productId } : {}),
@@ -77,7 +77,7 @@ export const fetchSameProducts = createAsyncThunk<
   "recommendation/fetchSameProducts",
   async ({ productId, topN = 8 }, { rejectWithValue }) => {
     try {
-      const response = await api.get("/api/recommendations/similar", {
+      const response = await publicApi.get("/api/recommendations/similar", {
         params: { productId, topN },
       });
 

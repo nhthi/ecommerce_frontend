@@ -19,11 +19,17 @@ interface FetchAllProductsParams {
   [key: string]: any;
 }
 
-export const fetchProductById = createAsyncThunk<Product, number>(
+export const fetchProductById = createAsyncThunk<
+  Product,
+  { productId: number; userId?: number }
+>(
   "/products/fetchProductById",
-  async (productId, { rejectWithValue }) => {
+  async ({ productId, userId }, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/products/${productId}`);
+      const response = await publicApi.get(`/products/${productId}`, {
+        params: { userId }, // 👈 query param
+      });
+
       return response.data;
     } catch (error: any) {
       console.log("fetchProductById error ----", error);

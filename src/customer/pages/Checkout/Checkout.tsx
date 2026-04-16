@@ -46,7 +46,7 @@ const paymentGatewayList = [
   },
   {
     value: "SEPAY",
-    label: "Chuyển khoản QR",
+    label: "Thanh toán trực tuyến",
     description: "Quét mã QR và hệ thống tự xác nhận đơn.",
     icon: <CreditCard fontSize="large" className="text-orange-400" />,
   },
@@ -486,7 +486,7 @@ const handleCheckout = async () => {
               <>
                 <div className="space-y-2 text-center">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-400">
-                    Thanh toán QR
+                    Thanh toán trực tuyến
                   </p>
                   <h2 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
                     Quét QR để chuyển khoản
