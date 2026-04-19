@@ -5,28 +5,28 @@ import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 
 const categories = [
   {
-    name: "Máy cardio",
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=900&q=80",
+    name: "Thời trang",
+    image: "https://img.vuahanghieu.com/unsafe/0x0/left/top/smart/filters:quality(90)/https://admin.vuahanghieu.com/upload/news/content/2025/08/cach-phoi-do-tap-gym-cho-nu-1-jpg-1754546951-07082025130911.jpg",
   },
   {
-    name: "Tạ tự do",
-    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
+    name: "Dụng cụ",
+    image: "https://bizweb.dktcdn.net/thumb/large/100/180/757/products/khung-ganh-ta-k10-3.jpg?v=1646641685673",
   },
   {
     name: "Phụ kiện tập",
-    image: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80",
+    image: "https://titansport.com.vn/wp-content/uploads/2023/11/phu-kien-tap-gym-1.jpg",
   },
   {
-    name: "Yoga",
-    image: "https://images.unsplash.com/photo-1518310383802-640c2de311b2?auto=format&fit=crop&w=900&q=80",
+    name: "Dinh dưỡng",
+    image: "https://product.hstatic.net/1000185761/product/rocky_road__f29ee130c58e4ff8ad39eeff97eafa9e.png",
   },
   {
-    name: "Ghế tập",
-    image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80",
+    name: "Thiết bị hỗ trợ",
+    image: "https://lh5.googleusercontent.com/iArg5i6c4qW31An-XXy5DbieK-iLyWZU_ZS-G1AxHEzJNhly6yEGmm3SS22L4tWq77um2wvVUFzcsvjZ9nNeQKzvp7yd5wSPiVmXms39j0yH5PfZxbX2Eyf3ngmYlK7tm0pey82opSodYrLbnko6jg0",
   },
   {
-    name: "Combo tại nhà",
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80",
+    name: "Phong cách",
+    image: "https://beast.com.vn/wp-content/uploads/2024/07/thiet-ke-phong-gym-10.webp",
   },
 ];
 

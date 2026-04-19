@@ -48,7 +48,7 @@ const TrainingCard = ({ item }: { item: TrainingSchedule }) => {
             <Chip size="small" label={item.goal} sx={{ color: goalTone[item.goal].color, backgroundColor: goalTone[item.goal].bg }} />
           </Stack>
 
-          {item.featured && <Chip size="small" label="Nổi bật" sx={{ color: "#050505", backgroundColor: "#fb923c", fontWeight: 700 }} />}
+          {item.featured && <Chip size="small" label="Nổi bật" sx={{ color: "#fff", backgroundColor: "#fb923c", fontWeight: 700 }} />}
         </Stack>
 
         <Box sx={{ position: "absolute", left: 18, right: 18, bottom: 18 }}>
@@ -127,7 +127,7 @@ const TrainingCard = ({ item }: { item: TrainingSchedule }) => {
   </Stack>
 </Box>
 
-        <Button variant="contained" fullWidth onClick={() => navigate(`/training/${item.slug}`)} sx={{ mt: 2.2, borderRadius: 999, textTransform: "none", py: 1.15, fontWeight: 700, background: "linear-gradient(135deg, #f97316, #ea580c)" }}>
+        <Button variant="contained" fullWidth onClick={() => navigate(`/training/${item.slug}`)} sx={{ mt: 2.2, borderRadius: 999, textTransform: "none", py: 1.15, fontWeight: 700, background: "linear-gradient(135deg, #f97316, #ea580c)" ,color:"#fff"}}>
           Xem chi tiết lịch tập
         </Button>
       </Box>

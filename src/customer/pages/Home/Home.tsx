@@ -34,6 +34,7 @@ import { fetchAllWorkoutPlans } from "../../../state/admin/adminWorkoutPlanSlice
 import { fetchAllWorkoutPlanDays } from "../../../state/admin/adminWorkoutPlanDaySlice";
 import { mapWorkoutPlansToTrainingSchedules } from "../Training/trainingData";
 import { fetchRecommendations } from "../../../state/customer/recommendationSlice";
+import HomePromoSection from "./HomePromo/HomePromoSection";
 
 const trustItems = [
   {
@@ -297,7 +298,16 @@ dispatch(
           </motion.div>
         </div>
       </motion.section>
-
+      <HomeRecommendationSection
+        items={recommendationSlice.recommendations?.items || []}
+        loading={recommendationSlice.loading}
+        error={recommendationSlice.error}
+      />
+      <section className="px-5 py-8 lg:px-16">
+        <div className="mx-auto max-w-[1280px]">
+          <HomePromoSection />
+        </div>
+      </section>
       <motion.section
         variants={fadeUp}
         initial="hidden"
@@ -397,30 +407,6 @@ dispatch(
         <CouponSpotlight coupons={coupon.coupons} loading={coupon.loading} />
       </motion.div>
 
-      <HomeRecommendationSection
-        items={recommendationSlice.recommendations?.items || []}
-        loading={recommendationSlice.loading}
-        error={recommendationSlice.error}
-      />
-
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.12 }}
-      >
-        <HomeBlogSection posts={featuredPosts} />
-      </motion.div>
-
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.12 }}
-      >
-        <HomeTrainingSection items={featuredTrainingSchedules} />
-      </motion.div>
-
       <motion.section
         variants={fadeUp}
         initial="hidden"
@@ -457,6 +443,26 @@ dispatch(
         </div>
       </motion.section>
 
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.12 }}
+      >
+        <HomeBlogSection posts={featuredPosts} />
+      </motion.div>
+
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.12 }}
+      >
+        <HomeTrainingSection items={featuredTrainingSchedules} />
+      </motion.div>
+
+
+
       <motion.section
         variants={fadeUp}
         initial="hidden"
@@ -475,7 +481,7 @@ dispatch(
         </div>
       </motion.section>
 
-      <motion.section
+      {/* <motion.section
         variants={fadeUp}
         initial="hidden"
         whileInView="show"
@@ -491,78 +497,102 @@ dispatch(
             <CategoryGrid />
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section> */}
 
-      <motion.section
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.15 }}
-        className={
-          isDark
-            ? "bg-[#0d0d0d] px-5 py-14 lg:px-16"
-            : "bg-white px-5 py-14 lg:px-16"
-        }
-      >
-        <div className="mx-auto max-w-[1280px]">
-          <motion.div
-            variants={fadeUp}
-            className="mb-7 flex items-center justify-between gap-4"
-          >
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-orange-400">
-                Set đồ cho bạn
-              </p>
-              <h2
-                className={
-                  isDark
-                    ? "mt-2 text-3xl font-black text-white md:text-4xl"
-                    : "mt-2 text-3xl font-black text-slate-900 md:text-4xl"
-                }
-              >
-                Gợi ý theo mục tiêu tập
-              </h2>
-            </div>
-          </motion.div>
 
-          <motion.div
-            className="grid gap-4 md:grid-cols-3"
-            variants={staggerWrap}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.15 }}
-          >
-            {lookbookSets.map((item) => (
-              <motion.button
-                key={item.title}
-                type="button"
-                variants={fadeUp}
-                whileHover={{ y: -6 }}
-                transition={{ duration: 0.25 }}
-                onClick={() => navigate(item.to)}
-                className="group relative overflow-hidden rounded-[1.9rem] text-left"
-              >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-[360px] w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <h3 className="text-2xl font-black text-white">
-                    {item.title}
-                  </h3>
-                  <span className="mt-4 inline-flex rounded-full border border-white/20 bg-black/30 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
-                    Xem chi tiết
-                  </span>
-                </div>
-              </motion.button>
-            ))}
-          </motion.div>
+<motion.section
+  variants={fadeUp}
+  initial="hidden"
+  whileInView="show"
+  viewport={{ once: true, amount: 0.15 }}
+  className={`transition-colors duration-500 px-5 py-20 lg:px-16 ${
+    isDark ? "bg-[#050505]" : "bg-[#F8FAFC]"
+  }`}
+>
+  <div className="mx-auto max-w-[1320px]">
+    {/* Header Section */}
+    <motion.div
+      variants={fadeUp}
+      className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6"
+    >
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="h-[1px] w-8 bg-orange-500"></span>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-orange-500">
+            Tailored for you
+          </p>
         </div>
-      </motion.section>
+        <h2 className={`text-4xl md:text-5xl font-black tracking-tighter ${
+          isDark ? "text-white" : "text-slate-900"
+        }`}>
+          Gợi ý theo mục tiêu<span className="text-orange-500">.</span>
+        </h2>
+      </div>
+      
+      <p className={`max-w-[300px] text-sm leading-relaxed ${
+        isDark ? "text-slate-500" : "text-slate-400"
+      }`}>
+        Khám phá những set đồ được phối sẵn giúp bạn tối ưu hiệu suất tập luyện.
+      </p>
+    </motion.div>
 
-      <motion.section
+    {/* Grid Section */}
+    <motion.div
+      className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      variants={staggerWrap}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.1 }}
+    >
+      {lookbookSets.map((item) => (
+        <motion.button
+          key={item.title}
+          type="button"
+          variants={fadeUp}
+          whileHover={{ y: -10 }}
+          onClick={() => navigate(item.to)}
+          className="group relative h-[450px] w-full overflow-hidden rounded-[2.5rem] bg-slate-900 shadow-2xl transition-all duration-500"
+        >
+          {/* Image với hiệu ứng mượt hơn */}
+          <img
+            src={item.image}
+            alt={item.title}
+            className="h-full w-full object-cover transition duration-1000 ease-in-out group-hover:scale-110 group-hover:rotate-1"
+          />
+
+          {/* Overlay sang trọng hơn: dùng nhiều lớp gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+          
+          {/* Inner Glow Effect */}
+          <div className="absolute inset-0 rounded-[2.5rem] border border-white/10 pointer-events-none" />
+
+          {/* Content */}
+          <div className="absolute inset-x-0 bottom-0 p-8">
+            <div className="overflow-hidden">
+                <h3 className="text-2xl font-bold text-white mb-4 translate-y-0 transition-transform duration-500">
+                {item.title}
+                </h3>
+            </div>
+            
+            <div className="flex items-center gap-2 opacity-0 -translate-x-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-0">
+                <span className="h-[2px] w-6 bg-orange-500"></span>
+                <span className="text-xs font-bold uppercase tracking-widest text-white">
+                    Xem chi tiết
+                </span>
+            </div>
+          </div>
+
+          {/* Hiệu ứng Glassmorphism khi Hover nhẹ vào card */}
+          <div className="absolute top-6 right-6 h-12 w-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 scale-50 group-hover:scale-100 border border-white/20">
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+          </div>
+        </motion.button>
+      ))}
+    </motion.div>
+  </div>
+</motion.section>
+
+      {/* <motion.section
         variants={fadeUp}
         initial="hidden"
         whileInView="show"
@@ -578,7 +608,7 @@ dispatch(
             <ShopByCategory />
           </motion.div>
         </div>
-      </motion.section>
+      </motion.section> */}
 
       <motion.div
         variants={fadeUp}

@@ -2,6 +2,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   FormControlLabel,
   Modal,
   Radio,
@@ -700,9 +701,98 @@ const Checkout = () => {
         </Alert>
       </Snackbar>
 
-      <Modal open={!!sepayInfo} onClose={() => setSepayInfo(null)}>
+<Modal open={!!sepayInfo} onClose={() => setSepayInfo(null)}>
         <Box sx={modalStyle}>
-          {/* giữ nguyên phần sepay modal của bạn */}
+          <div
+            className={`mx-auto w-[95%] max-w-[420px] rounded-[1.8rem] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.25)] ${
+              isDark
+                ? "border border-orange-500/16 bg-[#111111] text-white"
+                : "border border-slate-200 bg-white text-slate-900"
+            }`}
+          >
+            {showSuccessMessage ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div
+                  className={`flex h-20 w-20 items-center justify-center rounded-full ${
+                    isDark ? "bg-orange-500/12" : "bg-orange-100"
+                  }`}
+                >
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/845/845646.png"
+                    alt="success"
+                    className="h-14 w-14"
+                  />
+                </div>
+                <h3 className="mt-4 text-2xl font-black tracking-tight text-orange-400">
+                  Thanh toán thành công
+                </h3>
+                <p className={`mt-2 text-sm leading-6 ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
+                  Hệ thống đang chuyển bạn đến trang xác nhận đơn hàng
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2 text-center">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-400">
+                    Thanh toán trực tuyến
+                  </p>
+                  <h2 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+                    Quét QR để chuyển khoản
+                  </h2>
+                </div>
+
+                <div
+                  className={`mt-5 overflow-hidden rounded-[1.5rem] border p-4 ${
+                    isDark ? "border-white/8 bg-white" : "border-slate-200 bg-slate-50"
+                  }`}
+                >
+                  <img
+                    className="mx-auto h-56 w-56"
+                    alt="QR Payment"
+                    src={`https://qr.sepay.vn/img?acc=LOCSPAY000336637&bank=ACB&amount=${sepayInfo?.amount}&des=${sepayInfo?.paymentCode}`}
+                  />
+                </div>
+
+                <Divider
+                  sx={{
+                    my: 3,
+                    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+                  }}
+                />
+
+                <div className={`space-y-2 text-sm ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Ngân hàng:</b>{" "}
+                    {sepayInfo?.bankName}
+                  </p>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Số TK:</b>{" "}
+                    {sepayInfo?.accountNumber}
+                  </p>
+                  <p>
+                    <b className={isDark ? "text-white" : "text-slate-900"}>Chủ TK:</b>{" "}
+                    {sepayInfo?.accountName}
+                  </p>
+                  <p className="font-semibold text-orange-400">Nội dung: {sepayInfo?.paymentCode}</p>
+                  <p className={`text-base font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+                    Số tiền: {sepayInfo?.amount?.toLocaleString()}đ
+                  </p>
+                </div>
+
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Hệ thống sẽ tự động xác nhận sau khi giao dịch thành công.
+                </Alert>
+
+                <p className={`mt-3 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
+                  Thời gian còn lại:{" "}
+                  <b className={remainingTime <= 30 ? "text-red-400" : "text-orange-400"}>
+                    {Math.floor(remainingTime / 60)}:
+                    {(remainingTime % 60).toString().padStart(2, "0")}
+                  </b>
+                </p>
+              </>
+            )}
+          </div>
         </Box>
       </Modal>
     </>

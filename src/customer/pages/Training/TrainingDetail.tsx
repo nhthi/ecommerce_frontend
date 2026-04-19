@@ -249,7 +249,7 @@ const TrainingDetail = () => {
                                 onClick={() => setActiveVideo({ title: exercise.name, url: exercise.videoUrl })}
                                 variant="contained"
                                 startIcon={<PlayCircleOutline />}
-                                sx={{ alignSelf: "flex-start", borderRadius: 999, textTransform: "none", background: "linear-gradient(135deg, #f97316, #ea580c)" }}
+                                sx={{ color:"#fff",alignSelf: "flex-start", borderRadius: 999, textTransform: "none", background: "linear-gradient(135deg, #f97316, #ea580c)" }}
                               >
                                 Xem video
                               </Button>

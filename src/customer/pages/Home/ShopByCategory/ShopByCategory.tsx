@@ -1,3 +1,5 @@
+
+
 import React from "react";
 import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
 import ShopByCategoryCard from "./ShopByCategoryCard";
@@ -50,36 +52,34 @@ const ShopByCategory: React.FC = () => {
 
   return (
     <section
-      className={
-        isDark
-          ? "rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-8 md:px-6"
-          : "rounded-[2rem] border border-slate-200 bg-white px-4 py-8 shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:px-6"
-      }
+      className={`
+        relative overflow-hidden transition-all duration-500 ease-in-out
+        rounded-[2.5rem] p-6 md:p-10
+        ${isDark 
+          ? "bg-[#0A0A0A] border border-white/5 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]" 
+          : "bg-[#F8FAFC] border border-slate-200/60 shadow-[0_32px_64px_-16px_rgba(15,23,42,0.1)]"}
+      `}
     >
-      <div className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="max-w-2xl">
-          <h2
-            className={
-              isDark
-                ? "text-3xl font-black text-white"
-                : "text-3xl font-black text-slate-900"
-            }
-          >
-            Mua theo mục tiêu tập luyện
+      {/* Hiệu ứng ánh sáng nền (Glow) để trông sang hơn */}
+      {isDark && (
+        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-orange-500/10 blur-[100px]" />
+      )}
+
+      <div className="relative z-10 mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <span className="text-xs font-bold tracking-[0.2em] text-orange-500 uppercase">
+            Discovery
+          </span>
+          <h2 className={`text-3xl md:text-4xl font-extrabold tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+            Mua theo mục tiêu <span className="text-orange-500">.</span>
           </h2>
         </div>
-        <p
-          className={
-            isDark
-              ? "max-w-xl text-sm text-slate-400"
-              : "max-w-xl text-sm text-slate-600"
-          }
-        >
-          Chọn một hướng tập cụ thể để xem sản phẩm phù hợp hơn.
+        <p className={`max-w-md text-sm leading-relaxed ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+          Tối ưu hóa hành trình tập luyện của bạn bằng cách chọn đúng dòng sản phẩm chuyên biệt.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {categories.map((cat, index) => (
           <ShopByCategoryCard
             key={cat.link || index}

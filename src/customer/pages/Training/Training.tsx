@@ -164,9 +164,7 @@ const Training = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        background: isDark
-          ? "linear-gradient(180deg, #070707 0%, #111111 28%, #090909 100%)"
-          : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 28%, #f6f7fb 100%)",
+        
         px: { xs: 2, md: 3 },
         py: { xs: 3, lg: 4 },
       }}
@@ -180,9 +178,7 @@ const Training = () => {
             border: isDark
               ? "1px solid rgba(255,255,255,0.08)"
               : "1px solid rgba(15,23,42,0.08)",
-            background: isDark
-              ? "radial-gradient(circle at top left, rgba(249,115,22,0.20), transparent 28%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
-              : "radial-gradient(circle at top left, rgba(249,115,22,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+            
             boxShadow: isDark
               ? "0 28px 80px rgba(0,0,0,0.34)"
               : "0 28px 80px rgba(15,23,42,0.08)",
@@ -326,7 +322,7 @@ const Training = () => {
                           fontWeight: 800,
                           background:
                             "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                          color: "#050505",
+                          color: "#fff",
                           boxShadow: "0 18px 40px rgba(249,115,22,0.18)",
                         }}
                       >
@@ -399,7 +395,7 @@ const Training = () => {
                         label="Video tập nhanh"
                         sx={{
                           backgroundColor: "#f97316",
-                          color: "#050505",
+                          color: "#fff",
                           fontWeight: 800,
                         }}
                       />
