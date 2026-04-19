@@ -139,9 +139,7 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
             width: "100%",
             maxWidth: 560,
             borderRadius: "26px",
-            background: isDark
-              ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
-              : "linear-gradient(180deg, #ffffff, #fff7ed)",
+            
             color: isDark ? "white" : "#111827",
             border: isDark
               ? "1px solid rgba(255,255,255,0.08)"
@@ -257,17 +255,21 @@ const AddStaffForm = ({ open, onClose }: AddStaffFormProps) => {
           </Button>
 
           <Button
-            variant="contained"
-            onClick={() => formik.handleSubmit()}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              color: "#111111",
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
-            }}
-          >
-            Tạo tài khoản
-          </Button>
+  variant="contained"
+  onClick={() => formik.handleSubmit()}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Tạo tài khoản</span>
+</Button>
         </DialogActions>
       </Dialog>
 

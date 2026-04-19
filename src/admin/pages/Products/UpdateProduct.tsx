@@ -523,24 +523,24 @@ const UpdateProduct = () => {
           </Grid>
 
           <Grid size={{ xs: 12 }}>
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              sx={{
-                borderRadius: "18px",
-                py: 1.5,
-                fontWeight: 800,
-                color: ui.buttonTextDark,
-                background: "linear-gradient(135deg, #f97316, #ea580c)",
-                boxShadow: "0 18px 40px rgba(249,115,22,0.22)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #fb923c, #ea580c)",
-                },
-              }}
-            >
-              Cập nhật
-            </Button>
+                <Button
+                fullWidth
+  type="submit"
+  variant="contained"
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.8,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Cập nhật</span>
+</Button>
           </Grid>
         </Grid>
       </form>

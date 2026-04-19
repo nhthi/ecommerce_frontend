@@ -74,11 +74,11 @@ const formatRelativeShort = (value?: string | null) => {
   if (Number.isNaN(date)) return "--";
   const diffMs = Date.now() - date;
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "Vua xong";
-  if (diffMin < 60) return `${diffMin} phut truoc`;
+  if (diffMin < 1) return "Vừa xong";
+  if (diffMin < 60) return `${diffMin} phút trước`;
   const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour} gio truoc`;
-  return `${Math.floor(diffHour / 24)} ngay truoc`;
+  if (diffHour < 24) return `${diffHour} Giờ trước`;
+  return `${Math.floor(diffHour / 24)} ngày trước`;
 };
 
 const getInitial = (name?: string | null) => (name ? name.trim().charAt(0).toUpperCase() : "?");
@@ -202,7 +202,7 @@ const CustomerSupportChat = () => {
               <Typography sx={{ color: mutedText, fontSize: 12 }}>Đang xử lý</Typography>
               <Typography sx={{ fontSize: 24, fontWeight: 900 }}>{openCount}</Typography>
             </Paper>
-            <Button variant="contained" startIcon={<Add />} onClick={() => navigate('/support/create')}>
+            <Button variant="contained" startIcon={<Add />} sx={{color:"#fff"}} onClick={() => navigate('/support/create')}>
               Tạo yêu cầu mới
             </Button>
           </Stack>
@@ -226,7 +226,7 @@ const CustomerSupportChat = () => {
                 <Stack alignItems="center" spacing={1.2} sx={{ py: 7 }}>
                   <ChatBubbleOutline sx={{ color: mutedText }} />
                   <Typography sx={{ color: mutedText }}>Bạn chưa có cuộc trò chuyện nào.</Typography>
-                  <Button variant="contained" onClick={() => navigate('/support/create')}>Tạo cuộc trò chuyện đầu tiên</Button>
+                  <Button variant="contained" sx={{color:"#fff"}} onClick={() => navigate('/support/create')}>Tạo cuộc trò chuyện đầu tiên</Button>
                 </Stack>
               ) : (
                 <Stack spacing={1.1}>
@@ -265,14 +265,14 @@ const CustomerSupportChat = () => {
             <Box sx={{ p: 2, borderBottom: `1px solid ${border}`, bgcolor: altBg }}>
               {selectedConversation ? (
                 <Stack direction="row" spacing={1.3} alignItems="center">
-                  <Avatar sx={{ bgcolor: isDark ? '#1f2937' : '#111827', width: 44, height: 44 }}><SupportAgent /></Avatar>
+                  <Avatar sx={{ bgcolor: isDark ? '#1f2937' : '#111827',color:"#fff", width: 44, height: 44 }}><SupportAgent /></Avatar>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography fontWeight={900} noWrap>{selectedConversation.subject}</Typography>
                     <Typography sx={{ color: mutedText, fontSize: 13.5 }} noWrap>
                       {selectedConversation.code} - {statusLabelMap[selectedConversation.status]} - {priorityLabelMap[selectedConversation.priority]}
                     </Typography>
                   </Box>
-                  <Chip label={selectedConversation.assignedStaffName || 'Dang cho phan cong'} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
+                  <Chip label={selectedConversation.assignedStaffName || 'Đang chờ phân công'} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
                 </Stack>
               ) : (
                 <Typography fontWeight={800}>Chọn một cuộc trò chuyện để bắt đầu</Typography>
@@ -295,9 +295,9 @@ const CustomerSupportChat = () => {
                   <Paper elevation={0} sx={{ p: 1.3, border: `1px solid ${border}`, backgroundColor: cardBg }}>
                     <Typography fontWeight={800} fontSize={13}>Thông tin nhanh</Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-                      <Chip label={`Tao luc: ${formatDateTime(selectedConversation.createdAt)}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
-                      <Chip label={`Cap nhat: ${formatDateTime(selectedConversation.updatedAt)}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
-                      <Chip label={`Uu tien: ${priorityLabelMap[selectedConversation.priority]}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
+                      <Chip label={`Tạo lúc: ${formatDateTime(selectedConversation.createdAt)}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
+                      <Chip label={`Cập nhật: ${formatDateTime(selectedConversation.updatedAt)}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
+                      <Chip label={`Ưu tiên: ${priorityLabelMap[selectedConversation.priority]}`} sx={{ bgcolor: softBg, border: `1px solid ${border}`, color: strongText }} />
                     </Stack>
                   </Paper>
 
@@ -363,7 +363,7 @@ const CustomerSupportChat = () => {
                     <input hidden type="file" accept="image/*,video/*" onChange={handleSelectFile} />
                   </Button>
                   <Button variant="contained" onClick={handleSend} disabled={!selectedConversation || (!message.trim() && !attachmentFile) || actionLoading || uploadingAttachment} sx={{ minWidth: 58 }}>
-                    {uploadingAttachment || actionLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
+                    {uploadingAttachment || actionLoading ? <CircularProgress size={20} color="inherit" /> : <Send sx={{color:"#fff"}}/>}
                   </Button>
                 </Stack>
               </Stack>

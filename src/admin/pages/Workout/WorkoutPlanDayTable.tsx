@@ -89,9 +89,7 @@ export default function WorkoutPlanDayTable() {
     border: isDark
       ? "1px solid rgba(255,255,255,0.08)"
       : "1px solid rgba(15,23,42,0.08)",
-    background: isDark
-      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
-      : "linear-gradient(180deg, #ffffff, #fff7ed)",
+    
     boxShadow: isDark
       ? "0 24px 60px rgba(0,0,0,0.28)"
       : "0 18px 45px rgba(15,23,42,0.08)",
@@ -231,20 +229,28 @@ export default function WorkoutPlanDayTable() {
             }}
           />
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 2.2,
-              fontWeight: 700,
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
-            }}
-            onClick={() => navigate("/admin/workout/day/create")}
-          >
-            Thêm ngày tập
-          </Button>
+<Button
+  variant="contained"
+  startIcon={<AddIcon />}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.2,
+    fontWeight: 700,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "& .MuiButton-startIcon, & .MuiSvgIcon-root": {
+      color: "#fff !important",
+    },
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+  onClick={() => navigate("/admin/workout/day/create")}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Thêm ngày tập</span>
+</Button>
         </Stack>
       </Box>
 
@@ -366,9 +372,7 @@ export default function WorkoutPlanDayTable() {
                       onClose={handleCloseMenu}
                       PaperProps={{
                         sx: {
-                          background: isDark
-                            ? "#171717"
-                            : "linear-gradient(180deg, #ffffff, #fff7ed)",
+                          
                           color: isDark ? "white" : "#111827",
                           border: isDark
                             ? "1px solid rgba(255,255,255,0.08)"

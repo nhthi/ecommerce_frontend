@@ -536,7 +536,7 @@ const handleRemoveThumbnail = () => {
                 Quay lại
               </Button>
 
-              <Button
+<Button
   type="submit"
   variant="contained"
   disabled={uploading || loading}
@@ -545,9 +545,16 @@ const handleRemoveThumbnail = () => {
     textTransform: "none",
     px: 2.8,
     background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
   }}
 >
-  {uploading ? "Đang upload ảnh..." : isEdit ? "Lưu thay đổi" : "Tạo bài viết"}
+  <span style={{ color: "#fff", fontWeight: 700 }}>
+    {uploading ? "Đang upload ảnh..." : isEdit ? "Lưu thay đổi" : "Tạo bài viết"}
+  </span>
 </Button>
             </Box>
           </Grid>

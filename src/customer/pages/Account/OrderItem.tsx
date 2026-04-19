@@ -11,68 +11,77 @@ import React from "react";
 import { Order, OrderStatus } from "../../../types/OrderType";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
-const getStatusConfig = (status: OrderStatus) => {
+const getStatusConfig = (status: OrderStatus, isDark: boolean) => {
+  const palette = {
+    neutral: isDark ? "#e5e7eb" : "#111827",
+    muted: isDark ? "#94a3b8" : "#64748b",
+    subtle: isDark ? "#cbd5e1" : "#334155",
+    success: isDark ? "#d1d5db" : "#1f2937",
+    danger: isDark ? "#cbd5e1" : "#334155",
+  };
+
   switch (status) {
     case "PENDING":
       return {
-        color: "#f59e0b",
+        color: palette.subtle,
         icon: <Pending fontSize="small" />,
         label: "Chờ xác nhận",
         subLabel: "Đơn hàng đang chờ người bán xử lý.",
       };
     case "PENDING_PAYMENT":
       return {
-        color: "#f59e0b",
+        color: palette.subtle,
         icon: <Pending fontSize="small" />,
         label: "Chờ thanh toán",
         subLabel: "Hoàn tất thanh toán để tiếp tục đơn hàng.",
       };
     case "PLACED":
       return {
-        color: "#fb923c",
+        color: palette.neutral,
         icon: <Inventory fontSize="small" />,
         label: "Đã đặt hàng",
         subLabel: "Hệ thống đã ghi nhận đơn của bạn.",
       };
     case "CONFIRMED":
       return {
-        color: "#f97316",
+        color: palette.neutral,
         icon: <ElectricBolt fontSize="small" />,
         label: "Đã xác nhận",
         subLabel: "Người bán đã xác nhận sản phẩm trong đơn.",
       };
     case "SHIPPED":
       return {
-        color: "#fdba74",
+        color: palette.subtle,
         icon: <LocalShipping fontSize="small" />,
         label: "Đã gửi hàng",
         subLabel: "Đơn đang trong quá trình vận chuyển.",
       };
     case "ARRIVING":
       return {
-        color: "#fb923c",
+        color: palette.subtle,
         icon: <LocalShipping fontSize="small" />,
         label: "Sắp giao",
         subLabel: "Đơn sẽ được giao trong thời gian ngắn.",
       };
     case "DELIVERED":
       return {
-        color: "#22c55e",
+        color: palette.success,
         icon: <CheckCircle fontSize="small" />,
         label: "Đã giao hàng",
         subLabel: "Đơn hàng đã được giao thành công.",
       };
     case "CANCELLED":
       return {
-        color: "#ef4444",
+        color: palette.danger,
         icon: <Cancel fontSize="small" />,
         label: "Đã hủy",
         subLabel: "Đơn hàng này đã bị hủy.",
       };
     default:
       return {
-        color: "#94a3b8",
+        color: palette.muted,
         icon: <Pending fontSize="small" />,
         label: "Không xác định",
         subLabel: "Trạng thái chưa được cập nhật.",
@@ -82,7 +91,19 @@ const getStatusConfig = (status: OrderStatus) => {
 
 const OrderItem = ({ order }: { order: Order }) => {
   const navigate = useNavigate();
-  const statusConfig = getStatusConfig(order.orderStatus);
+  const { isDark } = useSiteThemeMode();
+
+  const textPrimary = isDark ? "#ffffff" : "#0f172a";
+  const textSecondary = isDark ? "#94a3b8" : "#64748b";
+  const textMuted = isDark ? "#cbd5e1" : "#334155";
+  const borderColor = isDark ? "rgba(255,255,255,0.08)" : "#e2e8f0";
+  const bgCard = isDark ? "#141414" : "#ffffff";
+  const bgItem = isDark ? "rgba(255,255,255,0.03)" : "#f8fafc";
+  const shadow = isDark
+    ? "0 18px 40px rgba(0,0,0,0.18)"
+    : "0 18px 40px rgba(15,23,42,0.08)";
+
+  const statusConfig = getStatusConfig(order.orderStatus, isDark);
 
   const deliveryLabel =
     order.orderStatus === "DELIVERED"
@@ -118,20 +139,49 @@ const OrderItem = ({ order }: { order: Order }) => {
     return new Date() <= deadline;
   };
 
-  const canReturn = order.orderStatus === "DELIVERED" && isReturnAvailable(order.deliveryDate);
+  const canReturn =
+    order.orderStatus === "DELIVERED" &&
+    isReturnAvailable(order.deliveryDate);
+
+  const secondaryButtonSx = {
+    textTransform: "none",
+    borderRadius: "999px",
+    fontSize: "0.95rem",
+    fontWeight: 700,
+    px: 2.5,
+    borderColor: isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.14)",
+    color: isDark ? "#ffffff" : "#0f172a",
+    backgroundColor: "transparent",
+    "&:hover": {
+      borderColor: isDark ? "rgba(255,255,255,0.32)" : "rgba(15,23,42,0.24)",
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
+    },
+  };
 
   return (
     <div
-      className="space-y-5 rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition hover:border-orange-400/25 cursor-pointer lg:p-6"
       onClick={() => navigate(`${order.id}`)}
+      className="space-y-5 rounded-[1.8rem] cursor-pointer p-5 transition lg:p-6"
+      style={{
+        background: bgCard,
+        border: `1px solid ${borderColor}`,
+        boxShadow: shadow,
+      }}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:justify-between">
+        <div className="flex gap-4">
           <Avatar
-            sx={{ bgcolor: statusConfig.color, width: 52, height: 52 }}
+            sx={{
+              bgcolor: isDark ? "rgba(255,255,255,0.08)" : "#f1f5f9",
+              color: statusConfig.color,
+              width: 52,
+              height: 52,
+              border: `1px solid ${borderColor}`,
+            }}
           >
             {statusConfig.icon}
           </Avatar>
+
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <h2
@@ -140,31 +190,33 @@ const OrderItem = ({ order }: { order: Order }) => {
               >
                 {statusConfig.label}
               </h2>
+
               <Chip
                 label={`#${order?.orderCode || order.id}`}
                 size="small"
                 sx={{
                   borderRadius: "999px",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#cbd5e1",
-                  backgroundColor: "rgba(255,255,255,0.03)",
+                  border: `1px solid ${borderColor}`,
+                  color: textSecondary,
+                  backgroundColor: bgItem,
                   fontWeight: 700,
                 }}
               />
             </div>
-            <p className="text-base leading-7 text-slate-300">
-              {statusConfig.subLabel}
-            </p>
-            <p className="text-base text-slate-400">
+
+            <p style={{ color: textSecondary }}>{statusConfig.subLabel}</p>
+
+            <p style={{ color: textSecondary }}>
               {deliveryLabel}
-              <span className="font-semibold text-white">
+              <span style={{ color: textPrimary, fontWeight: 600 }}>
                 {formattedDate}
               </span>
             </p>
+
             {totalItems ? (
-              <p className="text-base text-slate-400">
+              <p style={{ color: textSecondary }}>
                 Số lượng sản phẩm:{" "}
-                <span className="font-semibold text-white">
+                <span style={{ color: textPrimary, fontWeight: 600 }}>
                   {totalItems}
                 </span>
               </p>
@@ -173,10 +225,16 @@ const OrderItem = ({ order }: { order: Order }) => {
         </div>
 
         <div className="text-left lg:text-right">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <p
+            className="text-sm font-semibold uppercase"
+            style={{ color: textSecondary }}
+          >
             Tổng tiền
           </p>
-          <p className="mt-1 text-2xl font-black text-orange-400">
+          <p
+            className="text-2xl font-black"
+            style={{ color: textPrimary }}
+          >
             {formatVND(order.totalPrice)}
           </p>
         </div>
@@ -186,59 +244,63 @@ const OrderItem = ({ order }: { order: Order }) => {
         {order.orderItems?.map((item) => (
           <div
             key={item.id}
-            className="flex gap-4 rounded-[1.3rem] border border-white/6 bg-black/20 p-4"
+            className="flex gap-4 rounded-[1.3rem] p-4"
+            style={{
+              background: bgItem,
+              border: `1px solid ${borderColor}`,
+            }}
           >
             <img
               alt={item.product?.title}
               src={item.product?.images?.[0]}
-              className="h-24 w-20 rounded-xl object-cover border border-white/6"
+              className="h-24 w-20 rounded-xl object-cover"
             />
-            <div className="min-w-0 flex-1 space-y-2">
-              <h3 className="line-clamp-2 text-lg font-bold text-white">
+
+            <div className="flex-1 space-y-2">
+              <h3
+                className="line-clamp-2 text-lg font-bold"
+                style={{ color: textPrimary }}
+              >
                 {item.product?.title}
               </h3>
-              <p className="text-base text-slate-400">
+
+              <p style={{ color: textSecondary }}>
                 {item.product?.seller?.businessDetails?.businessName ||
                   "NHTHI Fit"}
               </p>
-              <div className="flex flex-wrap items-center gap-4 text-base text-slate-300">
+
+              <div
+                className="flex flex-wrap gap-4"
+                style={{ color: textSecondary }}
+              >
                 <p>
-                  Kích thước:{" "}
-                  <span className="font-semibold text-white">
+                  Size:{" "}
+                  <span style={{ color: textMuted, fontWeight: 600 }}>
                     {item.size?.name || "Không có"}
                   </span>
                 </p>
                 <p>
-                  Số lượng:{" "}
-                  <span className="font-semibold text-white">
+                  SL:{" "}
+                  <span style={{ color: textMuted, fontWeight: 600 }}>
                     {item.quantity}
                   </span>
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <p className="text-lg font-black text-orange-400">
+
+              <div className="flex items-center gap-3">
+                <p
+                  className="text-lg font-black"
+                  style={{ color: textPrimary }}
+                >
                   {formatVND(item.sellingPrice || 0)}
                 </p>
-                {!!item.mrpPrice && item.mrpPrice > item.sellingPrice && (
-                  <>
-                    <p className="text-sm font-semibold text-slate-500 line-through">
-                      {formatVND(item.mrpPrice)}
-                    </p>
-                    <p className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-orange-200">
-                      Giảm{" "}
-                      {formatVND(
-                        (item.mrpPrice - item.sellingPrice) * (item.quantity || 1)
-                      )}
-                    </p>
-                  </>
-                )}
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <Box className="flex flex-wrap justify-end gap-3 pt-1">
+      <Box className="flex flex-wrap justify-end gap-3">
         <Button
           variant="outlined"
           size="small"
@@ -281,20 +343,6 @@ const OrderItem = ({ order }: { order: Order }) => {
       </Box>
     </div>
   );
-};
-
-const secondaryButtonSx = {
-  textTransform: "none",
-  borderRadius: "999px",
-  fontSize: "0.95rem",
-  fontWeight: 700,
-  borderColor: "rgba(249,115,22,0.3)",
-  color: "#fb923c",
-  px: 2.5,
-  "&:hover": {
-    borderColor: "#fb923c",
-    backgroundColor: "rgba(249,115,22,0.08)",
-  },
 };
 
 export default OrderItem;

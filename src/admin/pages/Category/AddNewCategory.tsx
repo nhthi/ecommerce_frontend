@@ -184,19 +184,23 @@ const AddNewCategoryForm = () => {
                 Quay lại
               </Button>
 
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 2.8,
-                  background:
-                    "linear-gradient(135deg, #f97316, #ea580c)",
-                }}
-              >
-                Tạo danh mục
-              </Button>
+                <Button
+  type="submit"
+  variant="contained"
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.8,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Tạo danh mục</span>
+</Button>
             </Box>
           </Grid>
         </Grid>

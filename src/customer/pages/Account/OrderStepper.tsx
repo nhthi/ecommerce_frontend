@@ -102,7 +102,7 @@ const OrderStepper: React.FC<Props> = ({ orderStatus, deliveryDate }) => {
         return (
           <div key={status} className="mb-5 flex px-1 sm:px-2">
             <div className="flex flex-col items-center">
-              <Avatar sx={{ bgcolor: config.color, width: 40, height: 40, fontSize: 20 }}>{isCurrent || isCompleted ? config.icon : <FiberManualRecord sx={{ fontSize: 14 }} />}</Avatar>
+              <Avatar sx={{ bgcolor: config.color, width: 40, height: 40, fontSize: 20,color:"#fff" }}>{isCurrent || isCompleted ? config.icon : <FiberManualRecord sx={{ fontSize: 14 }} />}</Avatar>
               {index < steps.length - 1 && (
   <div
     className="mt-1 w-[2px]"
@@ -119,8 +119,8 @@ const OrderStepper: React.FC<Props> = ({ orderStatus, deliveryDate }) => {
 )}
             </div>
             <div className="ml-4 w-full -mt-1">
-              <div className={`rounded-[1.2rem] px-4 py-3 ${isCurrent ? "text-black" : "text-white"}`} style={{ backgroundColor: isCurrent ? config.color : "rgba(255,255,255,0.03)" }}>
-                <p className="text-lg font-black">{config.label}</p>
+              <div className={`rounded-[1.2rem] px-4 py-3 `} style={{ backgroundColor: isCurrent ? config.color : "rgba(255,255,255,0.03)" }}>
+                <p className={`text-lg font-black ${isCurrent ? "text-slate-100":''}`}>{config.label}</p>
                 <p className={`mt-1 text-base leading-7 ${isCurrent ? "text-black/80" : "text-slate-300"}`}>{subtitle}</p>
               </div>
             </div>

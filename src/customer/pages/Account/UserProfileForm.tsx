@@ -133,7 +133,7 @@ const UserProfileForm: React.FC<Props> = ({ initialValues, onSubmit }) => {
                     type="submit"
                     variant="contained"
                     disabled={loading}
-                    sx={{ justifyContent: "center", alignSelf: "flex-start", borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "1rem", background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "#050505", boxShadow: "none", px: 3.5, py: 1.1 }}
+                    sx={{ justifyContent: "center", alignSelf: "flex-start", borderRadius: "999px", textTransform: "none", fontWeight: 800, fontSize: "1rem", background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "#fff", boxShadow: "none", px: 3.5, py: 1.1 }}
                   >
                     Lưu thay đổi
                   </Button>

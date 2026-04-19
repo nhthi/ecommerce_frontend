@@ -24,6 +24,7 @@ export interface Product {
   createAt?: Date;
   sizes: Size[];
   reviews?: Review[];
+  sold?:number;
 }
 
 interface Category {

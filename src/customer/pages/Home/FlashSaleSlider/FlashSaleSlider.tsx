@@ -24,7 +24,7 @@ export default function FlashDealSlider({
           sx={{
             fontSize: "0.9rem",
             backgroundColor: "#f97316",
-            color: "#050505",
+            color: "#fff",
             fontWeight: 800,
             px: 1,
           }}

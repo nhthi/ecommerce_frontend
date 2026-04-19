@@ -5,7 +5,14 @@ import {
   Box,
   Button,
   Chip,
+  Checkbox,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
   Menu,
   MenuItem,
   Paper,
@@ -24,12 +31,14 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
+  Download,
   LocalShipping,
   KeyboardArrowDown,
   KeyboardArrowUp,
   Search,
 } from "@mui/icons-material";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import {
   fetchSellerOrders,
@@ -72,6 +81,31 @@ const orderStatusColors: Record<string, { color: string; label: string }> = {
   DELIVERED: { color: "#86efac", label: "Hoàn tất" },
 };
 
+const paymentStatusLabel: Record<string, string> = {
+  PENDING: "Chưa thanh toán",
+  COMPLETED: "Đã thanh toán",
+  PAID: "Đã thanh toán",
+  FAILED: "Thất bại",
+  REFUNDED: "Đã hoàn tiền",
+};
+
+const EXPORT_FIELD_OPTIONS = [
+  { key: "orderCode", label: "Mã đơn hàng" },
+  { key: "customerName", label: "Khách hàng" },
+  { key: "phoneNumber", label: "Số điện thoại" },
+  { key: "receiverName", label: "Người nhận" },
+  { key: "address", label: "Địa chỉ giao hàng" },
+  { key: "paymentMethod", label: "Phương thức thanh toán" },
+  { key: "paymentStatus", label: "Trạng thái thanh toán" },
+  { key: "orderStatus", label: "Trạng thái đơn hàng" },
+  { key: "totalPrice", label: "Tổng tiền" },
+  { key: "totalItems", label: "Số lượng sản phẩm" },
+  { key: "productNames", label: "Danh sách sản phẩm" },
+  { key: "createdAt", label: "Ngày tạo" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+
 export default function OrderTable() {
   const { isDark } = useSiteThemeMode();
 
@@ -87,6 +121,19 @@ export default function OrderTable() {
     orderId: number | null;
   }>({ anchorEl: null, orderId: null });
   const [openRow, setOpenRow] = React.useState<number | null>(null);
+
+  const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [selectedExportFields, setSelectedExportFields] =
+    React.useState<ExportFieldKey[]>([
+      "orderCode",
+      "customerName",
+      "phoneNumber",
+      "paymentMethod",
+      "paymentStatus",
+      "orderStatus",
+      "totalPrice",
+      "createdAt",
+    ]);
 
   const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
   const TEXT_SECONDARY = isDark
@@ -152,7 +199,7 @@ export default function OrderTable() {
     if (!normalizedSearch) return orders;
 
     return orders.filter((order: any) => {
-      const orderId = String(order.orderCode?.toLowerCase() || "");
+      const orderId = String(order.orderCode || "").toLowerCase();
       const customerName = order.user?.fullName?.toLowerCase() || "";
       const phone = order.shippingAddress?.phoneNumber?.toLowerCase() || "";
       const paymentMethod = order.paymentMethod?.toLowerCase() || "";
@@ -172,9 +219,15 @@ export default function OrderTable() {
 
       const productText = Array.isArray(order.orderItems)
         ? order.orderItems
-            .map(
-              (item: any) =>
-                `${item.product?.title || ""} ${item.product?.color || ""} ${item.size?.name || ""}`
+            .map((item: any) =>
+              [
+                item.product?.title,
+                item.product?.color,
+                item.size?.name,
+                item.productName,
+              ]
+                .filter(Boolean)
+                .join(" ")
             )
             .join(" ")
             .toLowerCase()
@@ -213,6 +266,170 @@ export default function OrderTable() {
     page * rowsPerPage + rowsPerPage
   );
 
+  const handleToggleRow = (orderId: number) => {
+    setOpenRow((prev) => (prev === orderId ? null : orderId));
+  };
+
+  const handleOpenExportDialog = () => {
+    setOpenExportDialog(true);
+  };
+
+  const handleCloseExportDialog = () => {
+    setOpenExportDialog(false);
+  };
+
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const getOrderStatusLabel = (status?: string) => {
+    return orderStatusColors[status || ""]?.label || status || "";
+  };
+
+  const getPaymentStatusLabel = (status?: string) => {
+    return paymentStatusLabel[status || ""] || status || "";
+  };
+
+  const getOrderAddress = (order: any) => {
+    return [
+      order.shippingAddress?.streetDetail,
+      order.shippingAddress?.ward,
+      order.shippingAddress?.district,
+      order.shippingAddress?.province,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  const getOrderProductNames = (order: any) => {
+    if (!Array.isArray(order.orderItems)) return "";
+    return order.orderItems
+      .map((item: any) => {
+        const title = item.product?.title || item.productName || "";
+        const color = item.product?.color ? `Màu ${item.product.color}` : "";
+        const size = item.size?.name ? `Size ${item.size.name}` : "";
+        const quantity = item.quantity ? `x${item.quantity}` : "";
+        return [title, color, size, quantity].filter(Boolean).join(" - ");
+      })
+      .join(" | ");
+  };
+
+  const handleExportExcel = () => {
+    const sourceOrders = filteredOrders || [];
+
+    if (!sourceOrders.length) {
+      alert("Không có dữ liệu để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceOrders.map((order: any) => {
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("orderCode")) {
+        row["Mã đơn hàng"] = order.orderCode || "";
+      }
+
+      if (selectedExportFields.includes("customerName")) {
+        row["Khách hàng"] = order.user?.fullName || "";
+      }
+
+      if (selectedExportFields.includes("phoneNumber")) {
+        row["Số điện thoại"] = order.shippingAddress?.phoneNumber || "";
+      }
+
+      if (selectedExportFields.includes("receiverName")) {
+        row["Người nhận"] = order.shippingAddress?.receiverName || "";
+      }
+
+      if (selectedExportFields.includes("address")) {
+        row["Địa chỉ giao hàng"] = getOrderAddress(order);
+      }
+
+      if (selectedExportFields.includes("paymentMethod")) {
+        row["Phương thức thanh toán"] = order.paymentMethod || "";
+      }
+
+      if (selectedExportFields.includes("paymentStatus")) {
+        row["Trạng thái thanh toán"] = getPaymentStatusLabel(
+          order.paymentStatus
+        );
+      }
+
+      if (selectedExportFields.includes("orderStatus")) {
+        row["Trạng thái đơn hàng"] = getOrderStatusLabel(order.orderStatus);
+      }
+
+      if (selectedExportFields.includes("totalPrice")) {
+        row["Tổng tiền"] = order.totalSellingPrice ?? order.totalPrice ?? 0;
+      }
+
+      if (selectedExportFields.includes("totalItems")) {
+        row["Số lượng sản phẩm"] = Array.isArray(order.orderItems)
+          ? order.orderItems.reduce(
+              (sum: number, item: any) => sum + (Number(item.quantity) || 0),
+              0
+            )
+          : 0;
+      }
+
+      if (selectedExportFields.includes("productNames")) {
+        row["Danh sách sản phẩm"] = getOrderProductNames(order);
+      }
+
+      if (selectedExportFields.includes("createdAt")) {
+        row["Ngày tạo"] = order.orderDate
+          ? format(new Date(order.orderDate), "dd/MM/yyyy HH:mm")
+          : order.createdAt
+          ? format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    worksheet["!cols"] = [
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 16 },
+      { wch: 20 },
+      { wch: 40 },
+      { wch: 20 },
+      { wch: 22 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 60 },
+      { wch: 20 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+
+    const fileName = `orders_${format(new Date(), "ddMMyyyy_HHmmss")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    handleCloseExportDialog();
+  };
+
   return (
     <Paper elevation={0} sx={panelSx}>
       {loading && <CustomLoading message="Đang cập nhật đơn hàng..." />}
@@ -227,7 +444,7 @@ export default function OrderTable() {
         }}
       >
         <Stack
-          direction={{ xs: "column", md: "row" }}
+          direction={{ xs: "column", lg: "row" }}
           justifyContent="space-between"
           spacing={2}
         >
@@ -235,82 +452,148 @@ export default function OrderTable() {
             <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
               Đơn hàng
             </Typography>
-
+            <Typography sx={{ mt: 0.6, color: TEXT_SECONDARY }}>
+              Quản lý và theo dõi toàn bộ đơn hàng của cửa hàng
+            </Typography>
           </Box>
 
-          <TextField
-            size="small"
-            placeholder="Tìm theo mã đơn, khách hàng, sản phẩm..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{
-              minWidth: { xs: "100%", md: 320 },
-              "& .MuiOutlinedInput-root": {
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.2}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            flexWrap="wrap"
+          >
+            <TextField
+              size="small"
+              placeholder="Tìm theo mã đơn, khách hàng, sản phẩm, địa chỉ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                minWidth: { xs: "100%", sm: 340 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.78)",
+                  "& fieldset": {
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.10)"
+                      : "rgba(15,23,42,0.12)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.36)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+                "& input::placeholder": {
+                  color: TEXT_MUTED,
+                  opacity: 1,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: "#fb923c", fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <Chip
+              label={`${filteredOrders.length} đơn hàng`}
+              variant="outlined"
+              sx={{
                 color: TEXT_PRIMARY,
-                borderRadius: "999px",
+                borderColor: isDark
+                  ? "rgba(249,115,22,0.28)"
+                  : "rgba(249,115,22,0.22)",
                 backgroundColor: isDark
-                  ? "rgba(255,255,255,0.03)"
-                  : "rgba(255,255,255,0.82)",
-                "& fieldset": {
-                  borderColor: isDark
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(15,23,42,0.10)",
+                  ? "rgba(249,115,22,0.06)"
+                  : "rgba(255,247,237,0.92)",
+                fontWeight: 700,
+              }}
+            />
+
+            <Button
+              variant="outlined"
+              startIcon={<Download />}
+              onClick={handleOpenExportDialog}
+              disabled={!filteredOrders.length}
+              sx={{
+                borderRadius: 999,
+                px: 2.3,
+                textTransform: "none",
+                fontWeight: 700,
+                color: TEXT_PRIMARY,
+                borderColor: isDark
+                  ? "rgba(249,115,22,0.28)"
+                  : "rgba(249,115,22,0.22)",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.02)"
+                  : "rgba(255,255,255,0.72)",
+                "&:hover": {
+                  borderColor: "rgba(249,115,22,0.45)",
+                  backgroundColor: isDark
+                    ? "rgba(249,115,22,0.08)"
+                    : "rgba(255,247,237,0.92)",
                 },
-                "&:hover fieldset": {
-                  borderColor: "rgba(249,115,22,0.34)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#f97316",
-                },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: TEXT_MUTED,
-                opacity: 1,
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ color: "#fb923c", fontSize: 20 }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+              }}
+            >
+              Xuất Excel
+            </Button>
+          </Stack>
         </Stack>
       </Box>
 
       <TableContainer>
-        <Table sx={{ minWidth: 1080 }}>
+        <Table sx={{ minWidth: 1280 }}>
           <TableHead>
             <TableRow>
               <StyledTableCell />
-              <StyledTableCell>Đơn hàng</StyledTableCell>
+              <StyledTableCell>Mã đơn</StyledTableCell>
               <StyledTableCell>Khách hàng</StyledTableCell>
               <StyledTableCell>Thanh toán</StyledTableCell>
-              <StyledTableCell align="right">Tổng tiền</StyledTableCell>
-              <StyledTableCell align="center">Trạng thái</StyledTableCell>
-              <StyledTableCell align="right">Thao tác</StyledTableCell>
+              <StyledTableCell>Trạng thái</StyledTableCell>
+              <StyledTableCell>Tổng tiền</StyledTableCell>
+              <StyledTableCell>Ngày tạo</StyledTableCell>
+              <StyledTableCell align="right">Tác vụ</StyledTableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
-            {paginatedOrders.length ? (
+            {paginatedOrders.length > 0 ? (
               paginatedOrders.map((order: any) => {
-                const status = orderStatusColors[order.orderStatus] || {
-                  color: "#d4d4d8",
-                  label: order.orderStatus,
+                const statusMeta = orderStatusColors[order.orderStatus] || {
+                  color: "#d1d5db",
+                  label: order.orderStatus || "Không rõ",
                 };
+
+                const orderDate = order.orderDate || order.createdAt;
 
                 return (
                   <React.Fragment key={order.id}>
                     <StyledTableRow>
-                      <StyledTableCell>
+                      <StyledTableCell width={70}>
                         <Button
-                          size="small"
-                          onClick={() =>
-                            setOpenRow(openRow === order.id ? null : order.id)
-                          }
-                          sx={{ minWidth: 0, color: "#fb923c" }}
+                          variant="outlined"
+                          onClick={() => handleToggleRow(order.id)}
+                          sx={{
+                            minWidth: 40,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 999,
+                            p: 0,
+                            color: TEXT_PRIMARY,
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.12)"
+                              : "rgba(15,23,42,0.10)",
+                            backgroundColor: isDark
+                              ? "transparent"
+                              : "rgba(255,255,255,0.7)",
+                          }}
                         >
                           {openRow === order.id ? (
                             <KeyboardArrowUp />
@@ -322,89 +605,83 @@ export default function OrderTable() {
 
                       <StyledTableCell>
                         <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                          #{order.orderCode}
+                          #{order.orderCode || order.id}
                         </Typography>
                         <Typography
-                          sx={{
-                            color: TEXT_MUTED,
-                            fontSize: 12.5,
-                          }}
+                          sx={{ mt: 0.4, color: TEXT_MUTED, fontSize: 13.5 }}
                         >
-                          {format(new Date(order.orderDate), "dd/MM/yyyy HH:mm", {
-                            locale: vi,
-                          })}
+                          {Array.isArray(order.orderItems)
+                            ? `${order.orderItems.length} dòng sản phẩm`
+                            : "0 sản phẩm"}
                         </Typography>
                       </StyledTableCell>
 
                       <StyledTableCell>
                         <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                          {order.user.fullName}
+                          {order.user?.fullName || "Khách hàng"}
                         </Typography>
                         <Typography
-                          sx={{
-                            color: TEXT_MUTED,
-                            fontSize: 12.5,
-                          }}
+                          sx={{ mt: 0.4, color: TEXT_MUTED, fontSize: 13.5 }}
                         >
-                          {order.shippingAddress?.phoneNumber}
+                          {order.shippingAddress?.phoneNumber || "-"}
                         </Typography>
                       </StyledTableCell>
-
-                     
 
                       <StyledTableCell>
-                        <Typography color={TEXT_PRIMARY}>
-                          {order.paymentMethod}
+                        <Typography fontWeight={700} color={TEXT_PRIMARY}>
+                          {order.paymentMethod || "-"}
                         </Typography>
+                        <Typography
+                          sx={{ mt: 0.4, color: TEXT_MUTED, fontSize: 13.5 }}
+                        >
+                          {getPaymentStatusLabel(order.paymentStatus)}
+                        </Typography>
+                      </StyledTableCell>
+
+                      <StyledTableCell>
                         <Chip
+                          label={statusMeta.label}
                           size="small"
-                          label={order.paymentStatus}
                           sx={{
-                            mt: 0.7,
+                            color: statusMeta.color,
+                            border: `1px solid ${statusMeta.color}40`,
+                            backgroundColor: `${statusMeta.color}14`,
+                            fontWeight: 700,
                             borderRadius: 999,
-                            color:
-                              order.paymentStatus === "PAID"
-                                ? "#86efac"
-                                : "#fdba74",
-                            border: "1px solid",
-                            borderColor:
-                              order.paymentStatus === "PAID"
-                                ? "rgba(34,197,94,0.35)"
-                                : "rgba(249,115,22,0.35)",
-                            backgroundColor:
-                              order.paymentStatus === "PAID"
-                                ? "rgba(34,197,94,0.08)"
-                                : "rgba(249,115,22,0.08)",
                           }}
                         />
                       </StyledTableCell>
 
-                      <StyledTableCell
-                        align="right"
-                        sx={{ fontWeight: 700, color: TEXT_PRIMARY }}
-                      >
-                        {formatCurrencyVND(order.totalPrice)}
+                      <StyledTableCell>
+                        <Typography fontWeight={800} color="#fdba74">
+                          {formatCurrencyVND(
+                            order.totalSellingPrice ?? order.totalPrice ?? 0
+                          )}
+                        </Typography>
                       </StyledTableCell>
 
-                      <StyledTableCell align="center">
-                        <Chip
-                          size="small"
-                          label={status.label}
-                          variant="outlined"
-                          sx={{
-                            borderRadius: 999,
-                            color: status.color,
-                            borderColor: `${status.color}55`,
-                            backgroundColor: `${status.color}14`,
-                          }}
-                        />
+                      <StyledTableCell>
+                        <Typography color={TEXT_SECONDARY}>
+                          {orderDate
+                            ? format(new Date(orderDate), "dd/MM/yyyy", {
+                                locale: vi,
+                              })
+                            : "-"}
+                        </Typography>
+                        <Typography
+                          sx={{ mt: 0.4, color: TEXT_MUTED, fontSize: 13.5 }}
+                        >
+                          {orderDate
+                            ? format(new Date(orderDate), "HH:mm", {
+                                locale: vi,
+                              })
+                            : ""}
+                        </Typography>
                       </StyledTableCell>
 
                       <StyledTableCell align="right">
                         <Button
-                          size="small"
                           variant="outlined"
-                          startIcon={<LocalShipping />}
                           onClick={(e) => handleClickMenuStatus(e, order.id)}
                           sx={{
                             textTransform: "none",
@@ -428,9 +705,6 @@ export default function OrderTable() {
                           onClose={handleCloseMenuStatus}
                           PaperProps={{
                             sx: {
-                              background: isDark
-                                ? "#171717"
-                                : "linear-gradient(180deg, #ffffff, #fff7ed)",
                               color: isDark ? "white" : "#111827",
                               border: isDark
                                 ? "1px solid rgba(255,255,255,0.08)"
@@ -451,28 +725,30 @@ export default function OrderTable() {
                             },
                           }}
                         >
-                          {Object.entries(orderStatusColors).map(([key, item]) => (
-                            <MenuItem
-                              key={key}
-                              onClick={() =>
-                                handleUpdateOrderStatus(
-                                  order.id,
-                                  key as OrderStatus
-                                )
-                              }
-                            >
-                              <Box
-                                sx={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: 999,
-                                  backgroundColor: item.color,
-                                  mr: 1.2,
-                                }}
-                              />
-                              {item.label}
-                            </MenuItem>
-                          ))}
+                          {Object.entries(orderStatusColors).map(
+                            ([key, item]) => (
+                              <MenuItem
+                                key={key}
+                                onClick={() =>
+                                  handleUpdateOrderStatus(
+                                    order.id,
+                                    key as OrderStatus
+                                  )
+                                }
+                              >
+                                <Box
+                                  sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: 999,
+                                    backgroundColor: item.color,
+                                    mr: 1.2,
+                                  }}
+                                />
+                                {item.label}
+                              </MenuItem>
+                            )
+                          )}
                         </Menu>
                       </StyledTableCell>
                     </StyledTableRow>
@@ -533,7 +809,7 @@ export default function OrderTable() {
                                       >
                                         <Avatar
                                           variant="rounded"
-                                          src={item.product.images[0]}
+                                          src={item.product?.images?.[0]}
                                           sx={{
                                             width: 64,
                                             height: 64,
@@ -546,7 +822,8 @@ export default function OrderTable() {
                                             fontWeight={700}
                                             color={TEXT_PRIMARY}
                                           >
-                                            {item.product.title}
+                                            {item.product?.title ||
+                                              item.productName}
                                           </Typography>
 
                                           <Typography
@@ -557,8 +834,8 @@ export default function OrderTable() {
                                               fontSize: 13.5,
                                             }}
                                           >
-                                            Màu {item.product.color} • Size{" "}
-                                            {item.size.name}
+                                            Màu {item.product?.color} • Size{" "}
+                                            {item.size?.name}
                                           </Typography>
 
                                           <Typography
@@ -568,8 +845,10 @@ export default function OrderTable() {
                                               fontSize: 13.5,
                                             }}
                                           >
-                                            {formatCurrencyVND(item.sellingPrice)} ×{" "}
-                                            {item.quantity}
+                                            {formatCurrencyVND(
+                                              item.sellingPrice
+                                            )}{" "}
+                                            × {item.quantity}
                                           </Typography>
                                         </Box>
                                       </Stack>
@@ -578,13 +857,13 @@ export default function OrderTable() {
                                 </Stack>
                               </Box>
 
-                              <Box flex={1.2}>
+                              <Box flex={1}>
                                 <Typography
                                   fontWeight={800}
                                   fontSize={18}
                                   color={TEXT_PRIMARY}
                                 >
-                                  Thông tin giao hàng
+                                  Giao hàng
                                 </Typography>
 
                                 <Paper
@@ -601,8 +880,30 @@ export default function OrderTable() {
                                       : "rgba(255,255,255,0.86)",
                                   }}
                                 >
-                                  <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                                    {order.shippingAddress.receiverName}
+                                  <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    alignItems="center"
+                                  >
+                                    <LocalShipping
+                                      sx={{ color: "#fb923c", fontSize: 18 }}
+                                    />
+                                    <Typography
+                                      fontWeight={700}
+                                      color={TEXT_PRIMARY}
+                                    >
+                                      Thông tin nhận hàng
+                                    </Typography>
+                                  </Stack>
+
+                                  <Typography
+                                    sx={{
+                                      mt: 1.2,
+                                      fontWeight: 700,
+                                      color: TEXT_PRIMARY,
+                                    }}
+                                  >
+                                    {order.shippingAddress?.receiverName}
                                   </Typography>
 
                                   <Typography
@@ -614,7 +915,7 @@ export default function OrderTable() {
                                       fontSize: 13.5,
                                     }}
                                   >
-                                    {order.shippingAddress.phoneNumber}
+                                    {order.shippingAddress?.phoneNumber}
                                   </Typography>
 
                                   <Typography
@@ -626,10 +927,10 @@ export default function OrderTable() {
                                       fontSize: 13.5,
                                     }}
                                   >
-                                    {order.shippingAddress.streetDetail},{" "}
-                                    {order.shippingAddress.ward},{" "}
-                                    {order.shippingAddress.district},{" "}
-                                    {order.shippingAddress.province}
+                                    {order.shippingAddress?.streetDetail},{" "}
+                                    {order.shippingAddress?.ward},{" "}
+                                    {order.shippingAddress?.district},{" "}
+                                    {order.shippingAddress?.province}
                                   </Typography>
                                 </Paper>
                               </Box>
@@ -695,6 +996,131 @@ export default function OrderTable() {
           },
         }}
       />
+
+      <Dialog
+        open={openExportDialog}
+        onClose={handleCloseExportDialog}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            
+            color: isDark ? "white" : "#111827",
+            borderRadius: "24px",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            boxShadow: isDark
+              ? "0 24px 60px rgba(0,0,0,0.28)"
+              : "0 18px 45px rgba(15,23,42,0.08)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: isDark ? "white" : "#111827",
+            pb: 1,
+          }}
+        >
+          Chọn các mục muốn xuất Excel
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: "8px !important" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mb: 1.8, flexWrap: "wrap", rowGap: 1 }}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleSelectAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Chọn tất cả
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handleClearAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Bỏ chọn tất cả
+            </Button>
+          </Stack>
+
+          <FormGroup>
+            {EXPORT_FIELD_OPTIONS.map((field) => (
+              <FormControlLabel
+                key={field.key}
+                control={
+                  <Checkbox
+                    checked={selectedExportFields.includes(field.key)}
+                    onChange={() => handleToggleExportField(field.key)}
+                    sx={{
+                      color: "rgba(249,115,22,0.6)",
+                      "&.Mui-checked": {
+                        color: "#f97316",
+                      },
+                    }}
+                  />
+                }
+                label={field.label}
+                sx={{
+                  color: TEXT_PRIMARY,
+                  ".MuiFormControlLabel-label": {
+                    fontSize: 14.5,
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={handleCloseExportDialog}
+            sx={{
+              textTransform: "none",
+              color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
+              backgroundColor: isDark
+                ? "transparent"
+                : "rgba(255,255,255,0.68)",
+              borderRadius: 999,
+            }}
+          >
+            Hủy
+          </Button>
+
+          <Button
+            onClick={handleExportExcel}
+            variant="contained"
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 2.8,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              boxShadow: "none",
+              "&:hover": {
+                background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                boxShadow: "none",
+              },
+            }}
+          >
+            <span className="text-slate-100"><Download /> Xuất file</span>
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

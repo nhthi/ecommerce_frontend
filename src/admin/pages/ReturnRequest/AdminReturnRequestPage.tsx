@@ -5,20 +5,27 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
+  FormGroup,
   MenuItem,
   Pagination,
   Snackbar,
+  Stack,
   TextField,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
+import DownloadIcon from "@mui/icons-material/Download";
 import React, { useEffect, useMemo, useState } from "react";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import {
   completeReturnRequest,
   fetchAdminReturnRequests,
@@ -28,6 +35,7 @@ import {
 } from "../../../state/customer/returnRequestSlice";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import { Download } from "@mui/icons-material";
 
 type ReturnRequestStatus =
   | "REQUESTED"
@@ -58,6 +66,25 @@ const SORT_OPTIONS = [
   { value: "refund_asc", label: "Hoàn tiền thấp nhất" },
 ];
 
+const EXPORT_FIELD_OPTIONS = [
+  { key: "id", label: "ID yêu cầu" },
+  { key: "orderId", label: "Mã đơn hàng" },
+  { key: "userId", label: "ID người dùng" },
+  { key: "status", label: "Trạng thái" },
+  { key: "requestedAt", label: "Ngày tạo" },
+  { key: "itemCount", label: "Số sản phẩm" },
+  { key: "refundAmount", label: "Hoàn dự kiến" },
+  { key: "reasonCode", label: "Lý do" },
+  { key: "note", label: "Ghi chú khách hàng" },
+  { key: "adminNote", label: "Ghi chú nội bộ" },
+  { key: "reviewedAt", label: "Ngày duyệt" },
+  { key: "receivedAt", label: "Ngày nhận hàng trả" },
+  { key: "refundedAt", label: "Ngày hoàn tiền" },
+  { key: "items", label: "Danh sách sản phẩm" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+
 const PAGE_SIZE = 6;
 
 const AdminReturnRequestPage = () => {
@@ -71,12 +98,28 @@ const AdminReturnRequestPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null);
+  const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(
+    null
+  );
   const [adminNote, setAdminNote] = useState("");
   const [keyword, setKeyword] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [expandedId, setExpandedId] = useState<number | false>(false);
   const [page, setPage] = useState(1);
+
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [selectedExportFields, setSelectedExportFields] = useState<
+    ExportFieldKey[]
+  >([
+    "id",
+    "orderId",
+    "userId",
+    "status",
+    "requestedAt",
+    "itemCount",
+    "refundAmount",
+    "reasonCode",
+  ]);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -108,7 +151,7 @@ const AdminReturnRequestPage = () => {
     : "0 20px 60px rgba(15,23,42,0.08)";
 
   const filteredRequests = useMemo(() => {
-    let data = [...adminRequests];
+    let data = [...(adminRequests || [])];
 
     const q = keyword.trim().toLowerCase();
     if (q) {
@@ -123,7 +166,9 @@ const AdminReturnRequestPage = () => {
         const itemText = (request.items || [])
           .map(
             (item: any) =>
-              `${item.productName || ""} ${item.sizeName || ""} ${item.orderItemId || ""}`.toLowerCase()
+              `${item.productName || ""} ${item.sizeName || ""} ${
+                item.orderItemId || ""
+              }`.toLowerCase()
           )
           .join(" ");
 
@@ -227,7 +272,9 @@ const AdminReturnRequestPage = () => {
       setSnackbar({
         open: true,
         message:
-          typeof err === "string" ? err : "Không thể cập nhật yêu cầu trả hàng.",
+          typeof err === "string"
+            ? err
+            : "Không thể cập nhật yêu cầu trả hàng.",
         severity: "error",
       });
     }
@@ -298,6 +345,162 @@ const AdminReturnRequestPage = () => {
       setExpandedId(isExpanded ? id : false);
     };
 
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const getItemsText = (request: any) => {
+    if (!Array.isArray(request.items) || !request.items.length) return "";
+
+    return request.items
+      .map((item: any) => {
+        const name = item.productName || "Sản phẩm";
+        const size = item.sizeName ? `Size ${item.sizeName}` : "";
+        const qty =
+          item.quantity !== undefined && item.quantity !== null
+            ? `x${item.quantity}`
+            : "";
+        const refund =
+          item.refundAmount !== undefined && item.refundAmount !== null
+            ? `Hoàn ${formatVND(item.refundAmount)}`
+            : "";
+        const orderItemId = item.orderItemId
+          ? `Item #${item.orderItemId}`
+          : "";
+
+        return [name, size, qty, refund, orderItemId].filter(Boolean).join(" - ");
+      })
+      .join(" | ");
+  };
+
+  const handleExportExcel = () => {
+    const sourceRequests = filteredRequests || [];
+
+    if (!sourceRequests.length) {
+      alert("Không có dữ liệu yêu cầu trả hàng để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceRequests.map((request: any) => {
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("id")) {
+        row["ID yêu cầu"] = request.id ?? "";
+      }
+
+      if (selectedExportFields.includes("orderId")) {
+        row["Mã đơn hàng"] = request.orderId ?? "";
+      }
+
+      if (selectedExportFields.includes("userId")) {
+        row["ID người dùng"] = request.userId ?? "";
+      }
+
+      if (selectedExportFields.includes("status")) {
+        row["Trạng thái"] = getReturnStatusLabel(request.status);
+      }
+
+      if (selectedExportFields.includes("requestedAt")) {
+        row["Ngày tạo"] = request.requestedAt
+          ? format(new Date(request.requestedAt), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      if (selectedExportFields.includes("itemCount")) {
+        row["Số sản phẩm"] = Array.isArray(request.items)
+          ? request.items.length
+          : 0;
+      }
+
+      if (selectedExportFields.includes("refundAmount")) {
+        row["Hoàn dự kiến"] = request.refundAmount ?? 0;
+      }
+
+      if (selectedExportFields.includes("reasonCode")) {
+        row["Lý do"] = request.reasonCode ?? "";
+      }
+
+      if (selectedExportFields.includes("note")) {
+        row["Ghi chú khách hàng"] = request.note ?? "";
+      }
+
+      if (selectedExportFields.includes("adminNote")) {
+        row["Ghi chú nội bộ"] = request.adminNote ?? "";
+      }
+
+      if (selectedExportFields.includes("reviewedAt")) {
+        row["Ngày duyệt"] = request.reviewedAt
+          ? format(new Date(request.reviewedAt), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      if (selectedExportFields.includes("receivedAt")) {
+        row["Ngày nhận hàng trả"] = request.receivedAt
+          ? format(new Date(request.receivedAt), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      if (selectedExportFields.includes("refundedAt")) {
+        row["Ngày hoàn tiền"] = request.refundedAt
+          ? format(new Date(request.refundedAt), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      if (selectedExportFields.includes("items")) {
+        row["Danh sách sản phẩm"] = getItemsText(request);
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    worksheet["!cols"] = [
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 24 },
+      { wch: 34 },
+      { wch: 34 },
+      { wch: 20 },
+      { wch: 22 },
+      { wch: 22 },
+      { wch: 60 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "ReturnRequests");
+
+    const fileName = `return_requests_${format(
+      new Date(),
+      "ddMMyyyy_HHmmss"
+    )}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+    setOpenExportDialog(false);
+  };
+
   return (
     <Box className="space-y-6">
       <section
@@ -315,32 +518,55 @@ const AdminReturnRequestPage = () => {
                 Quản lý trả hàng
               </h2>
               <p className="mt-2" style={{ color: textColor }}>
-                Theo dõi, xét duyệt và cập nhật trạng thái các yêu cầu trả hàng từ khách hàng.
+                Theo dõi, xét duyệt và cập nhật trạng thái các yêu cầu trả hàng từ
+                khách hàng.
               </p>
             </div>
 
-            <div className="text-sm" style={{ color: mutedColor }}>
-              Tổng: <span style={{ color: titleColor, fontWeight: 700 }}>{filteredRequests.length}</span> yêu cầu
+            <div className="flex flex-wrap items-center gap-3">
+              <Chip
+                label={`${filteredRequests.length} yêu cầu`}
+                sx={{
+                  borderRadius: "999px",
+                  color: titleColor,
+                  border: `1px solid ${borderColor}`,
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "#fff7ed",
+                  fontWeight: 700,
+                }}
+              />
+
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={() => setOpenExportDialog(true)}
+                disabled={!filteredRequests.length}
+                sx={ghostButtonSx(isDark)}
+              >
+                Xuất Excel
+              </Button>
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_220px_220px]">
             <TextField
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Tìm theo mã yêu cầu, mã đơn, sản phẩm..."
+              placeholder="Tìm theo mã đơn, mã yêu cầu, user, sản phẩm..."
+              size="small"
               sx={fieldSx(isDark)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <SearchIcon sx={{ color: mutedColor, mr: 1 }} />
-                  ),
-                },
+              InputProps={{
+                startAdornment: (
+                  <SearchIcon sx={{ mr: 1, color: mutedColor }} />
+                ),
               }}
             />
 
             <TextField
               select
+              label="Trạng thái"
+              size="small"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               sx={fieldSx(isDark)}
@@ -354,6 +580,8 @@ const AdminReturnRequestPage = () => {
 
             <TextField
               select
+              label="Sắp xếp"
+              size="small"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               sx={fieldSx(isDark)}
@@ -370,7 +598,7 @@ const AdminReturnRequestPage = () => {
 
       {loading ? (
         <section
-          className="rounded-[1.8rem] p-8 text-center"
+          className="rounded-[1.8rem] px-6 py-10 text-center"
           style={{
             backgroundColor: cardBg,
             border: `1px solid ${borderColor}`,
@@ -378,11 +606,11 @@ const AdminReturnRequestPage = () => {
             color: mutedColor,
           }}
         >
-          Đang tải danh sách yêu cầu trả hàng...
+          Đang tải dữ liệu...
         </section>
-      ) : filteredRequests.length === 0 ? (
+      ) : paginatedRequests.length === 0 ? (
         <section
-          className="rounded-[1.8rem] p-8 text-center"
+          className="rounded-[1.8rem] px-6 py-10 text-center"
           style={{
             backgroundColor: cardBg,
             border: `1px solid ${borderColor}`,
@@ -390,357 +618,302 @@ const AdminReturnRequestPage = () => {
             color: mutedColor,
           }}
         >
-          Không có yêu cầu trả hàng nào phù hợp.
+          Không có yêu cầu trả hàng phù hợp.
         </section>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-4">
             {paginatedRequests.map((request: any) => (
               <Accordion
                 key={request.id}
                 expanded={expandedId === request.id}
                 onChange={handleAccordionChange(request.id)}
                 disableGutters
+                elevation={0}
                 sx={{
-                  backgroundColor: cardBg,
-                  color: titleColor,
-                  borderRadius: "1.4rem !important",
-                  border: `1px solid ${borderColor}`,
-                  boxShadow: shadow,
+                  borderRadius: "1.8rem !important",
                   overflow: "hidden",
-                  "&:before": { display: "none" },
+                  border: `1px solid ${borderColor}`,
+                  backgroundColor: cardBg,
+                  boxShadow: shadow,
+                  "&::before": { display: "none" },
                 }}
               >
                 <AccordionSummary
-                  expandIcon={<ExpandMoreIcon sx={{ color: "#fb923c" }} />}
+                  expandIcon={<ExpandMoreIcon sx={{ color: mutedColor }} />}
                   sx={{
-                    px: 2.5,
-                    py: 1.1,
+                    px: 3,
+                    py: 2.2,
+                    minHeight: "unset !important",
                     "& .MuiAccordionSummary-content": {
-                      margin: "10px 0",
+                      margin: "0 !important",
                     },
                   }}
                 >
-                  <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3
-                          className="text-lg font-black"
-                          style={{ color: titleColor }}
-                        >
-                          Yêu cầu #{request.id}
-                        </h3>
+                  <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Chip
+                          label={`Yêu cầu #${request.id}`}
+                          size="small"
+                          sx={{
+                            borderRadius: "999px",
+                            fontWeight: 700,
+                            color: titleColor,
+                            backgroundColor: isDark
+                              ? "rgba(255,255,255,0.05)"
+                              : "#f8fafc",
+                          }}
+                        />
                         <Chip
                           label={getReturnStatusLabel(request.status)}
                           size="small"
                           sx={{
                             borderRadius: "999px",
-                            fontWeight: 800,
+                            fontWeight: 700,
                             color: getReturnStatusColor(request.status),
-                            backgroundColor: isDark
-                              ? "rgba(255,255,255,0.04)"
-                              : "rgba(15,23,42,0.04)",
-                            border: `1px solid ${innerBorderColor}`,
+                            border: `1px solid ${getReturnStatusColor(
+                              request.status
+                            )}55`,
+                            backgroundColor: `${getReturnStatusColor(
+                              request.status
+                            )}14`,
                           }}
                         />
                       </div>
 
                       <div
-                        className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm"
-                        style={{ color: textColor }}
+                        className="text-sm font-semibold"
+                        style={{ color: titleColor }}
                       >
-                        <p>Đơn hàng #{request.orderId}</p>
-                        <p>Người dùng #{request.userId}</p>
-                        <p>Ngày tạo: {formatDateTime(request.requestedAt)}</p>
-                        <p>{request.items?.length || 0} sản phẩm</p>
+                        Đơn hàng #{request.orderId} • User #{request.userId}
+                      </div>
+
+                      <div className="text-sm" style={{ color: mutedColor }}>
+                        Tạo lúc {formatDateTime(request.requestedAt)}
                       </div>
                     </div>
 
-                    <div className="text-left lg:text-right">
+                    <div className="text-right">
                       <p
-                        className="text-xs font-semibold uppercase tracking-[0.14em]"
+                        className="text-sm font-bold uppercase tracking-[0.12em]"
                         style={{ color: mutedColor }}
                       >
                         Hoàn dự kiến
                       </p>
-                      <p className="mt-1 text-xl font-black text-orange-400">
+                      <p
+                        className="mt-1 text-lg font-extrabold"
+                        style={{ color: titleColor }}
+                      >
                         {formatVND(request.refundAmount)}
                       </p>
                     </div>
                   </div>
                 </AccordionSummary>
 
-                <AccordionDetails sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
-                  <Divider sx={{ borderColor, mb: 3 }} />
+                <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
+                  <Divider sx={{ mb: 2, borderColor }} />
 
-                  <div className="grid gap-4 xl:grid-cols-[1.2fr_0.9fr]">
-                    <div className="space-y-3">
-                      {(request.items || []).map((item: any) => (
-                        <div
-                          key={item.id}
-                          className="flex flex-col gap-3 rounded-[1.2rem] p-3 sm:flex-row"
-                          style={{
-                            backgroundColor: subCardBg,
-                            border: `1px solid ${innerBorderColor}`,
-                          }}
-                        >
-                          <img
-                            src={item.productImage}
-                            alt={item.productName}
-                            className="h-24 w-20 rounded-xl object-cover"
-                            style={{ border: `1px solid ${innerBorderColor}` }}
-                          />
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div
+                      className="rounded-2xl p-4"
+                      style={{
+                        backgroundColor: subCardBg,
+                        border: `1px solid ${innerBorderColor}`,
+                      }}
+                    >
+                      <p
+                        className="text-sm font-bold uppercase tracking-[0.12em]"
+                        style={{ color: mutedColor }}
+                      >
+                        Thông tin xử lý
+                      </p>
 
-                          <div className="min-w-0 flex-1">
-                            <p
-                              className="line-clamp-2 text-base font-bold"
-                              style={{ color: titleColor }}
-                            >
-                              {item.productName}
-                            </p>
-
-                            <div
-                              className="mt-2 flex flex-wrap gap-4 text-sm"
-                              style={{ color: textColor }}
-                            >
-                              <p>
-                                OrderItem ID:{" "}
-                                <span
-                                  className="font-semibold"
-                                  style={{ color: titleColor }}
-                                >
-                                  {item.orderItemId}
-                                </span>
-                              </p>
-                              <p>
-                                Size:{" "}
-                                <span
-                                  className="font-semibold"
-                                  style={{ color: titleColor }}
-                                >
-                                  {item.sizeName || "Không có"}
-                                </span>
-                              </p>
-                              <p>
-                                Số lượng trả:{" "}
-                                <span
-                                  className="font-semibold"
-                                  style={{ color: titleColor }}
-                                >
-                                  {item.quantity}
-                                </span>
-                              </p>
-                            </div>
-
-                            <p className="mt-2 text-sm font-bold text-orange-400">
-                              Hoàn: {formatVND(item.refundAmount)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {request.imageUrls?.length > 0 && (
-                        <div
-                          className="rounded-2xl p-4"
-                          style={{
-                            backgroundColor: subCardBg,
-                            border: `1px solid ${innerBorderColor}`,
-                          }}
-                        >
-                          <p
-                            className="text-sm font-bold uppercase tracking-[0.12em]"
-                            style={{ color: mutedColor }}
-                          >
-                            Ảnh minh chứng
-                          </p>
-                          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            {request.imageUrls.map((url: string) => (
-                              <img
-                                key={url}
-                                src={url}
-                                alt="return-proof"
-                                className="h-24 w-full rounded-xl object-cover"
-                                style={{ border: `1px solid ${innerBorderColor}` }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <div
+                        className="mt-2 space-y-1 text-sm"
+                        style={{ color: textColor }}
+                      >
+                        <p>Trạng thái: {getReturnStatusLabel(request.status)}</p>
+                        <p>Ngày tạo: {formatDateTime(request.requestedAt)}</p>
+                        <p>Ngày duyệt: {formatDateTime(request.reviewedAt)}</p>
+                        <p>
+                          Ngày nhận hàng trả: {formatDateTime(request.receivedAt)}
+                        </p>
+                        <p>Ngày hoàn tiền: {formatDateTime(request.refundedAt)}</p>
+                      </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <div
-                        className="rounded-2xl p-4"
-                        style={{
-                          backgroundColor: subCardBg,
-                          border: `1px solid ${innerBorderColor}`,
-                        }}
+                    <div
+                      className="rounded-2xl p-4"
+                      style={{
+                        backgroundColor: subCardBg,
+                        border: `1px solid ${innerBorderColor}`,
+                      }}
+                    >
+                      <p
+                        className="text-sm font-bold uppercase tracking-[0.12em]"
+                        style={{ color: mutedColor }}
                       >
-                        <p
-                          className="text-sm font-bold uppercase tracking-[0.12em]"
-                          style={{ color: mutedColor }}
-                        >
-                          Thông tin yêu cầu
-                        </p>
-                        <div className="mt-3 space-y-2 text-sm" style={{ color: textColor }}>
-                          <p>
-                            Trạng thái:{" "}
-                            <span
-                              className="font-semibold"
-                              style={{ color: getReturnStatusColor(request.status) }}
-                            >
-                              {getReturnStatusLabel(request.status)}
-                            </span>
-                          </p>
-                          <p>Ngày tạo: {formatDateTime(request.requestedAt)}</p>
-                          {request.reviewedAt && (
-                            <p>Ngày duyệt: {formatDateTime(request.reviewedAt)}</p>
-                          )}
-                          {request.receivedAt && (
-                            <p>Ngày nhận hàng trả: {formatDateTime(request.receivedAt)}</p>
-                          )}
-                          {request.refundedAt && (
-                            <p>Ngày hoàn tiền: {formatDateTime(request.refundedAt)}</p>
-                          )}
-                        </div>
-                      </div>
+                        Lý do và ghi chú
+                      </p>
 
                       <div
-                        className="rounded-2xl p-4"
-                        style={{
-                          backgroundColor: subCardBg,
-                          border: `1px solid ${innerBorderColor}`,
-                        }}
+                        className="mt-2 space-y-2 text-sm"
+                        style={{ color: textColor }}
                       >
-                        <p
-                          className="text-sm font-bold uppercase tracking-[0.12em]"
-                          style={{ color: mutedColor }}
-                        >
-                          Lý do
+                        <p>
+                          <span className="font-semibold">Lý do:</span>{" "}
+                          {request.reasonCode || "Chưa có"}
                         </p>
-                        <p className="mt-2 text-sm" style={{ color: textColor }}>
-                          {request.reasonCode || "Không có"}
+                        <p>
+                          <span className="font-semibold">Khách ghi chú:</span>{" "}
+                          {request.note || "Không có"}
                         </p>
-                      </div>
-
-                      <div
-                        className="rounded-2xl p-4"
-                        style={{
-                          backgroundColor: subCardBg,
-                          border: `1px solid ${innerBorderColor}`,
-                        }}
-                      >
-                        <p
-                          className="text-sm font-bold uppercase tracking-[0.12em]"
-                          style={{ color: mutedColor }}
-                        >
-                          Ghi chú khách hàng
-                        </p>
-                        <p className="mt-2 text-sm" style={{ color: textColor }}>
-                          {request.note || "Không có ghi chú"}
-                        </p>
-                      </div>
-
-                      <div
-                        className="rounded-2xl p-4"
-                        style={{
-                          backgroundColor: subCardBg,
-                          border: `1px solid ${innerBorderColor}`,
-                        }}
-                      >
-                        <p
-                          className="text-sm font-bold uppercase tracking-[0.12em]"
-                          style={{ color: mutedColor }}
-                        >
-                          Ghi chú nội bộ
-                        </p>
-                        <p className="mt-2 text-sm" style={{ color: textColor }}>
+                        <p>
+                          <span className="font-semibold">Nội bộ:</span>{" "}
                           {request.adminNote || "Chưa có"}
                         </p>
                       </div>
-
-                      <div className="flex flex-wrap gap-3 pt-1">
-                        {(isAdmin || isStaff) && request.status === "REQUESTED" && (
-                          <>
-                            <Button
-                              variant="contained"
-                              disabled={actionLoading}
-                              sx={primaryButtonSx}
-                              onClick={() => openReviewDialog(request, "approve")}
-                            >
-                              Duyệt
-                            </Button>
-
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              disabled={actionLoading}
-                              sx={dangerOutlineButtonSx}
-                              onClick={() => openReviewDialog(request, "reject")}
-                            >
-                              Từ chối
-                            </Button>
-                          </>
-                        )}
-
-                        {(isAdmin || isStaff) &&
-                          request.status === "CUSTOMER_SHIPPED" && (
-                            <Button
-                              variant="contained"
-                              disabled={actionLoading}
-                              sx={primaryButtonSx}
-                              onClick={() => handleMarkReceived(request.id)}
-                            >
-                              Xác nhận đã nhận hàng trả
-                            </Button>
-                          )}
-
-                        {isAdmin && request.status === "RECEIVED" && (
-                          <Button
-                            variant="contained"
-                            disabled={actionLoading}
-                            sx={primaryButtonSx}
-                            onClick={() => handleRefunded(request.id)}
-                          >
-                            Xác nhận hoàn tiền
-                          </Button>
-                        )}
-
-                        {isAdmin && request.status === "REFUNDED" && (
-                          <Button
-                            variant="contained"
-                            disabled={actionLoading}
-                            sx={primaryButtonSx}
-                            onClick={() => handleComplete(request.id)}
-                          >
-                            Hoàn tất yêu cầu
-                          </Button>
-                        )}
-                      </div>
                     </div>
+                  </div>
+
+                  <div
+                    className="mt-4 rounded-2xl p-4"
+                    style={{
+                      backgroundColor: subCardBg,
+                      border: `1px solid ${innerBorderColor}`,
+                    }}
+                  >
+                    <p
+                      className="text-sm font-bold uppercase tracking-[0.12em]"
+                      style={{ color: mutedColor }}
+                    >
+                      Sản phẩm trả hàng
+                    </p>
+
+                    <div className="mt-3 flex flex-col gap-3">
+                      {(request.items || []).length > 0 ? (
+                        request.items.map((item: any, index: number) => (
+                          <div
+                            key={item.orderItemId || index}
+                            className="rounded-2xl p-3"
+                            style={{
+                              border: `1px solid ${innerBorderColor}`,
+                              backgroundColor: isDark
+                                ? "rgba(255,255,255,0.02)"
+                                : "#ffffff",
+                            }}
+                          >
+                            <div
+                              className="text-sm font-semibold"
+                              style={{ color: titleColor }}
+                            >
+                              {item.productName || "Sản phẩm"}
+                            </div>
+
+                            <div
+                              className="mt-1 text-sm"
+                              style={{ color: textColor }}
+                            >
+                              Mã item: #{item.orderItemId || "-"} • Size:{" "}
+                              {item.sizeName || "-"} • Số lượng:{" "}
+                              {item.quantity ?? 0}
+                            </div>
+
+                            <div
+                              className="mt-1 text-sm font-semibold"
+                              style={{ color: titleColor }}
+                            >
+                              Hoàn: {formatVND(item.refundAmount)}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm" style={{ color: mutedColor }}>
+                          Không có sản phẩm trong yêu cầu trả hàng.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 pt-4">
+                    {(isAdmin || isStaff) && request.status === "REQUESTED" && (
+                      <>
+                        <Button
+                          variant="contained"
+                          disabled={actionLoading}
+                          sx={primaryButtonSx}
+                          onClick={() => openReviewDialog(request, "approve")}
+                        >
+                          <span className="text-slate-100">Duyệt</span>
+                          
+                        </Button>
+
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          disabled={actionLoading}
+                          sx={dangerOutlineButtonSx}
+                          onClick={() => openReviewDialog(request, "reject")}
+                        >
+                          Từ chối
+                        </Button>
+                      </>
+                    )}
+
+                    {(isAdmin || isStaff) &&
+                      request.status === "CUSTOMER_SHIPPED" && (
+                        <Button
+                          variant="contained"
+                          disabled={actionLoading}
+                          sx={primaryButtonSx}
+                          onClick={() => handleMarkReceived(request.id)}
+                        >
+                          Xác nhận đã nhận hàng trả
+                        </Button>
+                      )}
+
+                    {isAdmin && request.status === "RECEIVED" && (
+                      <Button
+                        variant="contained"
+                        disabled={actionLoading}
+                        sx={primaryButtonSx}
+                        onClick={() => handleRefunded(request.id)}
+                      >
+                        Xác nhận hoàn tiền
+                      </Button>
+                    )}
+
+                    {isAdmin && request.status === "REFUNDED" && (
+                      <Button
+                        variant="contained"
+                        disabled={actionLoading}
+                        sx={primaryButtonSx}
+                        onClick={() => handleComplete(request.id)}
+                      >
+                        Hoàn tất yêu cầu
+                      </Button>
+                    )}
                   </div>
                 </AccordionDetails>
               </Accordion>
             ))}
           </div>
 
-          <Box className="flex justify-center pt-2">
+          <div className="flex justify-center">
             <Pagination
-              count={totalPages}
               page={page}
+              count={totalPages}
               onChange={(_e, value) => setPage(value)}
+              // color="primary"
               shape="rounded"
-              color="primary"
               sx={{
                 "& .MuiPaginationItem-root": {
-                  color: isDark ? "#fff" : "#0f172a",
-                  borderColor: isDark
-                    ? "rgba(255,255,255,0.12)"
-                    : "rgba(15,23,42,0.12)",
+                  color: "#fff",
                 },
               }}
             />
-          </Box>
+          </div>
         </>
       )}
 
@@ -756,8 +929,6 @@ const AdminReturnRequestPage = () => {
             color: titleColor,
             border: `1px solid ${borderColor}`,
             boxShadow: shadow,
-            overflow: "visible",
-            maxHeight: "none",
           },
         }}
       >
@@ -800,6 +971,87 @@ const AdminReturnRequestPage = () => {
               : reviewAction === "approve"
               ? "Xác nhận duyệt"
               : "Xác nhận từ chối"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: "1.5rem",
+            backgroundColor: cardBg,
+            color: titleColor,
+            border: `1px solid ${borderColor}`,
+            boxShadow: shadow,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.2rem" }}>
+          Chọn các mục muốn xuất Excel
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack direction="row" spacing={1} sx={{ mb: 1.8, flexWrap: "wrap" }}>
+            <Button
+              variant="outlined"
+              onClick={handleSelectAllExportFields}
+              sx={ghostButtonSx(isDark)}
+            >
+              Chọn tất cả
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleClearAllExportFields}
+              sx={ghostButtonSx(isDark)}
+            >
+              Bỏ chọn tất cả
+            </Button>
+          </Stack>
+
+          <FormGroup>
+            {EXPORT_FIELD_OPTIONS.map((field) => (
+              <FormControlLabel
+                key={field.key}
+                control={
+                  <Checkbox
+                    checked={selectedExportFields.includes(field.key)}
+                    onChange={() => handleToggleExportField(field.key)}
+                    sx={{
+                      color: "rgba(249,115,22,0.6)",
+                      "&.Mui-checked": { color: "#f97316" },
+                    }}
+                  />
+                }
+                label={field.label}
+                sx={{
+                  color: titleColor,
+                  ".MuiFormControlLabel-label": {
+                    fontSize: 14.5,
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3 }}>
+          <Button
+            onClick={() => setOpenExportDialog(false)}
+            sx={ghostButtonSx(isDark)}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleExportExcel}
+            variant="contained"
+
+            sx={primaryButtonSx}
+          >
+<span className="text-slate-100"><Download /> Xuất file</span>
           </Button>
         </DialogActions>
       </Dialog>

@@ -61,26 +61,26 @@ const RecentOrders: React.FC<RecentOrdersProps> = ({ customerId }) => {
   const chartData = data?.chartData ?? [];
   const recentOrders = data?.recentOrders ?? [];
 
-  const strongText = isDark ? "#ffffff" : "#0f172a";
-  const mutedText = isDark ? "#94a3b8" : "#64748b";
-  const softBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
-  const panelBg = isDark ? "#141414" : "#ffffff";
-  const subPanelBg = isDark ? "rgba(255,255,255,0.03)" : "#f8fafc";
+  const strongText = isDark ? "#ffffff" : "#000000";
+  const mutedText = isDark ? "#9ca3af" : "#6b7280";
+  const softBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
+  const panelBg = isDark ? "#121212" : "#ffffff";
+  const subPanelBg = isDark ? "#1a1a1a" : "#f3f4f6";
 
-const summaryItems = useMemo(
-  () => [
-    { label: "Tổng chi tiêu", value: `${totalSpent.toLocaleString()}đ`, color: "#fb923c" },
-    { label: "Tổng đơn hàng", value: `${totalOrders}`, color: strongText },
-    { label: "Trung bình / đơn", value: `${avgPerOrder.toLocaleString()}đ`, color: "#fdba74" },
-    { label: "Tỷ lệ hủy đơn", value: `${cancelRate.toFixed(1)}%`, color: "#f87171" },
-  ],
-  [avgPerOrder, cancelRate, strongText, totalOrders, totalSpent]
-);
+  const summaryItems = useMemo(
+    () => [
+      { label: "Tổng chi tiêu", value: `${totalSpent.toLocaleString()}đ` },
+      { label: "Tổng đơn hàng", value: `${totalOrders}` },
+      { label: "Trung bình / đơn", value: `${avgPerOrder.toLocaleString()}đ` },
+      { label: "Tỷ lệ hủy đơn", value: `${cancelRate.toFixed(1)}%` },
+    ],
+    [avgPerOrder, cancelRate, totalOrders, totalSpent]
+  );
 
   if (loading) {
     return (
       <Box className="flex h-[300px] items-center justify-center">
-        <CircularProgress sx={{ color: "#f97316" }} />
+        <CircularProgress />
       </Box>
     );
   }
@@ -91,17 +91,17 @@ const summaryItems = useMemo(
         mt: 1,
         p: 1.5,
         backgroundColor: panelBg,
-        border: `1px solid ${isDark ? "rgba(249,115,22,0.12)" : "rgba(15,23,42,0.08)"}`,
+        border: `1px solid ${softBorder}`,
         color: strongText,
-        borderRadius: "24px",
-        boxShadow: isDark ? "none" : "0 18px 40px rgba(15,23,42,0.08)",
+        borderRadius: "20px",
+        boxShadow: "none",
       }}
     >
       <CardHeader
-        titleTypographyProps={{ fontSize: "1.7rem", fontWeight: 900, color: strongText }}
-        subheaderTypographyProps={{ fontSize: "1rem", color: mutedText }}
+        titleTypographyProps={{ fontSize: "1.6rem", fontWeight: 800, color: strongText }}
+        subheaderTypographyProps={{ fontSize: "0.95rem", color: mutedText }}
         title="Phân tích mua hàng"
-        subheader="Theo dõi chi tiêu, tần suất mua hàng và xu hướng đơn hàng trong thời gian gần đây"
+        subheader="Theo dõi chi tiêu và hành vi mua hàng gần đây"
         action={
           <ButtonGroup variant="outlined" size="small">
             {(["7d", "30d", "6m"] as const).map((value) => (
@@ -111,11 +111,10 @@ const summaryItems = useMemo(
                 variant={filter === value ? "contained" : "outlined"}
                 sx={{
                   textTransform: "none",
-                  fontWeight: 700,
-                  borderColor: "rgba(249,115,22,0.28)",
-                  color: filter === value ? "#050505" : "#fb923c",
-                  backgroundColor: filter === value ? "#f97316" : "transparent",
-                  "&:hover": { borderColor: "#fb923c" },
+                  fontWeight: 600,
+                  borderColor: softBorder,
+                  color: filter === value ? "#ffffff" : strongText,
+                  backgroundColor: filter === value ? "#000000" : "transparent",
                 }}
               >
                 {value}
@@ -126,22 +125,23 @@ const summaryItems = useMemo(
       />
 
       <CardContent>
-        <Grid container spacing={2.2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {summaryItems.map((item) => (
             <Grid key={item.label} size={{ xs: 12, sm: 6, lg: 3 }}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2.5,
+                  p: 2,
                   textAlign: "center",
                   backgroundColor: subPanelBg,
-                  borderRadius: "18px",
-                  color: strongText,
+                  borderRadius: "14px",
                   border: `1px solid ${softBorder}`,
                 }}
               >
-                <Typography sx={{ fontSize: "0.95rem", color: mutedText }}>{item.label}</Typography>
-                <Typography sx={{ fontSize: "1.7rem", fontWeight: 900, color: item.color, mt: 1 }}>
+                <Typography sx={{ fontSize: "0.9rem", color: mutedText }}>
+                  {item.label}
+                </Typography>
+                <Typography sx={{ fontSize: "1.5rem", fontWeight: 800, mt: 1 }}>
                   {item.value}
                 </Typography>
               </Paper>
@@ -149,28 +149,33 @@ const summaryItems = useMemo(
           ))}
         </Grid>
 
-        <Box sx={{ height: 260, mb: 3 }}>
+        <Box sx={{ height: 250, mb: 3 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={softBorder} />
               <XAxis dataKey="date" stroke={mutedText} />
               <YAxis stroke={mutedText} />
               <Tooltip
-                formatter={(value: any) => `${Number(value).toLocaleString()}d`}
+                formatter={(value: any) => `${Number(value).toLocaleString()}đ`}
                 contentStyle={{
                   background: panelBg,
                   border: `1px solid ${softBorder}`,
-                  borderRadius: 14,
+                  borderRadius: 10,
                   color: strongText,
                 }}
-                labelStyle={{ color: strongText }}
               />
-              <Line type="monotone" dataKey="amount" stroke="#f97316" strokeWidth={3} dot={false} />
+              <Line
+  type="monotone"
+  dataKey="amount"
+  stroke={isDark ? "#e5e7eb" : "#111827"}
+  strokeWidth={2.5}
+  dot={false}
+/>
             </LineChart>
           </ResponsiveContainer>
         </Box>
 
-        <Typography sx={{ fontSize: "1.4rem", fontWeight: 900, color: strongText, mb: 1.5 }}>
+        <Typography sx={{ fontSize: "1.3rem", fontWeight: 800, mb: 1.5 }}>
           Đơn hàng gần đây
         </Typography>
 
@@ -180,8 +185,7 @@ const summaryItems = useMemo(
               {["Mã đơn", "Sản phẩm", "Ngày đặt", "Trạng thái", "Tổng tiền"].map((cell) => (
                 <TableCell
                   key={cell}
-                  sx={{ color: mutedText, fontSize: "0.95rem", borderColor: softBorder }}
-                  align={cell === "Tong tien" ? "right" : "left"}
+                  sx={{ color: mutedText, borderColor: softBorder }}
                 >
                   {cell}
                 </TableCell>
@@ -200,39 +204,20 @@ const summaryItems = useMemo(
                     "& td": { borderColor: softBorder },
                   }}
                 >
-                  <TableCell sx={{ color: strongText, fontSize: "1rem" }}>#{order.orderId}</TableCell>
-                  <TableCell sx={{ color: isDark ? "#e2e8f0" : "#334155", fontSize: "1rem" }}>
-                    {order.productName}
-                  </TableCell>
-                  <TableCell sx={{ color: isDark ? "#cbd5e1" : "#64748b", fontSize: "1rem" }}>
-                    {order.orderDate}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      color:
-                        order.status === "DELIVERED"
-                          ? "#22c55e"
-                          : order.status === "PENDING"
-                          ? "#f59e0b"
-                          : "#fb923c",
-                      fontSize: "1rem",
-                      fontWeight: 700,
-                    }}
-                  >
+                  <TableCell>#{order.orderId}</TableCell>
+                  <TableCell>{order.productName}</TableCell>
+                  <TableCell>{order.orderDate}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>
                     {order.status}
                   </TableCell>
-                  <TableCell align="right" sx={{ color: "#fb923c", fontSize: "1rem", fontWeight: 700 }}>
-                    {order.totalAmount.toLocaleString()}d
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                    {order.totalAmount.toLocaleString()}đ
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  align="center"
-                  sx={{ color: mutedText, fontSize: "1rem", borderColor: softBorder }}
-                >
+                <TableCell colSpan={5} align="center" sx={{ color: mutedText }}>
                   Chưa có đơn hàng
                 </TableCell>
               </TableRow>

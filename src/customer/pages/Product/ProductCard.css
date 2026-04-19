@@ -12,7 +12,12 @@
   cursor: pointer;
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
-
+.product-card__sold {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
 .product-card__frame:hover {
   transform: translateY(-4px);
   border-color: rgba(249, 115, 22, 0.24);

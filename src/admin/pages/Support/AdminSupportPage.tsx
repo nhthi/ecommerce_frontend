@@ -386,7 +386,9 @@ const AdminSupportPage: React.FC = () => {
             </Grid>
             <Grid size={{ xs: 4, md: 1 }}>
               <Button fullWidth variant="contained" onClick={handleSearch} sx={{ height: 40, minWidth: 0 }}>
-                <Search />
+                <span className="text-slate-100">
+                <Search sx={{color:"#fff"}}/>
+                </span>
               </Button>
             </Grid>
           </Grid>
@@ -452,9 +454,31 @@ const AdminSupportPage: React.FC = () => {
                         <Typography sx={{ color: mutedText, fontSize: 12 }}>{formatDateTime(item.updatedAt)}</Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Button variant={active ? "contained" : "outlined"} startIcon={<Visibility />} onClick={() => setSelectedConversationId(item.id)}>
-                          Xem
-                        </Button>
+                        <Button
+  variant={active ? "contained" : "outlined"}
+  startIcon={<Visibility />}
+  onClick={() => setSelectedConversationId(item.id)}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    boxShadow: "none",
+    ...(active
+      ? {
+          backgroundColor: "#111827",
+          "& .MuiButton-startIcon, & .MuiSvgIcon-root": {
+            color: "#fff !important",
+          },
+        }
+      : {
+          borderColor: "#cbd5e1",
+          color: "#334155",
+        }),
+  }}
+>
+  <span style={{ color: active ? "#fff" : "#334155", fontWeight: 700 }}>
+    Xem
+  </span>
+</Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -576,7 +600,22 @@ const AdminSupportPage: React.FC = () => {
                         <Select fullWidth size="small" value={localStatus} onChange={(e: SelectChangeEvent<string>) => setLocalStatus(e.target.value)}>
                           {statusOptions.map((status) => <MenuItem key={status} value={status}>{statusLabelMap[status]}</MenuItem>)}
                         </Select>
-                        <Button variant="contained" onClick={handleUpdateStatus} disabled={!localStatus || actionLoading}>Cập nhật trạng thái</Button>
+                        <Button
+  variant="contained"
+  onClick={handleUpdateStatus}
+  disabled={!localStatus || actionLoading}
+  sx={{
+    color: "#fff !important",
+    "& .MuiButton-label": {
+      color: "#fff !important",
+    },
+    "& .MuiSvgIcon-root": {
+      color: "#fff !important",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Cập nhật trạng thái</span>
+</Button>
                       </Stack>
                     </Paper>
                   </Grid>

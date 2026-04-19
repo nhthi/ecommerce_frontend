@@ -3,7 +3,14 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
   InputAdornment,
   Menu,
   MenuItem,
@@ -23,10 +30,13 @@ import {
 import { styled } from "@mui/material/styles";
 import {
   AdminPanelSettings,
+  Download,
   KeyboardArrowDown,
   PersonAddAlt1,
   Search,
 } from "@mui/icons-material";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import {
   fetchAllStaff,
@@ -58,6 +68,24 @@ const StyledTableRow = styled(TableRow)({
   "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
 });
 
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "ACTIVE", label: "Đang hoạt động" },
+  { value: "BANNED", label: "Đã khóa" },
+] as const;
+
+const EXPORT_FIELD_OPTIONS = [
+  { key: "id", label: "ID" },
+  { key: "fullName", label: "Họ tên" },
+  { key: "email", label: "Email" },
+  { key: "mobile", label: "Số điện thoại" },
+  { key: "role", label: "Vai trò" },
+  { key: "status", label: "Trạng thái" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
+
 const getStatusChipSx = (status?: string) => {
   if (status === "ACTIVE") {
     return {
@@ -74,6 +102,10 @@ const getStatusChipSx = (status?: string) => {
   };
 };
 
+const getStatusLabel = (status?: string) => {
+  return status === "ACTIVE" ? "Đang hoạt động" : "Đã khóa";
+};
+
 const StaffTable = () => {
   const { isDark } = useSiteThemeMode();
 
@@ -85,8 +117,14 @@ const StaffTable = () => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [selectedExportFields, setSelectedExportFields] = useState<
+    ExportFieldKey[]
+  >(["id", "fullName", "email", "mobile", "role", "status"]);
 
   const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
   const TEXT_SECONDARY = isDark
@@ -95,6 +133,9 @@ const StaffTable = () => {
   const TEXT_MUTED = isDark
     ? "rgba(255,255,255,0.52)"
     : "rgba(17,24,39,0.52)";
+  const BORDER_SOFT = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
 
   const panelSx = {
     borderRadius: "28px",
@@ -115,7 +156,7 @@ const StaffTable = () => {
   }, [dispatch]);
 
   const activeCount = useMemo(
-    () => adminUser.staffs.filter((item) => item.status === "ACTIVE").length,
+    () => (adminUser.staffs || []).filter((item) => item.status === "ACTIVE").length,
     [adminUser.staffs]
   );
 
@@ -123,8 +164,6 @@ const StaffTable = () => {
 
   const filteredStaffs = useMemo(() => {
     const staffs = adminUser.staffs || [];
-
-    if (!normalizedSearch) return staffs;
 
     return staffs.filter((staff: User) => {
       const fullName = staff.fullName?.toLowerCase() || "";
@@ -134,20 +173,25 @@ const StaffTable = () => {
       const status = staff.status?.toLowerCase() || "";
       const id = String(staff.id || "");
 
-      return (
+      const matchesSearch =
+        !normalizedSearch ||
         fullName.includes(normalizedSearch) ||
         email.includes(normalizedSearch) ||
         mobile.includes(normalizedSearch) ||
         role.includes(normalizedSearch) ||
         status.includes(normalizedSearch) ||
-        id.includes(normalizedSearch)
-      );
+        id.includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" || staff.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [adminUser.staffs, normalizedSearch]);
+  }, [adminUser.staffs, normalizedSearch, statusFilter]);
 
   useEffect(() => {
     setPage(0);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
 
   useEffect(() => {
     const maxPage = Math.max(
@@ -186,6 +230,85 @@ const StaffTable = () => {
     handleCloseMenu();
   };
 
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const handleExportExcel = () => {
+    const sourceStaffs = filteredStaffs || [];
+
+    if (!sourceStaffs.length) {
+      alert("Không có dữ liệu nhân viên để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceStaffs.map((staff: User) => {
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("id")) {
+        row["ID"] = staff.id ?? "";
+      }
+
+      if (selectedExportFields.includes("fullName")) {
+        row["Họ tên"] = staff.fullName ?? "";
+      }
+
+      if (selectedExportFields.includes("email")) {
+        row["Email"] = staff.email ?? "";
+      }
+
+      if (selectedExportFields.includes("mobile")) {
+        row["Số điện thoại"] = staff.mobile ?? "";
+      }
+
+      if (selectedExportFields.includes("role")) {
+        row["Vai trò"] = staff.role ?? "";
+      }
+
+      if (selectedExportFields.includes("status")) {
+        row["Trạng thái"] = getStatusLabel(staff.status);
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    worksheet["!cols"] = [
+      { wch: 10 },
+      { wch: 24 },
+      { wch: 30 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 18 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Staffs");
+
+    const fileName = `staffs_${format(new Date(), "ddMMyyyy_HHmmss")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    setOpenExportDialog(false);
+  };
+
   return (
     <>
       <Paper elevation={0} sx={panelSx}>
@@ -215,6 +338,7 @@ const StaffTable = () => {
               direction={{ xs: "column", sm: "row" }}
               spacing={1.2}
               alignItems={{ xs: "stretch", sm: "center" }}
+              flexWrap="wrap"
             >
               <TextField
                 size="small"
@@ -255,35 +379,90 @@ const StaffTable = () => {
                 }}
               />
 
-              <Chip
-                icon={
-                  <AdminPanelSettings sx={{ color: "#fb923c !important" }} />
-                }
-                label={`${activeCount}/${adminUser.staffs.length} đang hoạt động`}
-                variant="outlined"
+              <TextField
+                select
+                size="small"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                 sx={{
-                  color: TEXT_PRIMARY,
-                  borderColor: "rgba(249,115,22,0.28)",
-                  backgroundColor: isDark
-                    ? "transparent"
-                    : "rgba(255,255,255,0.68)",
+                  minWidth: { xs: "100%", sm: 190 },
+                  "& .MuiOutlinedInput-root": {
+                    color: TEXT_PRIMARY,
+                    borderRadius: "999px",
+                    backgroundColor: isDark
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(255,255,255,0.82)",
+                    "& fieldset": {
+                      borderColor: isDark
+                        ? "rgba(255,255,255,0.10)"
+                        : "rgba(15,23,42,0.10)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "rgba(249,115,22,0.34)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#f97316",
+                    },
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#fb923c",
+                  },
                 }}
-              />
+              >
+                {STATUS_OPTIONS.map((item) => (
+                  <MenuItem key={item.value} value={item.value}>
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+
+              <Button
+                variant="outlined"
+                startIcon={<Download />}
+                onClick={() => setOpenExportDialog(true)}
+                disabled={!filteredStaffs.length}
+                sx={{
+                  borderRadius: 999,
+                  px: 2.3,
+                  textTransform: "none",
+                  fontWeight: 700,
+                  color: "TEXT_PRIMARY",
+                  borderColor: isDark
+                    ? "rgba(249,115,22,0.28)"
+                    : "rgba(249,115,22,0.22)",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.02)"
+                    : "rgba(255,255,255,0.72)",
+                  "&:hover": {
+                    borderColor: "rgba(249,115,22,0.45)",
+                    backgroundColor: isDark
+                      ? "rgba(249,115,22,0.08)"
+                      : "rgba(255,247,237,0.92)",
+                  },
+                }}
+              >
+                Xuất Excel
+              </Button>
 
               <Button
                 variant="contained"
-                startIcon={<PersonAddAlt1 />}
                 onClick={() => setDialogOpen(true)}
                 sx={{
                   borderRadius: 999,
                   px: 2.5,
                   textTransform: "none",
                   fontWeight: 700,
-                  color: "#111111",
                   background: "linear-gradient(135deg, #f97316, #ea580c)",
+                  boxShadow: "none",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                    boxShadow: "none",
+                  },
                 }}
               >
-                Thêm nhân viên
+                <span className="text-slate-100">Thêm nhân viên</span>
+                
               </Button>
             </Stack>
           </Stack>
@@ -298,7 +477,7 @@ const StaffTable = () => {
                 <StyledTableCell>Số điện thoại</StyledTableCell>
                 <StyledTableCell>Vai trò</StyledTableCell>
                 <StyledTableCell align="center">Trạng thái</StyledTableCell>
-                <StyledTableCell align="right">Tác vụ</StyledTableCell>
+                <StyledTableCell align="right">Thao tác</StyledTableCell>
               </TableRow>
             </TableHead>
 
@@ -308,41 +487,72 @@ const StaffTable = () => {
                   <StyledTableRow key={staff.id}>
                     <StyledTableCell>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          minWidth: 220,
+                        }}
                       >
                         <Avatar
                           sx={{
-                            bgcolor: "rgba(249,115,22,0.14)",
-                            color: "#fb923c",
+                            width: 48,
+                            height: 48,
+                            bgcolor:
+                              staff.status === "ACTIVE"
+                                ? "rgba(34,197,94,0.14)"
+                                : "rgba(239,68,68,0.12)",
+                            color:
+                              staff.status === "ACTIVE" ? "#86efac" : "#fca5a5",
                           }}
                         >
                           <AdminPanelSettings />
                         </Avatar>
+
                         <Box>
                           <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                            {staff.fullName || "Nhân viên"}
+                            {staff.fullName || "Chưa có tên"}
                           </Typography>
                           <Typography
-                            sx={{ color: TEXT_MUTED, fontSize: 12.5 }}
+                            sx={{
+                              color: TEXT_MUTED,
+                              fontSize: 12.5,
+                            }}
                           >
-                            ID #{staff.id}
+                            ID: #{staff.id}
                           </Typography>
                         </Box>
                       </Box>
                     </StyledTableCell>
 
-                    <StyledTableCell>{staff.email}</StyledTableCell>
-                    <StyledTableCell>{staff.mobile || "-"}</StyledTableCell>
                     <StyledTableCell>
-                      {staff.role || "ROLE_STAFF"}
+                      <Typography color={TEXT_PRIMARY}>
+                        {staff.email || "-"}
+                      </Typography>
+                    </StyledTableCell>
+
+                    <StyledTableCell>
+                      <Typography color={TEXT_PRIMARY}>
+                        {staff.mobile || "-"}
+                      </Typography>
+                    </StyledTableCell>
+
+                    <StyledTableCell>
+                      <Typography color={TEXT_SECONDARY} fontWeight={600}>
+                        {staff.role || "-"}
+                      </Typography>
                     </StyledTableCell>
 
                     <StyledTableCell align="center">
                       <Chip
                         size="small"
-                        variant="outlined"
-                        label={staff.status === "ACTIVE" ? "Hoạt động" : "Đã khóa"}
-                        sx={{ borderRadius: 999, ...getStatusChipSx(staff.status) }}
+                        label={getStatusLabel(staff.status)}
+                        sx={{
+                          borderRadius: 999,
+                          fontWeight: 700,
+                          border: "1px solid",
+                          ...getStatusChipSx(staff.status),
+                        }}
                       />
                     </StyledTableCell>
 
@@ -351,21 +561,19 @@ const StaffTable = () => {
                         size="small"
                         variant="outlined"
                         endIcon={<KeyboardArrowDown />}
-                        onClick={(e) => handleOpenMenu(e, staff.id || 0)}
+                        onClick={(e) => handleOpenMenu(e, staff.id!)}
                         sx={{
                           textTransform: "none",
                           borderRadius: 999,
                           px: 2,
                           color: TEXT_PRIMARY,
-                          borderColor: isDark
-                            ? "rgba(255,255,255,0.16)"
-                            : "rgba(15,23,42,0.12)",
+                          borderColor: BORDER_SOFT,
                           backgroundColor: isDark
                             ? "transparent"
                             : "rgba(255,255,255,0.68)",
                         }}
                       >
-                        Trạng thái
+                        Cập nhật
                       </Button>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -375,9 +583,12 @@ const StaffTable = () => {
                   <TableCell
                     colSpan={6}
                     align="center"
-                    sx={{ py: 8, color: TEXT_SECONDARY }}
+                    sx={{
+                      py: 7,
+                      color: TEXT_SECONDARY,
+                    }}
                   >
-                    {searchTerm
+                    {searchTerm || statusFilter !== "ALL"
                       ? "Không tìm thấy nhân viên phù hợp."
                       : "Chưa có nhân viên nào."}
                   </TableCell>
@@ -421,44 +632,168 @@ const StaffTable = () => {
             },
           }}
         />
+      </Paper>
 
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={handleCloseMenu}
-          PaperProps={{
-            sx: {
-              background: isDark
-                ? "#171717"
-                : "linear-gradient(180deg, #ffffff, #fff7ed)",
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={handleCloseMenu}
+        PaperProps={{
+          sx: {
+            color: isDark ? "white" : "#111827",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            borderRadius: "18px",
+            boxShadow: isDark
+              ? "0 18px 40px rgba(0,0,0,0.28)"
+              : "0 14px 32px rgba(15,23,42,0.08)",
+            mt: 1,
+            ".MuiMenuItem-root": {
               color: isDark ? "white" : "#111827",
-              border: isDark
-                ? "1px solid rgba(255,255,255,0.08)"
-                : "1px solid rgba(15,23,42,0.08)",
-              borderRadius: "18px",
-              boxShadow: isDark
-                ? "0 18px 40px rgba(0,0,0,0.28)"
-                : "0 14px 32px rgba(15,23,42,0.08)",
-              mt: 1,
-              ".MuiMenuItem-root": {
-                color: isDark ? "white" : "#111827",
-              },
-              ".MuiMenuItem-root:hover": {
-                backgroundColor: isDark
-                  ? "rgba(249,115,22,0.1)"
-                  : "rgba(249,115,22,0.08)",
-              },
             },
+            ".MuiMenuItem-root:hover": {
+              backgroundColor: isDark
+                ? "rgba(249,115,22,0.1)"
+                : "rgba(249,115,22,0.08)",
+            },
+          },
+        }}
+      >
+        <MenuItem onClick={() => handleChangeStatus("ACTIVE")}>
+          Mở khóa tài khoản
+        </MenuItem>
+        <MenuItem onClick={() => handleChangeStatus("BANNED")}>
+          Khóa tài khoản
+        </MenuItem>
+      </Menu>
+
+      <Dialog
+        open={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            background: isDark
+              ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
+              : "linear-gradient(180deg, #ffffff, #fff7ed)",
+            color: isDark ? "white" : "#111827",
+            borderRadius: "24px",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            boxShadow: isDark
+              ? "0 24px 60px rgba(0,0,0,0.28)"
+              : "0 18px 45px rgba(15,23,42,0.08)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: isDark ? "white" : "#111827",
+            pb: 1,
           }}
         >
-          <MenuItem onClick={() => handleChangeStatus("ACTIVE")}>
-            Mở khóa / Hoạt động
-          </MenuItem>
-          <MenuItem onClick={() => handleChangeStatus("BANNED")}>
-            Khóa tài khoản
-          </MenuItem>
-        </Menu>
-      </Paper>
+          Chọn các mục muốn xuất Excel
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: "8px !important" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mb: 1.8, flexWrap: "wrap", rowGap: 1 }}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleSelectAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Chọn tất cả
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handleClearAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Bỏ chọn tất cả
+            </Button>
+          </Stack>
+
+          <FormGroup>
+            {EXPORT_FIELD_OPTIONS.map((field) => (
+              <FormControlLabel
+                key={field.key}
+                control={
+                  <Checkbox
+                    checked={selectedExportFields.includes(field.key)}
+                    onChange={() => handleToggleExportField(field.key)}
+                    sx={{
+                      color: "rgba(249,115,22,0.6)",
+                      "&.Mui-checked": {
+                        color: "#f97316",
+                      },
+                    }}
+                  />
+                }
+                label={field.label}
+                sx={{
+                  color: TEXT_PRIMARY,
+                  ".MuiFormControlLabel-label": {
+                    fontSize: 14.5,
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={() => setOpenExportDialog(false)}
+            sx={{
+              textTransform: "none",
+              color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
+              backgroundColor: isDark
+                ? "transparent"
+                : "rgba(255,255,255,0.68)",
+              borderRadius: 999,
+            }}
+          >
+            Hủy
+          </Button>
+
+          <Button
+            onClick={handleExportExcel}
+            variant="contained"
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 2.8,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              boxShadow: "none",
+              "&:hover": {
+                background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                boxShadow: "none",
+              },
+            }}
+          >
+<span className="text-slate-100"><Download /> Xuất file</span>
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <AddStaffForm open={dialogOpen} onClose={() => setDialogOpen(false)} />
     </>

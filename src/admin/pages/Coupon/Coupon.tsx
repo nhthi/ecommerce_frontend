@@ -3,6 +3,7 @@ import {
   Check,
   Close,
   DeleteOutline,
+  Download,
   EditOutlined,
   LocalOffer,
   Search,
@@ -11,11 +12,14 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
+  FormGroup,
   Grid,
   IconButton,
   InputAdornment,
@@ -52,6 +56,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 
 const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
@@ -107,6 +113,22 @@ type CouponFormState = {
   active: boolean;
 };
 
+const EXPORT_FIELD_OPTIONS = [
+  { key: "stt", label: "STT" },
+  { key: "id", label: "ID" },
+  { key: "name", label: "Tên coupon" },
+  { key: "code", label: "Mã coupon" },
+  { key: "validityStartDate", label: "Ngày bắt đầu" },
+  { key: "validityEndDate", label: "Ngày kết thúc" },
+  { key: "minimumOrderValue", label: "Đơn tối thiểu" },
+  { key: "maximumOrderValue", label: "Đơn tối đa" },
+  { key: "discountPercentage", label: "Phần trăm giảm" },
+  { key: "quantity", label: "Số lượng mã" },
+  { key: "status", label: "Trạng thái" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+
 const createInitialFormState = (
   coupon?: CouponType | null
 ): CouponFormState => ({
@@ -126,8 +148,8 @@ const createInitialFormState = (
 });
 
 const Coupon = () => {
-    const { isDark } = useSiteThemeMode();
-  
+  const { isDark } = useSiteThemeMode();
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { coupon } = useAppSelector((store) => store);
@@ -142,6 +164,23 @@ const Coupon = () => {
   const [submitting, setSubmitting] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [selectedExportFields, setSelectedExportFields] = useState<
+    ExportFieldKey[]
+  >([
+    "stt",
+    "id",
+    "name",
+    "code",
+    "validityStartDate",
+    "validityEndDate",
+    "minimumOrderValue",
+    "maximumOrderValue",
+    "discountPercentage",
+    "quantity",
+    "status",
+  ]);
 
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -292,6 +331,107 @@ const Coupon = () => {
     setPage(0);
   };
 
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return format(d, "dd/MM/yyyy HH:mm");
+  };
+
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const handleExportExcel = () => {
+    const sourceCoupons = filteredCoupons || [];
+
+    if (!sourceCoupons.length) {
+      alert("Không có dữ liệu coupon để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceCoupons.map((item: CouponType, index: number) => {
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("stt")) {
+        row["STT"] = index + 1;
+      }
+      if (selectedExportFields.includes("id")) {
+        row["ID"] = item.id ?? "";
+      }
+      if (selectedExportFields.includes("name")) {
+        row["Tên coupon"] = item.name ?? "";
+      }
+      if (selectedExportFields.includes("code")) {
+        row["Mã coupon"] = item.code ?? "";
+      }
+      if (selectedExportFields.includes("validityStartDate")) {
+        row["Ngày bắt đầu"] = formatDateTime(item.validityStartDate);
+      }
+      if (selectedExportFields.includes("validityEndDate")) {
+        row["Ngày kết thúc"] = formatDateTime(item.validityEndDate);
+      }
+      if (selectedExportFields.includes("minimumOrderValue")) {
+        row["Đơn tối thiểu"] = item.minimumOrderValue ?? 0;
+      }
+      if (selectedExportFields.includes("maximumOrderValue")) {
+        row["Đơn tối đa"] = item.maximumOrderValue ?? 0;
+      }
+      if (selectedExportFields.includes("discountPercentage")) {
+        row["Phần trăm giảm"] = item.discountPercentage ?? 0;
+      }
+      if (selectedExportFields.includes("quantity")) {
+        row["Số lượng mã"] = item.quantity ?? 0;
+      }
+      if (selectedExportFields.includes("status")) {
+        row["Trạng thái"] = item.active
+          ? "Đang hoạt động"
+          : "Ngưng hoạt động";
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    worksheet["!cols"] = [
+      { wch: 6 },
+      { wch: 8 },
+      { wch: 28 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 18 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Coupons");
+
+    const fileName = `coupons_${format(new Date(), "ddMMyyyy_HHmmss")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    setOpenExportDialog(false);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Paper elevation={0} sx={panelSx}>
@@ -313,7 +453,6 @@ const Coupon = () => {
               <Typography fontSize={26} fontWeight={800} color="white">
                 Mã giảm giá
               </Typography>
-              
             </Box>
 
             <Stack
@@ -360,6 +499,27 @@ const Coupon = () => {
               </Select>
 
               <Button
+                variant="outlined"
+                startIcon={<Download />}
+                onClick={() => setOpenExportDialog(true)}
+                disabled={!filteredCoupons.length}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 2.5,
+                  color: "white",
+                  borderColor: "rgba(249,115,22,0.28)",
+                  backgroundColor: "rgba(255,255,255,0.02)",
+                  "&:hover": {
+                    borderColor: "rgba(249,115,22,0.45)",
+                    backgroundColor: "rgba(249,115,22,0.08)",
+                  },
+                }}
+              >
+                Xuất Excel
+              </Button>
+
+              <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => navigate("/admin/add-coupon")}
@@ -367,10 +527,20 @@ const Coupon = () => {
                   borderRadius: 999,
                   textTransform: "none",
                   px: 2.5,
-                  background: "linear-gradient(135deg, #f97316, #ea580c)",
+                  backgroundColor: "#ea580c",
+                  boxShadow: "none",
+                  "& .MuiButton-startIcon, & .MuiSvgIcon-root": {
+                    color: "#fff !important",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#c2410c",
+                    boxShadow: "none",
+                  },
                 }}
               >
-                Tạo mã mới
+                <span style={{ color: "#fff", fontWeight: 700 }}>
+                  Tạo mã mới
+                </span>
               </Button>
             </Stack>
           </Stack>
@@ -381,14 +551,14 @@ const Coupon = () => {
             <TableHead>
               <TableRow>
                 <StyledTableCell>Tên</StyledTableCell>
-<StyledTableCell>Mã</StyledTableCell>
-<StyledTableCell>Ngày bắt đầu</StyledTableCell>
-<StyledTableCell>Ngày kết thúc</StyledTableCell>
-<StyledTableCell align="right">Đơn tối thiểu</StyledTableCell>
-<StyledTableCell align="right">Đơn tối đa</StyledTableCell>
-<StyledTableCell align="center">Giảm giá</StyledTableCell>
-<StyledTableCell align="center">Trạng thái</StyledTableCell>
-<StyledTableCell align="right">Thao tác</StyledTableCell>
+                <StyledTableCell>Mã</StyledTableCell>
+                <StyledTableCell>Ngày bắt đầu</StyledTableCell>
+                <StyledTableCell>Ngày kết thúc</StyledTableCell>
+                <StyledTableCell align="right">Đơn tối thiểu</StyledTableCell>
+                <StyledTableCell align="right">Đơn tối đa</StyledTableCell>
+                <StyledTableCell align="center">Giảm giá</StyledTableCell>
+                <StyledTableCell align="center">Trạng thái</StyledTableCell>
+                <StyledTableCell align="right">Thao tác</StyledTableCell>
               </TableRow>
             </TableHead>
 
@@ -414,8 +584,12 @@ const Coupon = () => {
                     </StyledTableCell>
 
                     <StyledTableCell>{row.code}</StyledTableCell>
-                    <StyledTableCell>{row.validityStartDate}</StyledTableCell>
-                    <StyledTableCell>{row.validityEndDate}</StyledTableCell>
+                    <StyledTableCell>
+                      {formatDateTime(row.validityStartDate)}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {formatDateTime(row.validityEndDate)}
+                    </StyledTableCell>
                     <StyledTableCell align="right">
                       {formatCurrencyVND(row.minimumOrderValue)}
                     </StyledTableCell>
@@ -532,259 +706,405 @@ const Coupon = () => {
           />
         </Box>
 
-<Dialog
-  open={Boolean(editingCoupon)}
-  onClose={handleCloseEdit}
-  maxWidth="md"
-  fullWidth
-  PaperProps={{
-    sx: {
-      borderRadius: "28px",
-      background: isDark
-        ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
-        : "linear-gradient(180deg, #ffffff, #fff7ed)",
-      color: isDark ? "white" : "#111827",
-      border: isDark
-        ? "1px solid rgba(255,255,255,0.08)"
-        : "1px solid rgba(15,23,42,0.08)",
-      boxShadow: isDark
-        ? "0 24px 60px rgba(0,0,0,0.28)"
-        : "0 18px 45px rgba(15,23,42,0.08)",
-    },
-  }}
->
-  <DialogTitle
-    sx={{
-      fontWeight: 800,
-      color: isDark ? "white" : "#111827",
-    }}
-  >
-    Cập nhật coupon
-  </DialogTitle>
-
-  <DialogContent>
-    <Grid container spacing={2.2} sx={{ mt: 0.2 }}>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <TextField
+        <Dialog
+          open={openExportDialog}
+          onClose={() => setOpenExportDialog(false)}
           fullWidth
-          label="Tên mã giảm giá"
-          value={formValues.name}
-          onChange={(e) => handleFormChange("name", e.target.value)}
-          sx={fieldSx}
-        />
-      </Grid>
+          maxWidth="sm"
+          PaperProps={{
+            sx: {
+              borderRadius: "24px",
 
-      <Grid size={{ xs: 12, md: 3 }}>
-        <TextField
-          fullWidth
-          label="Mã giảm giá"
-          value={formValues.code}
-          onChange={(e) => handleFormChange("code", e.target.value)}
-          sx={fieldSx}
-        />
-      </Grid>
+              color: isDark ? "white" : "#111827",
+              border: isDark
+                ? "1px solid rgba(255,255,255,0.08)"
+                : "1px solid rgba(15,23,42,0.08)",
+              boxShadow: isDark
+                ? "0 24px 60px rgba(0,0,0,0.28)"
+                : "0 18px 45px rgba(15,23,42,0.08)",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: 800,
+              color: isDark ? "white" : "#111827",
+              pb: 1,
+            }}
+          >
+            Chọn các mục muốn xuất Excel
+          </DialogTitle>
 
-      <Grid size={{ xs: 12, md: 3 }}>
-        <TextField
-          fullWidth
-          type="number"
-          label="Phần trăm giảm"
-          value={formValues.discountPercentage}
-          onChange={(e) =>
-            handleFormChange(
-              "discountPercentage",
-              Number(e.target.value)
-            )
-          }
-          sx={fieldSx}
-        />
-      </Grid>
+          <DialogContent sx={{ pt: "8px !important" }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ mb: 1.8, flexWrap: "wrap", rowGap: 1 }}
+            >
+              <Button
+                variant="outlined"
+                onClick={handleSelectAllExportFields}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  color: isDark ? "white" : "#111827",
+                }}
+              >
+                Chọn tất cả
+              </Button>
 
-      <Grid size={{ xs: 12, md: 6 }}>
-        <DatePicker
-          label="Ngày bắt đầu"
-          value={formValues.validityStartDate}
-          onChange={(value) =>
-            handleFormChange("validityStartDate", value)
-          }
-          sx={{ width: "100%", ...fieldSx }}
-        />
-      </Grid>
+              <Button
+                variant="outlined"
+                onClick={handleClearAllExportFields}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  color: isDark ? "white" : "#111827",
+                }}
+              >
+                Bỏ chọn tất cả
+              </Button>
+            </Stack>
 
-      <Grid size={{ xs: 12, md: 6 }}>
-        <DatePicker
-          label="Ngày kết thúc"
-          value={formValues.validityEndDate}
-          onChange={(value) =>
-            handleFormChange("validityEndDate", value)
-          }
-          sx={{ width: "100%", ...fieldSx }}
-        />
-      </Grid>
+            <FormGroup>
+              {EXPORT_FIELD_OPTIONS.map((field) => (
+                <FormControlLabel
+                  key={field.key}
+                  control={
+                    <Checkbox
+                      checked={selectedExportFields.includes(field.key)}
+                      onChange={() => handleToggleExportField(field.key)}
+                      sx={{
+                        color: "rgba(249,115,22,0.6)",
+                        "&.Mui-checked": {
+                          color: "#f97316",
+                        },
+                      }}
+                    />
+                  }
+                  label={field.label}
+                  sx={{
+                    color: isDark ? "white" : "#111827",
+                    ".MuiFormControlLabel-label": {
+                      fontSize: 14.5,
+                    },
+                  }}
+                />
+              ))}
+            </FormGroup>
+          </DialogContent>
 
-      <Grid size={{ xs: 12, md: 4 }}>
-        <TextField
-          fullWidth
-          type="number"
-          label="Đơn tối thiểu"
-          value={formValues.minimumOrderValue}
-          onChange={(e) =>
-            handleFormChange("minimumOrderValue", Number(e.target.value))
-          }
-          sx={fieldSx}
-        />
-      </Grid>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button
+              onClick={() => setOpenExportDialog(false)}
+              sx={{
+                textTransform: "none",
+                color: isDark
+                  ? "rgba(255,255,255,0.72)"
+                  : "rgba(17,24,39,0.72)",
+                borderRadius: 999,
+              }}
+            >
+              Hủy
+            </Button>
 
-      <Grid size={{ xs: 12, md: 4 }}>
-        <TextField
-          fullWidth
-          type="number"
-          label="Đơn tối đa"
-          value={formValues.maximumOrderValue}
-          onChange={(e) =>
-            handleFormChange("maximumOrderValue", Number(e.target.value))
-          }
-          sx={fieldSx}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, md: 4 }}>
-        <TextField
-          fullWidth
-          type="number"
-          label="Số lượng mã"
-          value={formValues.quantity}
-          onChange={(e) =>
-            handleFormChange("quantity", Number(e.target.value))
-          }
-          sx={fieldSx}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12 }}>
-        <Stack direction="row" spacing={1.2} alignItems="center">
-          <Switch
-            checked={formValues.active}
-            onChange={(e) =>
-              handleFormChange("active", e.target.checked)
-            }
-          />
-          <Typography color={isDark ? "rgba(255,255,255,0.84)" : "rgba(17,24,39,0.84)"}>
-            Kích hoạt Coupon
-          </Typography>
-        </Stack>
-      </Grid>
-    </Grid>
-  </DialogContent>
-
-  <DialogActions sx={{ px: 3, pb: 2.5 }}>
-    <Button
-      onClick={handleCloseEdit}
-      variant="outlined"
-      sx={{
-        borderRadius: 999,
-        textTransform: "none",
-        px: 2.5,
-        color: isDark ? "rgba(255,255,255,0.82)" : "rgba(17,24,39,0.82)",
-        borderColor: isDark
-          ? "rgba(255,255,255,0.12)"
-          : "rgba(15,23,42,0.12)",
-        backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.68)",
-      }}
-    >
-      Hủy
-    </Button>
-
-    <Button
-      onClick={handleSubmitEdit}
-      variant="contained"
-      sx={{
-        borderRadius: 999,
-        textTransform: "none",
-        px: 2.8,
-        background: "linear-gradient(135deg, #f97316, #ea580c)",
-      }}
-    >
-      Lưu thay đổi
-    </Button>
-  </DialogActions>
-</Dialog>
+            <Button
+              onClick={handleExportExcel}
+              variant="contained"
+              startIcon={<Download />}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 2.8,
+                background: "linear-gradient(135deg, #f97316, #ea580c)",
+                boxShadow: "none",
+                "&:hover": {
+                  background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              Xuất file
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Dialog
-  open={Boolean(deletingCoupon)}
-  onClose={() => setDeletingCoupon(null)}
-  PaperProps={{
-    sx: {
-      borderRadius: "24px",
-      background: isDark
-        ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
-        : "linear-gradient(180deg, #ffffff, #fff7ed)",
-      color: isDark ? "white" : "#111827",
-      border: isDark
-        ? "1px solid rgba(255,255,255,0.08)"
-        : "1px solid rgba(15,23,42,0.08)",
-      boxShadow: isDark
-        ? "0 24px 60px rgba(0,0,0,0.28)"
-        : "0 18px 45px rgba(15,23,42,0.08)",
-    },
-  }}
->
-  <DialogTitle
-    sx={{
-      fontWeight: 800,
-      color: isDark ? "white" : "#111827",
-    }}
-  >
-    Xác nhận xóa Coupon
-  </DialogTitle>
+          open={Boolean(editingCoupon)}
+          onClose={handleCloseEdit}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: "28px",
+              color: isDark ? "white" : "#111827",
+              border: isDark
+                ? "1px solid rgba(255,255,255,0.08)"
+                : "1px solid rgba(15,23,42,0.08)",
+              boxShadow: isDark
+                ? "0 24px 60px rgba(0,0,0,0.28)"
+                : "0 18px 45px rgba(15,23,42,0.08)",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: 800,
+              color: isDark ? "white" : "#111827",
+            }}
+          >
+            Cập nhật coupon
+          </DialogTitle>
 
-  <DialogContent>
-    <Typography
-      sx={{
-        color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
-        lineHeight: 1.8,
-      }}
-    >
-      Bạn sắp xóa mã{" "}
-      <Box component="span" sx={{ color: "#fdba74", fontWeight: 700 }}>
-        {deletingCoupon?.name || deletingCoupon?.code}
-      </Box>
-      . Hành động này không thể hoàn tác.
-    </Typography>
-  </DialogContent>
+          <DialogContent>
+            <Grid container spacing={2.2} sx={{ mt: 0.2 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  label="Tên mã giảm giá"
+                  value={formValues.name}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
+                  sx={fieldSx}
+                />
+              </Grid>
 
-  <DialogActions sx={{ px: 3, pb: 2.5 }}>
-    <Button
-      onClick={() => setDeletingCoupon(null)}
-      variant="outlined"
-      sx={{
-        borderRadius: 999,
-        textTransform: "none",
-        px: 2.5,
-        color: isDark ? "rgba(255,255,255,0.82)" : "rgba(17,24,39,0.82)",
-        borderColor: isDark
-          ? "rgba(255,255,255,0.12)"
-          : "rgba(15,23,42,0.12)",
-        backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.68)",
-      }}
-    >
-      Hủy
-    </Button>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Mã giảm giá"
+                  value={formValues.code}
+                  onChange={(e) => handleFormChange("code", e.target.value)}
+                  sx={fieldSx}
+                />
+              </Grid>
 
-    <Button
-      onClick={handleConfirmDelete}
-      variant="contained"
-      sx={{
-        borderRadius: 999,
-        textTransform: "none",
-        px: 2.8,
-        background: "linear-gradient(135deg, #ef4444, #dc2626)",
-      }}
-    >
-      Xóa Coupon
-    </Button>
-  </DialogActions>
-</Dialog>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Phần trăm giảm"
+                  value={formValues.discountPercentage}
+                  onChange={(e) =>
+                    handleFormChange(
+                      "discountPercentage",
+                      Number(e.target.value)
+                    )
+                  }
+                  sx={fieldSx}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <DatePicker
+                  label="Ngày bắt đầu"
+                  value={formValues.validityStartDate}
+                  onChange={(value) =>
+                    handleFormChange("validityStartDate", value)
+                  }
+                  sx={{ width: "100%", ...fieldSx }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 6 }}>
+                <DatePicker
+                  label="Ngày kết thúc"
+                  value={formValues.validityEndDate}
+                  onChange={(value) =>
+                    handleFormChange("validityEndDate", value)
+                  }
+                  sx={{ width: "100%", ...fieldSx }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Đơn tối thiểu"
+                  value={formValues.minimumOrderValue}
+                  onChange={(e) =>
+                    handleFormChange("minimumOrderValue", Number(e.target.value))
+                  }
+                  sx={fieldSx}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Đơn tối đa"
+                  value={formValues.maximumOrderValue}
+                  onChange={(e) =>
+                    handleFormChange("maximumOrderValue", Number(e.target.value))
+                  }
+                  sx={fieldSx}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Số lượng mã"
+                  value={formValues.quantity}
+                  onChange={(e) =>
+                    handleFormChange("quantity", Number(e.target.value))
+                  }
+                  sx={fieldSx}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Stack direction="row" spacing={1.2} alignItems="center">
+                  <Switch
+                    checked={formValues.active}
+                    onChange={(e) =>
+                      handleFormChange("active", e.target.checked)
+                    }
+                  />
+                  <Typography
+                    color={
+                      isDark
+                        ? "rgba(255,255,255,0.84)"
+                        : "rgba(17,24,39,0.84)"
+                    }
+                  >
+                    Kích hoạt Coupon
+                  </Typography>
+                </Stack>
+              </Grid>
+            </Grid>
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button
+              onClick={handleCloseEdit}
+              variant="outlined"
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 2.5,
+                color: isDark
+                  ? "rgba(255,255,255,0.82)"
+                  : "rgba(17,24,39,0.82)",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(15,23,42,0.12)",
+                backgroundColor: isDark
+                  ? "transparent"
+                  : "rgba(255,255,255,0.68)",
+              }}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              onClick={handleSubmitEdit}
+              variant="contained"
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 2.8,
+                background: "linear-gradient(135deg, #f97316, #ea580c)",
+                boxShadow: "none",
+                "& .MuiSvgIcon-root": {
+                  color: "#fff !important",
+                },
+                "&:hover": {
+                  background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                  boxShadow: "none",
+                },
+              }}
+            >
+              <span style={{ color: "#fff", fontWeight: 700 }}>
+                Lưu thay đổi
+              </span>
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={Boolean(deletingCoupon)}
+          onClose={() => setDeletingCoupon(null)}
+          PaperProps={{
+            sx: {
+              borderRadius: "24px",
+              background: isDark
+                ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
+                : "linear-gradient(180deg, #ffffff, #fff7ed)",
+              color: isDark ? "white" : "#111827",
+              border: isDark
+                ? "1px solid rgba(255,255,255,0.08)"
+                : "1px solid rgba(15,23,42,0.08)",
+              boxShadow: isDark
+                ? "0 24px 60px rgba(0,0,0,0.28)"
+                : "0 18px 45px rgba(15,23,42,0.08)",
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontWeight: 800,
+              color: isDark ? "white" : "#111827",
+            }}
+          >
+            Xác nhận xóa Coupon
+          </DialogTitle>
+
+          <DialogContent>
+            <Typography
+              sx={{
+                color: isDark
+                  ? "rgba(255,255,255,0.72)"
+                  : "rgba(17,24,39,0.72)",
+                lineHeight: 1.8,
+              }}
+            >
+              Bạn sắp xóa mã{" "}
+              <Box component="span" sx={{ color: "#fdba74", fontWeight: 700 }}>
+                {deletingCoupon?.name || deletingCoupon?.code}
+              </Box>
+              . Hành động này không thể hoàn tác.
+            </Typography>
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button
+              onClick={() => setDeletingCoupon(null)}
+              variant="outlined"
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 2.5,
+                color: isDark
+                  ? "rgba(255,255,255,0.82)"
+                  : "rgba(17,24,39,0.82)",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(15,23,42,0.12)",
+                backgroundColor: isDark
+                  ? "transparent"
+                  : "rgba(255,255,255,0.68)",
+              }}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              onClick={handleConfirmDelete}
+              variant="contained"
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                px: 2.8,
+                background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              }}
+            >
+              Xóa Coupon
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Snackbar
           open={snackbar.open}

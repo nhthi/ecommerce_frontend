@@ -9,6 +9,9 @@ export interface Address {
   note: string;
   default?: boolean;
   active?: boolean;
+    provinceId: number;     // ✅ GHN
+  districtId: number;     // ✅ GHN
+  wardCode: string;   
 }
 
 export enum UserRole {

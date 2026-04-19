@@ -104,7 +104,7 @@ const Auth = () => {
                   ...(isLogin
                     ? {
                         background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                        color: "#050505",
+                        color: "#fff",
                       }
                     : {
                         color: "#cbd5e1",
@@ -129,7 +129,7 @@ const Auth = () => {
                       }
                     : {
                         background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                        color: "#050505",
+                        color: "#fff",
                       }),
                 }}
               >

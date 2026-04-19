@@ -100,7 +100,7 @@ const WishlistProductCard: React.FC<Props> = ({ item }) => {
             fontWeight: 800,
             py: 1.1,
             background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-            color: "#050505",
+            color: "#fff",
             boxShadow: "none",
             "&:hover": {
               background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",

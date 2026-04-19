@@ -70,29 +70,33 @@ export const createOrder = createAsyncThunk<
   {
     addressId: number;
     paymentGateway: string;
+    shippingFee: number;
     navigate: NavigateFunction;
-  }
+  },
+  { rejectValue: string }
 >(
   "orders/createOrder",
-  async ({ addressId, paymentGateway, navigate }, { rejectWithValue }) => {
+  async (
+    { addressId, paymentGateway, shippingFee, navigate },
+    { rejectWithValue }
+  ) => {
     try {
       const response = await api.post("/api/orders", null, {
         params: {
           paymentMethod: paymentGateway,
-          addressId: addressId,
+          addressId,
+          shippingFee,
         },
       });
 
       return response.data;
-
     } catch (error: any) {
       console.log("error----", error);
 
-      // 🔥 Lấy message từ backend
       const message =
-        error?.response?.data?.message || 
-        error?.response?.data || 
-        error?.message || 
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        error?.message ||
         "Đặt hàng thất bại";
 
       return rejectWithValue(message);

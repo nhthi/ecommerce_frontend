@@ -18,6 +18,7 @@ import { getWishlistByUser } from "../../../state/customer/wishlistSlice";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 import { fetchRecommendations, RecommendedProductDto } from "../../../state/customer/recommendationSlice";
 import { formatCurrencyVND } from "../../../utils/formatCurrencyVND";
+
 const sourceLabelMap: Record<string, string> = {
   GUEST_POPULAR: "Phổ biến",
   USER_CF: "Dành riêng cho bạn",
@@ -25,6 +26,8 @@ const sourceLabelMap: Record<string, string> = {
   CONTENT_CART: "Liên quan đến giỏ hàng",
   FALLBACK: "Gợi ý",
 };
+
+const ITEMS_PER_PAGE = 12;
 
 const Product = () => {
   const [sort, setSort] = useState<string>("");
@@ -87,13 +90,15 @@ const Product = () => {
     setPage(value);
   };
 
+  // Fetch data (KHÔNG dùng page backend)
   useEffect(() => {
     const [minPrice, maxPrice] = searchParams.get("price")?.split("-") || [];
     const color = searchParams.get("color");
     const brand = searchParams.get("brand");
     const keywordQuery = searchParams.get("keyword");
-    const minDiscount = searchParams.get("discount") ? Number(searchParams.get("discount")) : undefined;
-    const pageNumber = page - 1;
+    const minDiscount = searchParams.get("discount")
+      ? Number(searchParams.get("discount"))
+      : undefined;
 
     const fetchData = async () => {
       await dispatch(getWishlistByUser());
@@ -105,170 +110,88 @@ const Product = () => {
           minPrice: minPrice ? Number(minPrice) : undefined,
           maxPrice: maxPrice ? Number(maxPrice) : undefined,
           minDiscount,
-          pageNumber,
           sort: sort || undefined,
         })
       );
     };
     fetchData();
-  }, [searchParams, page, category, sort, dispatch]);
+  }, [searchParams, category, sort, dispatch]);
 
   useEffect(() => {
     dispatch(fetchRecommendations(auth.user?.id ?? null));
   }, [dispatch, auth.user?.id]);
 
-  const totalPages = product.totalPages || 1;
+  // Frontend pagination
+  const totalPages = Math.ceil((product.products?.length || 0) / ITEMS_PER_PAGE);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return product.products.slice(start, end);
+  }, [product.products, page]);
+
   const heading = keyword || (category ? `${category}` : "Tat ca san pham");
   const recommendations = (recommendationSlice.recommendations?.items || []).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-[#0b0b0b] px-4 pb-16 pt-8 sm:px-8 lg:px-12 xl:px-20">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,_rgba(249,115,22,0.18),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] px-6 py-7 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-8 lg:px-10">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-2">
-              <span className="inline-flex w-fit items-center rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] text-orange-300">
-                Sản phẩm
-              </span>
-              <h1 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                {heading}
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-3 self-start lg:self-auto">
-              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-center">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Items</p>
-                <p className="mt-1 text-2xl font-black text-white">{product.products.length || 0}</p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-center">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-neutral-500">Page</p>
-                <p className="mt-1 text-2xl font-black text-orange-400">{page}/{totalPages}</p>
-              </div>
+        {/* HEADER */}
+        <div className="overflow-hidden rounded-[2rem] border border-orange-500/15 bg-[#101010] px-6 py-7">
+          <div className="flex justify-between">
+            <h1 className="text-3xl font-black text-white">{heading}</h1>
+            <div className="text-white">
+              Page {page}/{totalPages || 1}
             </div>
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-          <section className="lg:sticky lg:top-24">
-            <FilterSection />
-          </section>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <FilterSection />
 
-          <div className="space-y-5">
-            <div className="flex flex-col gap-3 rounded-[1.6rem] border border-white/10 bg-[#121212] px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.28)] sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-semibold text-neutral-300">{product.products.length || 0} sản phẩm</p>
+          <div>
+            {/* SORT + ACTION */}
+            <div className="flex justify-between mb-4">
+              <p className="text-white">{product.products.length} sản phẩm</p>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="outlined"
-                  startIcon={<AutoAwesome />}
-                  endIcon={showRecommendations ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                  onClick={() => setShowRecommendations((prev) => !prev)}
-                  sx={recommendationButtonSx}
-                >
-                  Xem gợi ý dành cho bạn
-                </Button>
-
-                <FormControl size="small" sx={selectSx}>
-                  <Select value={sort} displayEmpty onChange={handleSortChange}>
-                    <MenuItem value="">Mặc định</MenuItem>
-                    <MenuItem value="price_low">Giá thấp đến cao</MenuItem>
-                    <MenuItem value="price_high">Giá cao đến thấp</MenuItem>
-                  </Select>
-                </FormControl>
-              </div>
+              <FormControl size="small" sx={selectSx}>
+                <Select value={sort} displayEmpty onChange={handleSortChange}>
+                  <MenuItem value="">Mặc định</MenuItem>
+                  <MenuItem value="price_low">Giá thấp đến cao</MenuItem>
+                  <MenuItem value="price_high">Giá cao đến thấp</MenuItem>
+                </Select>
+              </FormControl>
             </div>
 
-            <Collapse in={showRecommendations} timeout={280} unmountOnExit>
-              <section className="overflow-hidden rounded-[1.7rem] border border-orange-500/15 bg-[linear-gradient(135deg,rgba(249,115,22,0.12),rgba(255,255,255,0.02))] px-4 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.24)] sm:px-5">
-                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">Recommendation</p>
-                    <h2 className="mt-2 text-2xl font-black text-white">Danh sách gợi ý dành cho bạn</h2>
-                  </div>
-                  <p className="max-w-[460px] text-sm text-slate-300">
-                    Dựa trên thói quen và nhu cầu của bạn, chúng tôi gợi ý các sản phẩm sau có thể bạn sẽ phù hợp với bạn
-                  </p>
-                </div>
-
-                {recommendationSlice.loading ? (
-                  <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
-                    Đang tải gợi ý...
-                  </div>
-                ) : recommendations.length === 0 ? (
-                  <div className="rounded-[1.2rem] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
-                    Chưa có gợi ý phù hợp
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    {recommendations.map((item: RecommendedProductDto) => (
-                      <button
-                        key={item.productId}
-                        type="button"
-                        onClick={() => navigate(`/product-details/${item.title.replaceAll("/", "_")}/${item.productId}`)}
-                        className="group overflow-hidden rounded-[1.2rem] border border-white/10 bg-[#101010] text-left transition duration-300 hover:-translate-y-1 hover:border-orange-400/35 hover:shadow-[0_20px_40px_rgba(249,115,22,0.12)]"
-                      >
-                        <div className="aspect-[4/3] overflow-hidden bg-white/[0.04]">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <div className="mb-3 inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300">
-                            {sourceLabelMap[item.source] || "Goi y"}
-                          </div>
-                          <h3 className="min-h-[3.2rem] text-sm font-black leading-6 text-white">{item.title}</h3>
-                          <div className="mt-4 flex items-end justify-between gap-3">
-                            <div>
-                              <p className="text-base font-black text-orange-400">{formatCurrencyVND(item.sellingPrice)}</p>
-                              <p className="mt-1 text-xs text-slate-500 line-through">{formatCurrencyVND(item.mrpPrice)}</p>
-                            </div>
-                            {/* <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                              Score {item.score.toFixed(1)}
-                            </div> */}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </section>
-            </Collapse>
-
+            {/* PRODUCT LIST */}
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {product.products.map((item: ProductType) => (
+              {paginatedProducts.map((item: ProductType) => (
                 <ProductCard key={item.id} product={item} />
               ))}
 
               {product.products.length === 0 && (
-                <div className="col-span-full rounded-[1.6rem] border border-dashed border-white/10 bg-[#121212] px-6 py-12 text-center shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
-                  <p className="text-2xl font-black tracking-tight text-white">Không có sản phẩm</p>
+                <div className="col-span-full text-center text-white">
+                  Không có sản phẩm
                 </div>
               )}
             </section>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center pt-4">
-                <Pagination
-                  page={page}
-                  onChange={(e, value) => handlePageChange(value)}
-                  count={totalPages}
-                  shape="rounded"
-                  sx={{
-                    "& .MuiPaginationItem-root": {
-                      color: isDark ? "rgba(255,255,255,0.78)" : "#334155",
-                      borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(15,23,42,0.12)",
-                    },
-                    "& .Mui-selected": {
-                      backgroundColor: "#f97316 !important",
-                      color: "#111111",
-                      fontWeight: 800,
-                    },
-                  }}
-                />
-              </div>
-            )}
+            {/* PAGINATION */}
+            <div className="flex justify-center pt-6">
+              <Pagination
+                page={page}
+                onChange={(e, value) => handlePageChange(value)}
+                count={totalPages || 1}
+                shape="rounded"
+                sx={{
+                  "& .Mui-selected": {
+                    backgroundColor: "#f97316 !important",
+                    color: "#111",
+                    fontWeight: 800,
+                  },
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -129,7 +129,7 @@ const Navbar = () => {
       <div className={isDark ? "border-b border-orange-500/20 bg-black text-orange-300" : "border-b border-orange-200 bg-orange-50 text-orange-700"}>
         <div className="mx-auto flex max-w-[1560px] items-center justify-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] sm:text-xs">
           <LocalShipping sx={{ fontSize: 16 }} />
-          Freeship voi don hang tu 300K
+          Freeship với đơn hàng từ 300K
         </div>
       </div>
 
@@ -147,7 +147,6 @@ const Navbar = () => {
                 <FitnessCenter sx={{ fontSize: 21 }} />
               </div>
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.28em] text-orange-400">Thiet bi tap luyen</p>
                 <h1 className={isDark ? "text-base font-black uppercase tracking-[0.18em] text-white md:text-xl xl:text-2xl" : "text-base font-black uppercase tracking-[0.18em] text-slate-900 md:text-xl xl:text-2xl"}>NHTHI FIT</h1>
               </div>
             </button>
@@ -191,7 +190,7 @@ const Navbar = () => {
 
             {auth?.user ? (
               <Button className="min-w-0 rounded-full" onClick={handleClickAvatar} sx={{ color: isDark ? "white" : "#0f172a", textTransform: "none", pl: 0.75, pr: 1.2 }}>
-                <Avatar sx={{ width: 34, height: 34 }} src="https://i.pinimg.com/736x/cb/d4/45/cbd44516a552e11d908abf735786e497.jpg" />
+                <Avatar sx={{ width: 34, height: 34 }} src={auth.user?.avatar || "https://i.pinimg.com/736x/cb/d4/45/cbd44516a552e11d908abf735786e497.jpg" }/>
                 <span className="ml-2 hidden max-w-[92px] truncate text-sm font-semibold xl:block">{auth.user?.fullName}</span>
               </Button>
             ) : (
@@ -214,7 +213,7 @@ const Navbar = () => {
             </IconButton>
 
             <IconButton onClick={() => handleNavigate("/cart")} sx={iconButtonSx}>
-              <Badge badgeContent={(cart.cart as any)?.totalItem || 0} sx={{ "& .MuiBadge-badge": { backgroundColor: "#f97316", color: "#050505", fontWeight: "bold" } }} overlap="circular" max={99}>
+              <Badge badgeContent={(cart.cart as any)?.totalItem || 0} sx={{ "& .MuiBadge-badge": { backgroundColor: "#f97316", color: "#fff", fontWeight: "bold" } }} overlap="circular" max={99}>
                 <AddShoppingCart className="cart-icon" data-cart-target="true" sx={{ fontSize: 22 }} />
               </Badge>
             </IconButton>

@@ -164,7 +164,7 @@ const MyReview = () => {
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
                 Có ảnh Review
               </p>
-              <p className="mt-2 text-3xl font-black text-orange-300">
+              <p className="mt-2 text-3xl font-black text-white">
                 {stats.withImages}
               </p>
             </div>
@@ -173,7 +173,7 @@ const MyReview = () => {
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
                 Rating TB
               </p>
-              <p className="mt-2 text-3xl font-black text-amber-300">
+              <p className="mt-2 text-3xl font-black text-white">
                 {stats.averageRating}
               </p>
             </div>

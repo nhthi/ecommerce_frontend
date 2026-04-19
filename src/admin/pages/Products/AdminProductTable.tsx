@@ -7,11 +7,14 @@ import {
   Box,
   Button,
   Chip,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
+  FormGroup,
   IconButton,
   InputAdornment,
   Menu,
@@ -32,6 +35,7 @@ import { styled } from "@mui/material/styles";
 import {
   Add,
   DeleteOutline,
+  Download,
   EditOutlined,
   ExpandMore,
   Inventory2,
@@ -40,6 +44,7 @@ import {
   Star,
 } from "@mui/icons-material";
 import { format, parseISO } from "date-fns";
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { Product } from "../../../types/ProductType";
@@ -51,10 +56,62 @@ import {
 import CustomLoading from "../../../customer/components/CustomLoading/CustomLoading";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
-const TEXT_PRIMARY = "#fff7ed";
-const TEXT_SECONDARY = "rgba(255, 237, 213, 0.78)";
-const TEXT_MUTED = "rgba(255, 237, 213, 0.58)";
-const BORDER_SOFT = "rgba(251, 146, 60, 0.14)";
+
+
+const PRODUCT_STATUSES = ["PENDING", "APPROVED", "REJECTED", "HIDDEN"] as const;
+type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+type ProductStatusFilter = "ALL" | ProductStatus;
+
+const EXPORT_FIELD_OPTIONS = [
+  { key: "stt", label: "STT" },
+  { key: "id", label: "ID" },
+  { key: "title", label: "Tên sản phẩm" },
+  { key: "category", label: "Danh mục" },
+  { key: "sellingPrice", label: "Giá bán" },
+  { key: "mrpPrice", label: "Giá gốc" },
+  { key: "color", label: "Màu sắc" },
+  { key: "quantity", label: "Tồn kho" },
+  { key: "sold", label: "Lượt bán" },
+  { key: "status", label: "Trạng thái" },
+  { key: "numRatings", label: "Số đánh giá" },
+  { key: "createdBy", label: "Người tạo" },
+  { key: "createdAt", label: "Ngày tạo" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+
+const formatCurrencyVND = (value?: number | null) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return "0 đ";
+  return new Intl.NumberFormat("vi-VN").format(value) + " đ";
+};
+
+
+
+const panelSx = {
+  borderRadius: "28px",
+  border: "1px solid rgba(255,255,255,0.08)",
+  background:
+    "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
+  overflow: "hidden",
+};
+
+export default function AdminProductTable() {
+  const [statusMenuPosition, setStatusMenuPosition] = React.useState<{
+  top: number;
+  left: number;
+} | null>(null);
+  const { isDark } = useSiteThemeMode();
+  const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
+  const TEXT_SECONDARY = isDark
+    ? "rgba(255,255,255,0.62)"
+    : "rgba(17,24,39,0.68)";
+  const TEXT_MUTED = isDark
+    ? "rgba(255,255,255,0.52)"
+    : "rgba(17,24,39,0.52)";
+  const BORDER_SOFT = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
 
 const StyledTableCell = styled(TableCell)({
   [`&.${tableCellClasses.head}`]: {
@@ -72,22 +129,6 @@ const StyledTableCell = styled(TableCell)({
     borderBottomColor: "rgba(255,255,255,0.06)",
   },
 });
-
-const StyledTableRow = styled(TableRow)({
-  "&:hover": {
-    backgroundColor: "rgba(249,115,22,0.05)",
-  },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-});
-
-const PRODUCT_STATUSES = ["PENDING", "APPROVED", "REJECTED", "HIDDEN"] as const;
-type ProductStatus = (typeof PRODUCT_STATUSES)[number];
-const formatCurrencyVND = (value?: number | null) => {
-  if (typeof value !== "number" || Number.isNaN(value)) return "0 đ";
-  return new Intl.NumberFormat("vi-VN").format(value) + " đ";
-};
 const getStatusChipProps = (status: ProductStatus | string | undefined) => {
   switch (status) {
     case "APPROVED":
@@ -133,35 +174,50 @@ const getStatusChipProps = (status: ProductStatus | string | undefined) => {
       };
   }
 };
-
-const panelSx = {
-  borderRadius: "28px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background:
-    "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.28)",
-  overflow: "hidden",
-};
-
-export default function AdminProductTable() {
-  const { isDark } = useSiteThemeMode();
-
+const StyledTableRow = styled(TableRow)({
+  "&:hover": {
+    backgroundColor: "rgba(249,115,22,0.05)",
+  },
+  "&:last-child td, &:last-child th": {
+    border: 0,
+  },
+});
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { adminProduct } = useAppSelector((store) => store);
 
   const [loading, setLoading] = React.useState(false);
-  const [statusMenuAnchor, setStatusMenuAnchor] =
-    React.useState<null | HTMLElement>(null);
+const [statusMenuAnchor, setStatusMenuAnchor] = React.useState<HTMLElement | null>(null);
   const [selectedProductId, setSelectedProductId] = React.useState<
     number | null
   >(null);
   const [productToDelete, setProductToDelete] = React.useState<Product | null>(
-    null,
+    null
   );
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(6);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [statusFilter, setStatusFilter] =
+    React.useState<ProductStatusFilter>("ALL");
+
+  const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [selectedExportFields, setSelectedExportFields] = React.useState<
+    ExportFieldKey[]
+  >([
+    "stt",
+    "id",
+    "title",
+    "category",
+    "sellingPrice",
+    "mrpPrice",
+    "color",
+    "quantity",
+    "sold",
+    "status",
+    "numRatings",
+    "createdBy",
+    "createdAt",
+  ]);
 
   React.useEffect(() => {
     dispatch(fetchAllProducts());
@@ -171,8 +227,6 @@ export default function AdminProductTable() {
 
   const filteredProducts = React.useMemo(() => {
     const products = adminProduct.products || [];
-
-    if (!normalizedSearch) return products;
 
     return products.filter((item: Product) => {
       const title = item.title?.toLowerCase() || "";
@@ -187,44 +241,55 @@ export default function AdminProductTable() {
         (item as Product & { status?: string }).status || ""
       ).toLowerCase();
 
-      return (
+      const matchesSearch =
+        !normalizedSearch ||
         title.includes(normalizedSearch) ||
         categoryName.includes(normalizedSearch) ||
         color.includes(normalizedSearch) ||
         createdBy.includes(normalizedSearch) ||
         productId.includes(normalizedSearch) ||
-        status.includes(normalizedSearch)
-      );
+        status.includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        ((item as Product & { status?: string }).status || "PENDING") ===
+          statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [adminProduct.products, normalizedSearch]);
+  }, [adminProduct.products, normalizedSearch, statusFilter]);
 
   React.useEffect(() => {
     setPage(0);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
 
   React.useEffect(() => {
     const maxPage = Math.max(
       0,
-      Math.ceil(filteredProducts.length / rowsPerPage) - 1,
+      Math.ceil(filteredProducts.length / rowsPerPage) - 1
     );
     if (page > maxPage) {
       setPage(maxPage);
     }
   }, [filteredProducts.length, page, rowsPerPage]);
 
-  const handleOpenStatusMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    productId: number,
-  ) => {
-    setStatusMenuAnchor(event.currentTarget);
-    setSelectedProductId(productId);
-  };
+const handleOpenStatusMenu = (
+  event: React.MouseEvent<HTMLElement>,
+  productId: number
+) => {
+  event.stopPropagation();
 
-  const handleCloseStatusMenu = () => {
-    setStatusMenuAnchor(null);
-    setSelectedProductId(null);
-  };
+  setStatusMenuPosition({
+    top: event.clientY,
+    left: event.clientX,
+  });
 
+  setSelectedProductId(productId);
+};
+const handleCloseStatusMenu = () => {
+  setStatusMenuPosition(null);
+  setSelectedProductId(null);
+};
   const handleChangeProductStatus = async (status: ProductStatus) => {
     if (!selectedProductId) return;
     setLoading(true);
@@ -250,9 +315,127 @@ export default function AdminProductTable() {
     handleCloseDeleteDialog();
   };
 
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const handleExportExcel = () => {
+    const sourceProducts = filteredProducts || [];
+
+    if (!sourceProducts.length) {
+      alert("Không có dữ liệu để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceProducts.map((item: Product, index: number) => {
+      const productStatus =
+        (item as Product & { status?: string }).status || "PENDING";
+
+      const totalQuantity =
+        item.quantity ??
+        (Array.isArray(item.sizes)
+          ? item.sizes.reduce(
+              (sum: number, size: any) => sum + (Number(size.quantity) || 0),
+              0
+            )
+          : 0);
+
+      const soldCount = Number((item as Product & { sold?: number }).sold) || 0;
+
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("stt")) {
+        row["STT"] = index + 1;
+      }
+      if (selectedExportFields.includes("id")) {
+        row["ID"] = item.id ?? "";
+      }
+      if (selectedExportFields.includes("title")) {
+        row["Tên sản phẩm"] = item.title ?? "";
+      }
+      if (selectedExportFields.includes("category")) {
+        row["Danh mục"] = item.category?.name ?? "";
+      }
+      if (selectedExportFields.includes("sellingPrice")) {
+        row["Giá bán"] = item.sellingPrice ?? 0;
+      }
+      if (selectedExportFields.includes("mrpPrice")) {
+        row["Giá gốc"] = item.mrpPrice ?? 0;
+      }
+      if (selectedExportFields.includes("color")) {
+        row["Màu sắc"] = item.color ?? "";
+      }
+      if (selectedExportFields.includes("quantity")) {
+        row["Tồn kho"] = totalQuantity;
+      }
+      if (selectedExportFields.includes("sold")) {
+        row["Lượt bán"] = soldCount;
+      }
+      if (selectedExportFields.includes("status")) {
+        row["Trạng thái"] = getStatusChipProps(productStatus).label;
+      }
+      if (selectedExportFields.includes("numRatings")) {
+        row["Số đánh giá"] = item.numRatings ?? 0;
+      }
+      if (selectedExportFields.includes("createdBy")) {
+        row["Người tạo"] =
+          item.createdBy?.fullName || item.createdBy?.email || "";
+      }
+      if (selectedExportFields.includes("createdAt")) {
+        row["Ngày tạo"] = item.createAt
+          ? format(parseISO(String(item.createAt)), "dd/MM/yyyy HH:mm")
+          : "";
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    worksheet["!cols"] = [
+      { wch: 6 },
+      { wch: 10 },
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 16 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 20 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+    const fileName = `products_${format(new Date(), "ddMMyyyy_HHmmss")}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    setOpenExportDialog(false);
+  };
+
   const paginatedProducts = filteredProducts.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
   return (
@@ -281,6 +464,7 @@ export default function AdminProductTable() {
             direction={{ xs: "column", sm: "row" }}
             spacing={1.2}
             alignItems={{ xs: "stretch", sm: "center" }}
+            flexWrap="wrap"
           >
             <TextField
               size="small"
@@ -317,6 +501,42 @@ export default function AdminProductTable() {
               }}
             />
 
+            <TextField
+              select
+              size="small"
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as ProductStatusFilter)
+              }
+              sx={{
+                minWidth: { xs: "100%", sm: 180 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: "rgba(255,255,255,0.03)",
+                  "& fieldset": {
+                    borderColor: "rgba(255,255,255,0.10)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.36)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#fb923c",
+                },
+              }}
+            >
+              <MenuItem value="ALL">Tất cả trạng thái</MenuItem>
+              {PRODUCT_STATUSES.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {getStatusChipProps(status).label}
+                </MenuItem>
+              ))}
+            </TextField>
+
             <Chip
               icon={<Inventory2 sx={{ color: "#fb923c !important" }} />}
               label={`${filteredProducts.length} sản phẩm`}
@@ -329,6 +549,28 @@ export default function AdminProductTable() {
             />
 
             <Button
+              variant="outlined"
+              startIcon={<Download />}
+              onClick={() => setOpenExportDialog(true)}
+              disabled={!filteredProducts.length}
+              sx={{
+                borderRadius: 999,
+                px: 2.3,
+                textTransform: "none",
+                fontWeight: 700,
+                color: TEXT_PRIMARY,
+                borderColor: "rgba(249,115,22,0.28)",
+                backgroundColor: "rgba(255,255,255,0.02)",
+                "&:hover": {
+                  borderColor: "rgba(249,115,22,0.45)",
+                  backgroundColor: "rgba(249,115,22,0.08)",
+                },
+              }}
+            >
+              Xuất Excel
+            </Button>
+
+            <Button
               variant="contained"
               startIcon={<Add />}
               onClick={() => navigate("/admin/products/create")}
@@ -337,15 +579,19 @@ export default function AdminProductTable() {
                 px: 2.5,
                 textTransform: "none",
                 fontWeight: 700,
-                color: "#111111",
                 background: "linear-gradient(135deg, #f97316, #ea580c)",
                 boxShadow: "0 14px 30px rgba(249,115,22,0.22)",
+                "& .MuiButton-startIcon, & .MuiSvgIcon-root": {
+                  color: "#fff !important",
+                },
                 "&:hover": {
                   background: "linear-gradient(135deg, #fb923c, #ea580c)",
                 },
               }}
             >
-              Thêm sản phẩm
+              <span style={{ color: "#fff", fontWeight: 700 }}>
+                Thêm sản phẩm
+              </span>
             </Button>
           </Stack>
         </Stack>
@@ -381,7 +627,7 @@ export default function AdminProductTable() {
                     ? item.sizes.reduce(
                         (sum: number, size) =>
                           sum + (Number(size.quantity) || 0),
-                        0,
+                        0
                       )
                     : 0);
 
@@ -394,11 +640,7 @@ export default function AdminProductTable() {
                       <StyledTableCell>#{item.id}</StyledTableCell>
 
                       <StyledTableCell>
-                        <Stack
-                          direction="row"
-                          spacing={1.5}
-                          alignItems="center"
-                        >
+                        <Stack direction="row" spacing={1.5} alignItems="center">
                           <Avatar
                             variant="rounded"
                             src={item.images?.[0] || ""}
@@ -529,6 +771,7 @@ export default function AdminProductTable() {
                           >
                             Sửa
                           </Button>
+
                           <Button
                             size="small"
                             variant="outlined"
@@ -549,6 +792,7 @@ export default function AdminProductTable() {
                           >
                             Trạng thái
                           </Button>
+
                           <IconButton
                             sx={{
                               color: "#fecaca",
@@ -586,9 +830,7 @@ export default function AdminProductTable() {
                           }}
                         >
                           <AccordionSummary
-                            expandIcon={
-                              <ExpandMore sx={{ color: "#fb923c" }} />
-                            }
+                            expandIcon={<ExpandMore sx={{ color: "#fb923c" }} />}
                             sx={{
                               px: 3,
                               minHeight: 52,
@@ -640,7 +882,7 @@ export default function AdminProductTable() {
                                             size.quantity !== undefined
                                               ? ` (${size.quantity})`
                                               : ""
-                                          }`,
+                                          }`
                                       )
                                       .join(", ")
                                   : "Không có"}
@@ -655,7 +897,7 @@ export default function AdminProductTable() {
                                 {item.createAt
                                   ? format(
                                       parseISO(String(item.createAt)),
-                                      "dd/MM/yyyy HH:mm",
+                                      "dd/MM/yyyy HH:mm"
                                     )
                                   : "-"}
                               </Typography>
@@ -712,49 +954,178 @@ export default function AdminProductTable() {
             color: TEXT_PRIMARY,
           },
           ".MuiTablePagination-displayedRows": {
-            color: TEXT_SECONDARY,
+            color: TEXT_PRIMARY,
           },
         }}
       />
 
-      <Menu
-        anchorEl={statusMenuAnchor}
-        open={Boolean(statusMenuAnchor)}
-        onClose={handleCloseStatusMenu}
+<Menu
+  open={Boolean(statusMenuPosition)}
+  onClose={handleCloseStatusMenu}
+  anchorReference="anchorPosition"
+  {...(statusMenuPosition && {
+    anchorPosition: {
+      top: statusMenuPosition.top,
+      left: statusMenuPosition.left,
+    },
+  })}
+  transformOrigin={{
+    vertical: "top",
+    horizontal: "left",
+  }}
+  disableScrollLock
+  PaperProps={{
+    sx: {
+      mt: 1,
+      minWidth: 180,
+      
+      color: TEXT_PRIMARY,
+      border: isDark
+        ? "1px solid rgba(255,255,255,0.08)"
+        : "1px solid rgba(15,23,42,0.08)",
+      borderRadius: "18px",
+      boxShadow: isDark
+        ? "0 18px 40px rgba(0,0,0,0.28)"
+        : "0 14px 32px rgba(15,23,42,0.08)",
+    },
+  }}
+>
+  {PRODUCT_STATUSES.map((status) => (
+    <MenuItem
+      key={status}
+      onClick={() => handleChangeProductStatus(status)}
+    >
+      {getStatusChipProps(status).label}
+    </MenuItem>
+  ))}
+</Menu>
+
+      <Dialog
+        open={openExportDialog}
+        onClose={() => setOpenExportDialog(false)}
+        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
-            background: isDark
-              ? "#171717"
-              : "linear-gradient(180deg, #ffffff, #fff7ed)",
+
             color: TEXT_PRIMARY,
+            borderRadius: "24px",
             border: isDark
               ? "1px solid rgba(255,255,255,0.08)"
               : "1px solid rgba(15,23,42,0.08)",
-            borderRadius: "18px",
             boxShadow: isDark
-              ? "0 18px 40px rgba(0,0,0,0.28)"
-              : "0 14px 32px rgba(15,23,42,0.08)",
-            mt: 1,
-            ".MuiMenuItem-root": {
-              color: TEXT_PRIMARY,
-            },
-            ".MuiMenuItem-root:hover": {
-              backgroundColor: isDark
-                ? "rgba(249,115,22,0.1)"
-                : "rgba(249,115,22,0.08)",
-            },
+              ? "0 24px 60px rgba(0,0,0,0.28)"
+              : "0 18px 45px rgba(15,23,42,0.08)",
           },
         }}
       >
-        {PRODUCT_STATUSES.map((status) => (
-          <MenuItem
-            key={status}
-            onClick={() => handleChangeProductStatus(status)}
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            pb: 1,
+            color: TEXT_PRIMARY,
+          }}
+        >
+          Chọn các mục muốn xuất Excel
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: "8px !important" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mb: 1.8, flexWrap: "wrap", rowGap: 1 }}
           >
-            {getStatusChipProps(status).label}
-          </MenuItem>
-        ))}
-      </Menu>
+                                  <Button
+                                    variant="outlined"
+                                    onClick={handleSelectAllExportFields}
+                                    sx={{
+                                      borderRadius: 999,
+                                      textTransform: "none",
+                                      color: TEXT_PRIMARY,
+                                      borderColor: BORDER_SOFT,
+                                    }}
+                                  >
+                                    Chọn tất cả
+                                  </Button>
+                      
+                                  <Button
+                                    variant="outlined"
+                                    onClick={handleClearAllExportFields}
+                                    sx={{
+                                      borderRadius: 999,
+                                      textTransform: "none",
+                                      color: TEXT_PRIMARY,
+                                      borderColor: BORDER_SOFT,
+                                    }}
+                                  >
+                                    Bỏ chọn tất cả
+                                  </Button>
+          </Stack>
+
+          <FormGroup>
+            {EXPORT_FIELD_OPTIONS.map((field) => (
+              <FormControlLabel
+                key={field.key}
+                control={
+                  <Checkbox
+                    checked={selectedExportFields.includes(field.key)}
+                    onChange={() => handleToggleExportField(field.key)}
+                    sx={{
+                      color: "rgba(249,115,22,0.6)",
+                      "&.Mui-checked": {
+                        color: "#f97316",
+                      },
+                    }}
+                  />
+                }
+                label={field.label}
+                sx={{
+                  color: TEXT_PRIMARY,
+                  ".MuiFormControlLabel-label": {
+                    fontSize: 14.5,
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={() => setOpenExportDialog(false)}
+            sx={{
+              textTransform: "none",
+              color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
+              backgroundColor: isDark
+                ? "transparent"
+                : "rgba(255,255,255,0.68)",
+              borderRadius: 999,
+            }}
+          >
+            Hủy
+          </Button>
+
+          <Button
+            onClick={handleExportExcel}
+            variant="contained"
+            startIcon={<Download />}
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 2.8,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              boxShadow: "none",
+              "&:hover": {
+                background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                boxShadow: "none",
+              },
+            }}
+          >
+            <span className="text-slate-100">Xuất file</span>
+            
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={Boolean(productToDelete)}
@@ -809,7 +1180,6 @@ export default function AdminProductTable() {
               borderRadius: 999,
               textTransform: "none",
               px: 2.5,
-              // color: TEXT_PRIMARY,
               borderColor: isDark ? BORDER_SOFT : "rgba(249,115,22,0.22)",
               backgroundColor: isDark
                 ? "transparent"

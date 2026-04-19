@@ -62,9 +62,7 @@ const PolicyLayout = ({
     <Box
       sx={{
         minHeight: "100vh",
-        background: isDark
-          ? "linear-gradient(180deg, #070707 0%, #111111 30%, #090909 100%)"
-          : "linear-gradient(180deg, #f8fafc 0%, #eef2f7 30%, #f6f7fb 100%)",
+        background: isDark ? "#0b0b0b" : "#f5f7fa",
         px: { xs: 2, md: 3 },
         py: { xs: 3, lg: 4 },
       }}
@@ -96,9 +94,7 @@ const PolicyLayout = ({
             border: isDark
               ? "1px solid rgba(255,255,255,0.08)"
               : "1px solid rgba(15,23,42,0.08)",
-            background: isDark
-              ? "radial-gradient(circle at top left, rgba(249,115,22,0.18), transparent 24%), linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.98))"
-              : "radial-gradient(circle at top left, rgba(249,115,22,0.14), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98))",
+            background: isDark ? "#121212" : "#ffffff",
             boxShadow: isDark
               ? "0 30px 90px rgba(0,0,0,0.38)"
               : "0 30px 90px rgba(15,23,42,0.08)",
@@ -154,9 +150,7 @@ const PolicyLayout = ({
                           border: isDark
                             ? "1px solid rgba(255,255,255,0.08)"
                             : "1px solid rgba(15,23,42,0.08)",
-                          background: isDark
-                            ? "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))"
-                            : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.9))",
+                          background: isDark ? "#1a1a1a" : "#ffffff",
                           p: 1.6,
                         }}
                       >
@@ -221,29 +215,36 @@ const PolicyLayout = ({
                 }}
               >
                 <Box
-  component="img"
-  src={image}
-  alt={title}
-  sx={{
-    width: "100%",
-    maxWidth: 480,
-    height: 520,
-    objectFit: "cover",
-    borderRadius: "24px",
-  }}
-/>
+                  component="img"
+                  src={image}
+                  alt={title}
+                  sx={{
+                    width: "100%",
+                    maxWidth: 480,
+                    height: 520,
+                    objectFit: "cover",
+                    borderRadius: "24px",
+                  }}
+                />
 
+                {/* overlay tối đơn giản */}
                 <Box
                   sx={{
                     position: "absolute",
                     inset: 0,
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.6))",
+                    background: "rgba(0,0,0,0.35)",
                   }}
                 />
 
                 {/* OVERLAY */}
-                <Box sx={{ position: "absolute", right: 18, bottom: 18, left: 18 }}>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    right: 18,
+                    bottom: 18,
+                    left: 18,
+                  }}
+                >
                   <Paper
                     elevation={0}
                     sx={{

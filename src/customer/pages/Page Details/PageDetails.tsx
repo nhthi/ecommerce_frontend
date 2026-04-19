@@ -382,19 +382,41 @@ useEffect(() => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className={isDark ? "inline-flex items-center gap-3 rounded-full border border-orange-500/15 bg-black/20 px-4 py-2 text-sm text-slate-300" : "inline-flex items-center gap-3 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm text-slate-600"}>
-                    <span className={isDark ? "inline-flex items-center gap-1 font-semibold text-white" : "inline-flex items-center gap-1 font-semibold text-slate-900"}>
-                      {product?.numRatings || 0}
-                      <Star sx={{ color: "#fb923c", fontSize: 18 }} />
-                    </span>
-                    <Divider
-                      orientation="vertical"
-                      flexItem
-                      sx={{ borderColor: "rgba(255,255,255,0.08)" }}
-                    />
-                    <span>{product?.reviews?.length || 0} đánh giá</span>
-                  </div>
-                </div>
+  <div
+    className={
+      isDark
+        ? "inline-flex items-center gap-3 rounded-full border border-orange-500/15 bg-black/20 px-4 py-2 text-sm text-slate-300"
+        : "inline-flex items-center gap-3 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm text-slate-600"
+    }
+  >
+    <span
+      className={
+        isDark
+          ? "inline-flex items-center gap-1 font-semibold text-white"
+          : "inline-flex items-center gap-1 font-semibold text-slate-900"
+      }
+    >
+      {product?.numRatings || 0}
+      <Star sx={{ color: "#fb923c", fontSize: 18 }} />
+    </span>
+
+    <Divider
+      orientation="vertical"
+      flexItem
+      sx={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)" }}
+    />
+
+    <span>{product?.reviews?.length || 0} đánh giá</span>
+
+    <Divider
+      orientation="vertical"
+      flexItem
+      sx={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)" }}
+    />
+
+    <span>Đã bán {Number(product?.sold ?? 0)}</span>
+  </div>
+</div>
 
                 <div className={isDark ? "rounded-[1.4rem] border border-orange-500/12 bg-black/20 p-5" : "rounded-[1.4rem] border border-orange-100 bg-orange-50/70 p-5"}>
                   <div className="flex flex-wrap items-end gap-3">
@@ -536,7 +558,7 @@ useEffect(() => {
                       fontWeight: 800,
                       fontSize: 14,
                       background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                      color: "#050505",
+                      color: "#fff",
                       boxShadow: "none",
                       "&:hover": {
                         background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",

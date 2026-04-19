@@ -141,6 +141,9 @@ const ProductCard = ({ product }: { product: Product }) => {
                 {product.seller?.businessDetails.businessName || "Fitness Store"}
               </p>
               <p className="product-card__title">{product.title}</p>
+                <p className="product-card__sold">
+    Đã bán {product?.sold ?? 0}
+  </p>
             </div>
 
             <div className="product-card__price-row">

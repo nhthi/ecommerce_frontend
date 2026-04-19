@@ -178,7 +178,7 @@ const ChangePasswordForm: React.FC = () => {
           textTransform: "none",
           fontWeight: 800,
           background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-          color: "#050505",
+          color: "#fff",
           boxShadow: "none",
           px: 3,
           py: 1.2,

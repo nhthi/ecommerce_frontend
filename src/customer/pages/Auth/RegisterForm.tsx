@@ -233,7 +233,7 @@ const RegisterForm = () => {
             Đăng ký nhanh để lưu sản phẩm, theo dõi đơn và nhận các gợi ý tập luyện.
           </p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-slate-100">
           <PersonAddAlt1Icon />
         </div>
       </div>
@@ -400,7 +400,7 @@ const RegisterForm = () => {
               fontWeight: 800,
               fontSize: "0.95rem",
               background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-              color: "#050505",
+              color: "#fff",
               boxShadow: "none",
             }}
           >
@@ -419,7 +419,7 @@ const RegisterForm = () => {
               fontWeight: 800,
               fontSize: "0.95rem",
               background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-              color: "#050505",
+              color: "#fff",
               boxShadow: "none",
             }}
           >

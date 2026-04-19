@@ -195,7 +195,7 @@ const LoginForm = () => {
             Nhập email và mật khẩu, sau đó xác thực OTP để đăng nhập an toàn.
           </p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-black">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-slate-100">
           <MailOutlineIcon />
         </div>
       </div>
@@ -309,7 +309,7 @@ const LoginForm = () => {
               fontWeight: 800,
               fontSize: "0.95rem",
               background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-              color: "#050505",
+              color: "#fff",
               boxShadow: "none",
               "&:hover": {
                 background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
@@ -337,7 +337,7 @@ const LoginForm = () => {
               fontWeight: 800,
               fontSize: "0.95rem",
               background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-              color: "#050505",
+              color: "#fff",
               boxShadow: "none",
               "&:hover": {
                 background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",

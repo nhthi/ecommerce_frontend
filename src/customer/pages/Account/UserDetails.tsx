@@ -123,7 +123,7 @@ const handleUpdateProfile = async (values: any) => {
                 <TextField fullWidth label="Quận/Huyện" name="city" value={profile.city} onChange={handleChange} sx={inputSx} />
                 <TextField fullWidth label="Mã bưu điện" name="postalCode" value={profile.postalCode} onChange={handleChange} sx={inputSx} />
               </div>
-              <Button variant="contained" sx={{ mt: 1, borderRadius: "999px", textTransform: "none", fontWeight: 800, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "#050505", boxShadow: "none", px: 3 }}>Cập nhật địa chỉ</Button>
+              <Button variant="contained" sx={{ mt: 1, borderRadius: "999px", textTransform: "none", fontWeight: 800, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", color: "#fff", boxShadow: "none", px: 3 }}>Cập nhật địa chỉ</Button>
             </div>
           )}
 

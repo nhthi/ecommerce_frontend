@@ -928,7 +928,7 @@ const renderOrderCard = (
           onClick={toggleOpen}
           className={[
             "group flex h-14 w-14 items-center justify-center rounded-full border border-orange-400/30",
-            "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111]",
+            "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#fff]",
             "shadow-[0_18px_38px_rgba(249,115,22,0.35)] transition-all duration-300",
             open
               ? "scale-95"

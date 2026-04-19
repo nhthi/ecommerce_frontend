@@ -47,8 +47,8 @@ const Wishlist = () => {
                 Danh sách yêu thích
               </p>
               <h1 className="mt-3 flex items-center gap-3 text-3xl font-black text-white md:text-4xl">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-black">
-                  <FavoriteBorder />
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-white">
+                  <FavoriteBorder sx={{color:"#ffffff"}}/>
                 </span>
                 Sản phẩm đã lưu
               </h1>
@@ -107,7 +107,7 @@ const Wishlist = () => {
                     mt: 4,
                     borderRadius: "999px",
                     background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                    color: "#050505",
+                    color: "#fff",
                     fontWeight: 800,
                     textTransform: "none",
                     px: 3,

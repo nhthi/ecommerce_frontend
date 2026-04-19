@@ -236,18 +236,25 @@ const AddEditExerciseForm = ({ initialData, isEdit = false }: AddEditExerciseFor
                 Quay lại
               </Button>
 
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 2.8,
-                  background: "linear-gradient(135deg, #f97316, #ea580c)",
-                }}
-              >
-                {isEdit ? "Lưu thay đổi" : "Tạo bài tập"}
-              </Button>
+             <Button
+  type="submit"
+  variant="contained"
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.8,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>
+    {isEdit ? "Lưu thay đổi" : "Tạo bài tập"}
+  </span>
+</Button>
             </Box>
           </Grid>
         </Grid>

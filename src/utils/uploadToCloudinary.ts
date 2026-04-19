@@ -1,7 +1,9 @@
 
-const upload_preset = 'citaa_db'
-const cloud_name = 'dvbhq3eyu'
+// const upload_preset = 'citaa_db'
+// const cloud_name = 'dvbhq3eyu'
 
+const upload_preset = 'ptw_ct449'
+const cloud_name = 'dssku7owl'
 
 export const uploadToCloundinary = async(pics:any,  fileType:any)=>{
     if(pics && fileType){

@@ -155,7 +155,7 @@ const Hero = () => {
                   endIcon={<ShoppingCartIcon />}
                   sx={{
                     background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                    color: "#050505",
+                    color: "#fff",
                     fontWeight: 800,
                     borderRadius: "999px",
                     minWidth: 190,

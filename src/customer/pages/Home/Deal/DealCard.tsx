@@ -74,12 +74,12 @@ const DealCard: React.FC<Product> = ({
 
         <IconButton
           onClick={() =>
-            navigate(`/product-details/${category?.categoryId}/${title}/${id}`)
+            navigate(`/product-details/${title}/${id}`)
           }
           className="!mt-1 !w-full !rounded-full !py-2"
           sx={{
             backgroundColor: "#f97316",
-            color: "#050505",
+            color: "#fff",
             fontSize: 11,
             fontWeight: 700,
             "&:hover": { backgroundColor: "#fb923c" },
@@ -87,7 +87,7 @@ const DealCard: React.FC<Product> = ({
           }}
         >
           <ShoppingBagIcon sx={{ fontSize: 16 }} />
-          <span className="text-sm font-bold">Xem chi tiet</span>
+          <span className="text-sm font-bold">Xem chi tiết</span>
         </IconButton>
       </div>
     </motion.div>

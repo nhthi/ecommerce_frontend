@@ -29,7 +29,7 @@ const normalizeBlogSlug = (slug?: string | null) => {
 };
 const buildSummary = (post: BlogPost) => {
   const text = stripHtml(post.content);
-  return text.slice(0, 320) || post.shortDescription || "Bai viet dang duoc cap nhat.";
+  return text.slice(0, 320) || post.shortDescription || "Bài viết đang được cạp nhật";
 };
 
 const BlogDetail = () => {
@@ -209,6 +209,7 @@ const BlogDetail = () => {
                         textTransform: "none",
                         fontWeight: 700,
                         background: "linear-gradient(135deg, #f97316, #ea580c)",
+                        color:"#fff"
                       }}
                     >
                       Nhờ AI tóm tắt

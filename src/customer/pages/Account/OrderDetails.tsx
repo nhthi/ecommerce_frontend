@@ -23,8 +23,11 @@ import {
   fetchMyReturnRequests,
   markReturnCustomerShipped,
 } from "../../../state/customer/returnRequestSlice";
+import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 
 const OrderDetails = () => {
+  const { isDark } = useSiteThemeMode();
+
   const navigate = useNavigate();
   const { orderId } = useParams();
   const dispatch = useAppDispatch();
@@ -170,7 +173,11 @@ const OrderDetails = () => {
 
   if (!currentOrder) {
     return (
-      <Box className="min-h-[50vh] flex items-center justify-center text-lg text-slate-400">
+      <Box
+        className={`min-h-[50vh] flex items-center justify-center text-lg ${
+          isDark ? "text-neutral-400" : "text-slate-600"
+        }`}
+      >
         Đang tải thông tin đơn hàng...
       </Box>
     );
@@ -181,17 +188,61 @@ const OrderDetails = () => {
 
   const canReturnByDate = isReturnAvailable(currentOrder.deliveryDate);
 
+  const sectionClass = isDark
+    ? "rounded-[1.8rem] border border-white/10 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+    : "rounded-[1.8rem] border border-slate-200 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]";
+
+  const softBoxClass = isDark
+    ? "rounded-[1.2rem] bg-white/[0.03]"
+    : "rounded-[1.2rem] bg-slate-50";
+
+  const itemCardClass = isDark
+    ? "flex flex-col gap-4 rounded-[1.4rem] border border-white/8 bg-white/[0.03] p-4 sm:flex-row"
+    : "flex flex-col gap-4 rounded-[1.4rem] border border-slate-200 bg-slate-50/80 p-4 sm:flex-row";
+
+  const dividerSx = {
+    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(148,163,184,0.28)",
+  };
+
+  const secondaryButtonSx = {
+    textTransform: "none",
+    borderRadius: "999px",
+    fontSize: "0.95rem",
+    fontWeight: 700,
+    px: 2.5,
+    borderColor: isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.16)",
+    color: isDark ? "#ffffff" : "#0f172a",
+    backgroundColor: "transparent",
+    "&:hover": {
+      borderColor: isDark ? "rgba(255,255,255,0.32)" : "rgba(15,23,42,0.3)",
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(15,23,42,0.04)",
+    },
+  };
+
+  const primaryButtonSx = {
+    textTransform: "none",
+    borderRadius: "999px",
+    px: 2.5,
+    fontWeight: 800,
+    backgroundColor: isDark ? "#f3f4f6" : "#111827",
+    color: isDark ? "#111827" : "#ffffff",
+    "&:hover": {
+      backgroundColor: isDark ? "#e5e7eb" : "#1f2937",
+    },
+  };
+
   return (
     <Box className="space-y-6">
-      <section className="rounded-[1.8rem] border border-orange-500/12 bg-[#141414] px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:px-7">
+      <section className={`${sectionClass} px-6 py-5 lg:px-7`}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-3xl font-black text-white">
+            <h2 className={`text-3xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
               Đơn hàng #{currentOrder.orderId || currentOrder.id}
             </h2>
-            <p className="mt-3 text-base leading-7 text-slate-300">
+
+            <p className={`mt-3 text-base leading-7 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
               Ngày đặt:{" "}
-              <span className="font-semibold text-white">
+              <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                 {currentOrder.orderDate
                   ? new Date(currentOrder.orderDate).toLocaleDateString("vi-VN", {
                       day: "2-digit",
@@ -201,14 +252,15 @@ const OrderDetails = () => {
                   : "Đang cập nhật"}
               </span>
             </p>
-            <p className="mt-1 text-2xl font-black text-orange-400">
+
+            <p className={`mt-1 text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
               {formatVND(pricing.totalPrice)}
             </p>
 
             {currentOrder.orderStatus === "DELIVERED" && (
-              <p className="mt-2 text-sm text-slate-400">
+              <p className={`mt-2 text-sm ${isDark ? "text-neutral-400" : "text-slate-500"}`}>
                 Có thể trả hàng đến{" "}
-                <span className="font-semibold text-white">
+                <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                   {getReturnDeadlineText(currentOrder.deliveryDate)}
                 </span>
               </p>
@@ -237,9 +289,11 @@ const OrderDetails = () => {
         </div>
       </section>
 
-      <section className="rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:p-6">
-        <h3 className="text-2xl font-black text-white">Sản phẩm trong đơn</h3>
-        <Divider sx={{ borderColor: "rgba(249,115,22,0.12)", my: 3 }} />
+      <section className={`${sectionClass} p-5 lg:p-6`}>
+        <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+          Sản phẩm trong đơn
+        </h3>
+        <Divider sx={{ ...dividerSx, my: 3 }} />
 
         <div className="space-y-4">
           {currentOrder.orderItems?.map((item) => {
@@ -250,92 +304,99 @@ const OrderDetails = () => {
               !itemReturnRequest;
 
             return (
-              <div
-                key={item.id}
-                className="flex flex-col gap-4 rounded-[1.4rem] border border-white/6 bg-black/20 p-4 sm:flex-row"
-              >
+              <div key={item.id} className={itemCardClass}>
                 <img
                   src={item.product?.images?.[0]}
                   alt={item.product?.title}
-                  className="h-32 w-24 rounded-xl border border-white/6 object-cover"
+                  className={`h-32 w-24 rounded-xl object-cover ${
+                    isDark ? "border border-white/8" : "border border-slate-200"
+                  }`}
                 />
 
                 <div className="flex-1 space-y-2 text-base">
-                  <h4 className="text-xl font-bold text-white">
+                  <h4 className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                     {item.product?.title}
                   </h4>
 
-                  <p className="text-slate-400">
+                  <p className={isDark ? "text-slate-400" : "text-slate-500"}>
                     {item.product?.seller?.businessDetails?.businessName || "NHTHI Fit"}
                   </p>
 
-                  <p className="text-slate-300">
+                  <p className={isDark ? "text-slate-300" : "text-slate-600"}>
                     Kích thước:{" "}
-                    <span className="font-semibold text-white">
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                       {item.size?.name || "Không có"}
                     </span>
                   </p>
 
-                  <p className="text-slate-300">
+                  <p className={isDark ? "text-slate-300" : "text-slate-600"}>
                     Số lượng:{" "}
-                    <span className="font-semibold text-white">{item.quantity}</span>
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
+                      {item.quantity}
+                    </span>
                   </p>
 
-                  <p className="text-slate-300">
+                  <p className={isDark ? "text-slate-300" : "text-slate-600"}>
                     Giá:{" "}
-                    <span className="mr-2 text-slate-500 line-through">
+                    <span className={`mr-2 line-through ${isDark ? "text-slate-500" : "text-slate-400"}`}>
                       {formatVND(item.mrpPrice || 0)}
                     </span>
-                    <span className="font-semibold text-orange-400">
+                    <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                       {formatVND(item.sellingPrice || 0)}
                     </span>
                   </p>
 
                   {itemReturnRequest && (
-                    <div className="mt-3 rounded-2xl border border-orange-500/15 bg-orange-500/8 px-4 py-3">
-                      <p className="text-sm font-bold text-orange-300">
+                    <div
+                      className={`mt-3 rounded-2xl px-4 py-3 ${
+                        isDark
+                          ? "border border-white/10 bg-white/[0.04]"
+                          : "border border-slate-200 bg-white"
+                      }`}
+                    >
+                      <p className={`text-sm font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
                         Yêu cầu trả hàng: {getReturnStatusLabel(itemReturnRequest.status)}
                       </p>
-                      <p className="mt-1 text-sm text-slate-300">
+                      <p className={`mt-1 text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}>
                         Tiền hoàn dự kiến{" "}
-                        <span className="font-semibold text-white">
+                        <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                           {formatVND(itemReturnRequest.refundAmount || 0)}
                         </span>
                       </p>
                       {itemReturnRequest.note && (
-                        <p className="mt-1 text-sm text-slate-400">
+                        <p className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                           Ghi chú: {itemReturnRequest.note}
                         </p>
                       )}
                     </div>
                   )}
 
-                  {currentOrder.orderStatus === "DELIVERED" && !canReturnByDate && !itemReturnRequest && (
-                    <div className="mt-3 rounded-2xl border border-red-500/15 bg-red-500/8 px-4 py-3">
-                      <p className="text-sm font-semibold text-red-300">
-                        Đã quá thời hạn 7 ngày kể từ ngày giao, sản phẩm này không còn hỗ trợ trả hàng.
-                      </p>
-                    </div>
-                  )}
+                  {currentOrder.orderStatus === "DELIVERED" &&
+                    !canReturnByDate &&
+                    !itemReturnRequest && (
+                      <div
+                        className={`mt-3 rounded-2xl px-4 py-3 ${
+                          isDark
+                            ? "border border-white/10 bg-white/[0.04]"
+                            : "border border-slate-200 bg-white"
+                        }`}
+                      >
+                        <p className={`text-sm font-semibold ${isDark ? "text-neutral-200" : "text-slate-700"}`}>
+                          Đã quá thời hạn 7 ngày kể từ ngày giao, sản phẩm này không còn hỗ trợ trả hàng.
+                        </p>
+                      </div>
+                    )}
 
                   <div className="flex flex-wrap gap-3 pt-2">
                     {item.review ? (
                       <Button
                         onClick={() =>
-                          navigate(`/account/orders/${currentOrder.id}/review-detail`, {
+                          navigate(`/account/my-reviews`, {
                             state: { orderItemId: item.id, review: item.review },
                           })
                         }
                         variant="contained"
-                        sx={{
-                          backgroundColor: "#4b5563",
-                          color: "#fff",
-                          textTransform: "none",
-                          borderRadius: "999px",
-                          fontSize: "0.9rem",
-                          px: 2.5,
-                          "&:hover": { backgroundColor: "#374151" },
-                        }}
+                        sx={primaryButtonSx}
                       >
                         Xem đánh giá
                       </Button>
@@ -391,20 +452,24 @@ const OrderDetails = () => {
         </div>
       </section>
 
-      <section className="rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:p-6">
-        <h3 className="text-2xl font-black text-white">Trạng thái đơn hàng</h3>
+      <section className={`${sectionClass} p-5 lg:p-6`}>
+        <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+          Trạng thái đơn hàng
+        </h3>
         <OrderStepper
           orderStatus={currentOrder.orderStatus || OrderStatus.PENDING}
           deliveryDate={currentOrder.deliveryDate}
         />
       </section>
 
-      <section className="rounded-[1.8rem] border border-orange-500/12 bg-[#141414] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:p-6">
-        <h3 className="text-2xl font-black text-white">Địa chỉ giao hàng</h3>
-        <Divider sx={{ borderColor: "rgba(249,115,22,0.12)", my: 3 }} />
+      <section className={`${sectionClass} p-5 lg:p-6`}>
+        <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+          Địa chỉ giao hàng
+        </h3>
+        <Divider sx={{ ...dividerSx, my: 3 }} />
 
-        <div className="space-y-3 text-base text-slate-300">
-          <div className="flex flex-wrap gap-4 font-semibold text-white">
+        <div className={`space-y-3 text-base ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+          <div className={`flex flex-wrap gap-4 font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
             <p>{currentOrder.shippingAddress?.receiverName}</p>
             <p>{currentOrder.shippingAddress?.phoneNumber}</p>
           </div>
@@ -414,54 +479,62 @@ const OrderDetails = () => {
           </p>
 
           {currentOrder.shippingAddress?.note && (
-            <p className="text-slate-400">
+            <p className={isDark ? "text-slate-400" : "text-slate-500"}>
               Ghi chú: {currentOrder.shippingAddress.note}
             </p>
           )}
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[1.8rem] border border-orange-500/12 bg-[#141414] shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+      <section className={`${sectionClass} overflow-hidden`}>
         <div className="space-y-4 px-6 pt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-lg font-black text-white">Tổng quan thanh toán</p>
-              <p className="mt-1 text-base text-slate-400">
+              <p className={`text-lg font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+                Tổng quan thanh toán
+              </p>
+              <p className={`mt-1 text-base ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                 Bạn tiết kiệm{" "}
-                <span className="font-semibold text-orange-300">
+                <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
                   {formatVND(pricing.totalDiscount)}
                 </span>{" "}
                 cho đơn này.
               </p>
             </div>
-            <p className="text-3xl font-black text-orange-400">
+            <p className={`text-3xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
               {formatVND(pricing.totalPrice)}
             </p>
           </div>
 
-          <div className="mt-4 space-y-3 rounded-[1.2rem] bg-black/20 px-4 py-4 text-base text-slate-300">
+          <div
+            className={`mt-4 space-y-3 px-4 py-4 text-base ${
+              isDark ? `${softBoxClass} text-slate-300` : `${softBoxClass} text-slate-600`
+            }`}
+          >
             <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-400">Tổng giá gốc</span>
+              <span className={isDark ? "text-slate-400" : "text-slate-500"}>Tổng giá gốc</span>
               <span>{formatVND(pricing.originalPrice)}</span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
-              <span className="text-slate-400">Tổng tiền hàng</span>
+              <span className={isDark ? "text-slate-400" : "text-slate-500"}>Tổng tiền hàng</span>
               <span>{formatVND(pricing.subtotalPrice)}</span>
             </div>
 
             {pricing.productDiscount > 0 && (
-              <div className="flex items-center justify-between gap-4 text-green-400">
-                <span className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <span className={`flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"}`}>
                   <Discount sx={{ fontSize: 18 }} />
                   Giảm giá sản phẩm
                 </span>
-                <span>-{formatVND(pricing.productDiscount)}</span>
+                <span className={isDark ? "text-white" : "text-slate-900"}>
+                  -{formatVND(pricing.productDiscount)}
+                </span>
               </div>
             )}
 
             <div className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-2 text-slate-400">
+              <span className={`flex items-center gap-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                 <LocalShipping sx={{ fontSize: 18 }} />
                 Phí vận chuyển
               </span>
@@ -469,46 +542,54 @@ const OrderDetails = () => {
             </div>
 
             {pricing.shippingFeeDiscount > 0 && (
-              <div className="flex items-center justify-between gap-4 text-green-400">
-                <span>Giảm phí vận chuyển</span>
-                <span>-{formatVND(pricing.shippingFeeDiscount)}</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className={isDark ? "text-white" : "text-slate-900"}>Giảm phí vận chuyển</span>
+                <span className={isDark ? "text-white" : "text-slate-900"}>
+                  -{formatVND(pricing.shippingFeeDiscount)}
+                </span>
               </div>
             )}
 
             {pricing.couponDiscount > 0 && (
-              <div className="flex items-center justify-between gap-4 text-green-400">
-                <span>Giảm giá từ mã khuyến mãi</span>
-                <span>-{formatVND(pricing.couponDiscount)}</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className={isDark ? "text-white" : "text-slate-900"}>Giảm giá từ mã khuyến mãi</span>
+                <span className={isDark ? "text-white" : "text-slate-900"}>
+                  -{formatVND(pricing.couponDiscount)}
+                </span>
               </div>
             )}
 
-            <Divider sx={{ borderColor: "rgba(249,115,22,0.12)" }} />
+            <Divider sx={dividerSx} />
 
-            <div className="flex items-center justify-between gap-4 text-lg font-bold text-white">
+            <div className={`flex items-center justify-between gap-4 text-lg font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
               <span>Thành tiền</span>
-              <span className="text-orange-400">{formatVND(pricing.totalPrice)}</span>
+              <span>{formatVND(pricing.totalPrice)}</span>
             </div>
 
             {pricing.finalShippingFee === 0 && pricing.shippingFee > 0 && (
-              <div className="text-right text-sm font-semibold text-green-400">
+              <div className={`text-right text-sm font-semibold ${isDark ? "text-neutral-200" : "text-slate-700"}`}>
                 Bạn được miễn phí vận chuyển
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-3 rounded-[1.2rem] bg-black/20 px-4 py-3 text-base text-slate-300">
-            <Payments sx={{ color: "#fb923c" }} />
+          <div
+            className={`flex items-center gap-3 px-4 py-3 text-base ${
+              isDark ? `${softBoxClass} text-slate-300` : `${softBoxClass} text-slate-600`
+            }`}
+          >
+            <Payments sx={{ color: isDark ? "#ffffff" : "#0f172a" }} />
             {currentOrder.paymentMethod === "COD"
               ? "Thanh toán khi nhận hàng (COD)"
               : "Thanh toán trực tuyến"}
           </div>
         </div>
 
-        <Divider sx={{ mt: 3, borderColor: "rgba(249,115,22,0.12)" }} />
+        <Divider sx={{ ...dividerSx, mt: 3 }} />
 
-        <div className="px-6 py-4 text-base text-slate-400">
+        <div className={`px-6 py-4 text-base ${isDark ? "text-slate-400" : "text-slate-500"}`}>
           Đơn vị bán hàng:{" "}
-          <span className="font-semibold text-white">
+          <span className={`font-semibold ${isDark ? "text-white" : "text-slate-900"}`}>
             {currentOrder.orderItems?.[0]?.product?.seller?.businessDetails?.businessName ||
               "NHTHI Fit"}
           </span>
@@ -518,14 +599,7 @@ const OrderDetails = () => {
           <Button
             fullWidth
             variant="outlined"
-            color="error"
-            sx={{
-              py: "0.95rem",
-              borderRadius: "999px",
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: "1rem",
-            }}
+            sx={secondaryButtonSx}
             disabled={!canCancel}
             onClick={() => setOpenConfirm(true)}
           >
@@ -534,10 +608,23 @@ const OrderDetails = () => {
         </div>
       </section>
 
-      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
-        <DialogTitle>Bạn chắc chắn muốn hủy đơn hàng này?</DialogTitle>
+      <Dialog
+        open={openConfirm}
+        onClose={() => setOpenConfirm(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "20px",
+            backgroundColor: isDark ? "#171717" : "#ffffff",
+            color: isDark ? "#ffffff" : "#0f172a",
+            border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(148,163,184,0.2)",
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: isDark ? "#fff" : "#0f172a" }}>
+          Bạn chắc chắn muốn hủy đơn hàng này?
+        </DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ color: isDark ? "rgba(255,255,255,0.7)" : "#475569" }}>
             Sau khi hủy, đơn hàng sẽ không thể khôi phục lại.
           </DialogContentText>
         </DialogContent>
@@ -551,9 +638,17 @@ const OrderDetails = () => {
           </Button>
           <Button
             onClick={handleCancelOrder}
-            color="error"
             autoFocus
-            sx={{ textTransform: "none" }}
+            sx={{
+              textTransform: "none",
+              borderRadius: "999px",
+              px: 2,
+              backgroundColor: isDark ? "#f3f4f6" : "#111827",
+              color: isDark ? "#111827" : "#ffffff",
+              "&:hover": {
+                backgroundColor: isDark ? "#e5e7eb" : "#1f2937",
+              },
+            }}
           >
             Đồng ý hủy
           </Button>
@@ -609,31 +704,6 @@ const getReturnStatusLabel = (status?: string) => {
     default:
       return "Đang xử lý";
   }
-};
-
-const secondaryButtonSx = {
-  textTransform: "none",
-  borderRadius: "999px",
-  fontSize: "0.95rem",
-  fontWeight: 700,
-  borderColor: "rgba(249,115,22,0.3)",
-  color: "#fb923c",
-  px: 2.5,
-  "&:hover": {
-    borderColor: "#fb923c",
-    backgroundColor: "rgba(249,115,22,0.08)",
-  },
-};
-
-const primaryButtonSx = {
-  textTransform: "none",
-  borderRadius: "999px",
-  px: 2.5,
-  fontWeight: 800,
-  backgroundColor: "#f97316",
-  "&:hover": {
-    backgroundColor: "#ea580c",
-  },
 };
 
 export default OrderDetails;

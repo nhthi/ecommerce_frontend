@@ -44,7 +44,7 @@ const Account = () => {
         <div className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)]">
           <aside className="rounded-[2rem] border border-orange-500/12 bg-[#101010] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] lg:p-5">
             <div className="rounded-[1.5rem] border border-white/6 bg-black/20 p-4">
-              <p className="text-sm font-semibold text-slate-400">Tai khoan</p>
+              <p className="text-sm font-semibold text-slate-400">Tài khoản</p>
               <h2 className="mt-2 text-2xl font-black text-white">
                 {auth.user?.fullName || "Khach hang"}
               </h2>
@@ -70,7 +70,7 @@ const Account = () => {
                     }}
                     className={`flex w-full items-center justify-between rounded-[1.2rem] px-4 py-4 text-left text-base font-semibold transition ${
                       active && !isLogout
-                        ? "bg-orange-500 text-black"
+                        ? "bg-orange-500 text-slate-100"
                         : isLogout
                         ? "text-red-300 hover:bg-red-500/10"
                         : item.disabled
@@ -81,11 +81,11 @@ const Account = () => {
                     <span>{item.name}</span>
                     {active && !isLogout ? (
                       <span className="text-xs font-bold uppercase tracking-[0.16em]">
-                        Dang xem
+                        Đang xem
                       </span>
                     ) : item.disabled ? (
                       <span className="text-xs uppercase tracking-[0.16em] text-slate-600">
-                        Sap co
+                        Sắp có
                       </span>
                     ) : null}
                   </button>

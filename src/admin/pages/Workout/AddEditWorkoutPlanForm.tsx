@@ -433,18 +433,25 @@ const AddEditWorkoutPlanForm = ({
                 Hủy
               </Button>
               <Button
-                type="submit"
-                variant="contained"
-                disabled={uploading || loading}
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 2.8,
-                  background: "linear-gradient(135deg, #f97316, #ea580c)",
-                }}
-              >
-                {isEdit ? "Lưu thay đổi" : "Tạo lịch tập"}
-              </Button>
+  type="submit"
+  variant="contained"
+  disabled={uploading || loading}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.8,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>
+    {isEdit ? "Lưu thay đổi" : "Tạo lịch tập"}
+  </span>
+</Button>
             </Stack>
           </Grid>
         </Grid>

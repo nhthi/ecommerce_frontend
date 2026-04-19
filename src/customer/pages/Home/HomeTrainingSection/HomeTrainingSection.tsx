@@ -148,7 +148,7 @@ const HomeTrainingSection = ({ items }: { items: TrainingSchedule[] }) => {
                       textTransform: "none",
                       fontWeight: 800,
                       background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                      color: "#050505",
+                      color: "#fff",
                     }}
                   >
                     Xem chi tiết

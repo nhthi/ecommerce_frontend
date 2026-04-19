@@ -3,12 +3,19 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
   Chip,
-  Divider,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
   InputAdornment,
   Menu,
   MenuItem,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -21,7 +28,16 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Block, KeyboardArrowDown, Person, Search } from "@mui/icons-material";
+import {
+  Block,
+  CheckCircle,
+  Download,
+  KeyboardArrowDown,
+  Person,
+  Search,
+} from "@mui/icons-material";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import {
   fetchAllCustomer,
@@ -51,6 +67,26 @@ const StyledTableRow = styled(TableRow)({
   "&:hover": { backgroundColor: "rgba(249,115,22,0.05)" },
 });
 
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "Tất cả trạng thái" },
+  { value: "ACTIVE", label: "Đang hoạt động" },
+  { value: "BANNED", label: "Đã khóa" },
+] as const;
+
+const EXPORT_FIELD_OPTIONS = [
+  { key: "id", label: "ID" },
+  { key: "fullName", label: "Họ tên" },
+  { key: "email", label: "Email" },
+  { key: "mobile", label: "Số điện thoại" },
+  { key: "status", label: "Trạng thái" },
+  { key: "mainAddress", label: "Địa chỉ mặc định" },
+  { key: "allAddresses", label: "Tất cả địa chỉ" },
+  { key: "totalAddresses", label: "Số lượng địa chỉ" },
+] as const;
+
+type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
+
 const CustomerTable: React.FC = () => {
   const { isDark } = useSiteThemeMode();
 
@@ -61,8 +97,21 @@ const CustomerTable: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [selectedExportFields, setSelectedExportFields] = useState<
+    ExportFieldKey[]
+  >([
+    "id",
+    "fullName",
+    "email",
+    "mobile",
+    "status",
+    "mainAddress",
+  ]);
 
   const TEXT_PRIMARY = isDark ? "#fff7ed" : "#111827";
   const TEXT_SECONDARY = isDark
@@ -71,15 +120,15 @@ const CustomerTable: React.FC = () => {
   const TEXT_MUTED = isDark
     ? "rgba(255,255,255,0.52)"
     : "rgba(17,24,39,0.52)";
+  const BORDER_SOFT = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
 
   const panelSx = {
     borderRadius: "28px",
     border: isDark
       ? "1px solid rgba(255,255,255,0.08)"
       : "1px solid rgba(15,23,42,0.08)",
-    background: isDark
-      ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))"
-      : "linear-gradient(180deg, #ffffff, #fff7ed)",
     boxShadow: isDark
       ? "0 24px 60px rgba(0,0,0,0.28)"
       : "0 18px 45px rgba(15,23,42,0.08)",
@@ -115,10 +164,60 @@ const CustomerTable: React.FC = () => {
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
+  const getMainAddress = (customer: any) => {
+    const defaultAddress = Array.isArray(customer.addresses)
+      ? customer.addresses.find((addr: any) => addr.default)
+      : null;
+
+    const fallbackAddress =
+      defaultAddress || customer.addresses?.[0] || null;
+
+    if (!fallbackAddress) return "Chưa có địa chỉ";
+
+    return [
+      fallbackAddress.streetDetail,
+      fallbackAddress.ward,
+      fallbackAddress.district,
+      fallbackAddress.province,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
+
+  const getAllAddresses = (customer: any) => {
+    if (!Array.isArray(customer.addresses) || !customer.addresses.length) {
+      return "";
+    }
+
+    return customer.addresses
+      .map((addr: any) =>
+        [addr.streetDetail, addr.ward, addr.district, addr.province]
+          .filter(Boolean)
+          .join(", ")
+      )
+      .join(" | ");
+  };
+
+  const getStatusMeta = (status?: string) => {
+    if (status === "ACTIVE") {
+      return {
+        label: "Đang hoạt động",
+        color: "#86efac",
+        borderColor: "rgba(34,197,94,0.35)",
+        backgroundColor: "rgba(34,197,94,0.08)",
+      };
+    }
+
+    return {
+      label: "Đã khóa",
+      color: "#fca5a5",
+      borderColor: "rgba(239,68,68,0.35)",
+      backgroundColor: "rgba(239,68,68,0.08)",
+    };
+  };
+
   const filteredCustomers = useMemo(() => {
     const customers = adminUser.customers || [];
-
-    if (!normalizedSearch) return customers;
 
     return customers.filter((customer: any) => {
       const fullName = customer.fullName?.toLowerCase() || "";
@@ -137,21 +236,26 @@ const CustomerTable: React.FC = () => {
             .toLowerCase()
         : "";
 
-      return (
+      const matchesSearch =
+        !normalizedSearch ||
         fullName.includes(normalizedSearch) ||
         email.includes(normalizedSearch) ||
         mobile.includes(normalizedSearch) ||
         status.includes(normalizedSearch) ||
         id.includes(normalizedSearch) ||
         province.includes(normalizedSearch) ||
-        addressText.includes(normalizedSearch)
-      );
+        addressText.includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" || customer.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
     });
-  }, [adminUser.customers, normalizedSearch]);
+  }, [adminUser.customers, normalizedSearch, statusFilter]);
 
   useEffect(() => {
     setPage(0);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
 
   useEffect(() => {
     const maxPage = Math.max(
@@ -168,6 +272,108 @@ const CustomerTable: React.FC = () => {
     page * rowsPerPage + rowsPerPage
   );
 
+  const handleOpenExportDialog = () => {
+    setOpenExportDialog(true);
+  };
+
+  const handleCloseExportDialog = () => {
+    setOpenExportDialog(false);
+  };
+
+  const handleToggleExportField = (field: ExportFieldKey) => {
+    setSelectedExportFields((prev) =>
+      prev.includes(field)
+        ? prev.filter((item) => item !== field)
+        : [...prev, field]
+    );
+  };
+
+  const handleSelectAllExportFields = () => {
+    setSelectedExportFields(EXPORT_FIELD_OPTIONS.map((item) => item.key));
+  };
+
+  const handleClearAllExportFields = () => {
+    setSelectedExportFields([]);
+  };
+
+  const handleExportExcel = () => {
+    const sourceCustomers = filteredCustomers || [];
+
+    if (!sourceCustomers.length) {
+      alert("Không có dữ liệu khách hàng để xuất Excel");
+      return;
+    }
+
+    if (!selectedExportFields.length) {
+      alert("Vui lòng chọn ít nhất một mục để xuất");
+      return;
+    }
+
+    const exportData = sourceCustomers.map((customer: any) => {
+      const row: Record<string, string | number> = {};
+
+      if (selectedExportFields.includes("id")) {
+        row["ID"] = customer.id ?? "";
+      }
+
+      if (selectedExportFields.includes("fullName")) {
+        row["Họ tên"] = customer.fullName ?? "";
+      }
+
+      if (selectedExportFields.includes("email")) {
+        row["Email"] = customer.email ?? "";
+      }
+
+      if (selectedExportFields.includes("mobile")) {
+        row["Số điện thoại"] = customer.mobile ?? "";
+      }
+
+      if (selectedExportFields.includes("status")) {
+        row["Trạng thái"] = getStatusMeta(customer.status).label;
+      }
+
+      if (selectedExportFields.includes("mainAddress")) {
+        row["Địa chỉ mặc định"] = getMainAddress(customer);
+      }
+
+      if (selectedExportFields.includes("allAddresses")) {
+        row["Tất cả địa chỉ"] = getAllAddresses(customer);
+      }
+
+      if (selectedExportFields.includes("totalAddresses")) {
+        row["Số lượng địa chỉ"] = Array.isArray(customer.addresses)
+          ? customer.addresses.length
+          : 0;
+      }
+
+      return row;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+    worksheet["!cols"] = [
+      { wch: 10 },
+      { wch: 24 },
+      { wch: 32 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 42 },
+      { wch: 70 },
+      { wch: 18 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+
+    const fileName = `customers_${format(
+      new Date(),
+      "ddMMyyyy_HHmmss"
+    )}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    handleCloseExportDialog();
+  };
+
   return (
     <Paper elevation={0} sx={panelSx}>
       {loading && (
@@ -183,12 +389,10 @@ const CustomerTable: React.FC = () => {
             : "1px solid rgba(15,23,42,0.08)",
         }}
       >
-        <Box
-          display="flex"
-          flexWrap="wrap"
+        <Stack
+          direction={{ xs: "column", lg: "row" }}
           justifyContent="space-between"
-          alignItems="center"
-          gap={2}
+          spacing={2}
         >
           <Box>
             <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
@@ -196,45 +400,132 @@ const CustomerTable: React.FC = () => {
             </Typography>
           </Box>
 
-          <TextField
-            size="small"
-            placeholder="Tìm theo tên, email, số điện thoại..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{
-              minWidth: { xs: "100%", sm: 320 },
-              "& .MuiOutlinedInput-root": {
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1.2}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            flexWrap="wrap"
+          >
+            <TextField
+              size="small"
+              placeholder="Tìm theo tên, email, số điện thoại..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                minWidth: { xs: "100%", sm: 320 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.82)",
+                  "& fieldset": {
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.10)"
+                      : "rgba(15,23,42,0.10)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.34)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+                "& .MuiInputBase-input::placeholder": {
+                  color: TEXT_MUTED,
+                  opacity: 1,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: "#fb923c", fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              select
+              size="small"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              sx={{
+                minWidth: { xs: "100%", sm: 190 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.82)",
+                  "& fieldset": {
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.10)"
+                      : "rgba(15,23,42,0.10)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.34)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#fb923c",
+                },
+              }}
+            >
+              {STATUS_OPTIONS.map((item) => (
+                <MenuItem key={item.value} value={item.value}>
+                  {item.label}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <Chip
+              label={`${filteredCustomers.length} khách hàng`}
+              variant="outlined"
+              sx={{
                 color: TEXT_PRIMARY,
-                borderRadius: "999px",
+                borderColor: isDark
+                  ? "rgba(249,115,22,0.28)"
+                  : "rgba(249,115,22,0.22)",
                 backgroundColor: isDark
-                  ? "rgba(255,255,255,0.03)"
-                  : "rgba(255,255,255,0.82)",
-                "& fieldset": {
-                  borderColor: isDark
-                    ? "rgba(255,255,255,0.10)"
-                    : "rgba(15,23,42,0.10)",
+                  ? "rgba(249,115,22,0.06)"
+                  : "rgba(255,247,237,0.92)",
+                fontWeight: 700,
+              }}
+            />
+
+            <Button
+              variant="outlined"
+              startIcon={<Download />}
+              onClick={handleOpenExportDialog}
+              disabled={!filteredCustomers.length}
+              sx={{
+                borderRadius: 999,
+                px: 2.3,
+                textTransform: "none",
+                fontWeight: 700,
+                color: TEXT_PRIMARY,
+                borderColor: isDark
+                  ? "rgba(249,115,22,0.28)"
+                  : "rgba(249,115,22,0.22)",
+                backgroundColor: isDark
+                  ? "rgba(255,255,255,0.02)"
+                  : "rgba(255,255,255,0.72)",
+                "&:hover": {
+                  borderColor: "rgba(249,115,22,0.45)",
+                  backgroundColor: isDark
+                    ? "rgba(249,115,22,0.08)"
+                    : "rgba(255,247,237,0.92)",
                 },
-                "&:hover fieldset": {
-                  borderColor: "rgba(249,115,22,0.34)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#f97316",
-                },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: TEXT_MUTED,
-                opacity: 1,
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ color: "#fb923c", fontSize: 20 }} />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+              }}
+            >
+              Xuất Excel
+            </Button>
+          </Stack>
+        </Stack>
       </Box>
 
       <TableContainer>
@@ -254,6 +545,7 @@ const CustomerTable: React.FC = () => {
             {paginatedCustomers.length ? (
               paginatedCustomers.map((customer: any) => {
                 const active = customer.status === "ACTIVE";
+                const statusMeta = getStatusMeta(customer.status);
 
                 return (
                   <StyledTableRow key={customer.id}>
@@ -263,12 +555,17 @@ const CustomerTable: React.FC = () => {
                           display: "flex",
                           alignItems: "center",
                           gap: 1.5,
+                          minWidth: 220,
                         }}
                       >
                         <Avatar
                           sx={{
-                            bgcolor: "rgba(249,115,22,0.14)",
-                            color: "#fb923c",
+                            width: 48,
+                            height: 48,
+                            bgcolor: active
+                              ? "rgba(34,197,94,0.14)"
+                              : "rgba(239,68,68,0.12)",
+                            color: active ? "#86efac" : "#fca5a5",
                           }}
                         >
                           <Person />
@@ -276,7 +573,7 @@ const CustomerTable: React.FC = () => {
 
                         <Box>
                           <Typography fontWeight={700} color={TEXT_PRIMARY}>
-                            {customer.fullName}
+                            {customer.fullName || "Chưa có tên"}
                           </Typography>
                           <Typography
                             sx={{
@@ -284,34 +581,49 @@ const CustomerTable: React.FC = () => {
                               fontSize: 12.5,
                             }}
                           >
-                            ID #{customer.id}
+                            ID: #{customer.id}
                           </Typography>
                         </Box>
                       </Box>
                     </StyledTableCell>
 
-                    <StyledTableCell>{customer.email}</StyledTableCell>
-
-                    <StyledTableCell>{customer.mobile || "-"}</StyledTableCell>
+                    <StyledTableCell>
+                      <Typography color={TEXT_PRIMARY}>
+                        {customer.email || "-"}
+                      </Typography>
+                    </StyledTableCell>
 
                     <StyledTableCell>
-                      {customer.addresses?.[0]?.province || "Chưa có địa chỉ"}
+                      <Typography color={TEXT_PRIMARY}>
+                        {customer.mobile || "-"}
+                      </Typography>
+                    </StyledTableCell>
+
+                    <StyledTableCell sx={{ maxWidth: 280 }}>
+                      <Typography
+                        color={TEXT_SECONDARY}
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {getMainAddress(customer)}
+                      </Typography>
                     </StyledTableCell>
 
                     <StyledTableCell align="center">
                       <Chip
                         size="small"
-                        variant="outlined"
-                        label={active ? "Hoạt động" : "Đã khóa"}
+                        label={statusMeta.label}
                         sx={{
                           borderRadius: 999,
-                          color: active ? "#86efac" : "#fca5a5",
-                          borderColor: active
-                            ? "rgba(34,197,94,0.35)"
-                            : "rgba(239,68,68,0.35)",
-                          backgroundColor: active
-                            ? "rgba(34,197,94,0.08)"
-                            : "rgba(239,68,68,0.08)",
+                          fontWeight: 700,
+                          color: statusMeta.color,
+                          border: "1px solid",
+                          borderColor: statusMeta.borderColor,
+                          backgroundColor: statusMeta.backgroundColor,
                         }}
                       />
                     </StyledTableCell>
@@ -320,22 +632,21 @@ const CustomerTable: React.FC = () => {
                       <Button
                         size="small"
                         variant="outlined"
+                        startIcon={active ? <Block /> : <CheckCircle />}
                         endIcon={<KeyboardArrowDown />}
-                        onClick={(e) => handleOpenMenu(e, customer.id || 0)}
+                        onClick={(e) => handleOpenMenu(e, customer.id)}
                         sx={{
                           textTransform: "none",
                           borderRadius: 999,
                           px: 2,
                           color: TEXT_PRIMARY,
-                          borderColor: isDark
-                            ? "rgba(255,255,255,0.16)"
-                            : "rgba(15,23,42,0.12)",
+                          borderColor: BORDER_SOFT,
                           backgroundColor: isDark
                             ? "transparent"
                             : "rgba(255,255,255,0.68)",
                         }}
                       >
-                        Thay đổi trạng thái
+                        Cập nhật
                       </Button>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -347,11 +658,11 @@ const CustomerTable: React.FC = () => {
                   colSpan={6}
                   align="center"
                   sx={{
-                    py: 8,
+                    py: 7,
                     color: TEXT_SECONDARY,
                   }}
                 >
-                  {searchTerm
+                  {searchTerm || statusFilter !== "ALL"
                     ? "Không tìm thấy khách hàng phù hợp."
                     : "Chưa có khách hàng nào."}
                 </TableCell>
@@ -360,46 +671,6 @@ const CustomerTable: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Divider
-        sx={{
-          borderColor: isDark
-            ? "rgba(255,255,255,0.08)"
-            : "rgba(15,23,42,0.08)",
-        }}
-      />
-
-      <Box
-        sx={{
-          px: 3,
-          py: 2.2,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 1.5,
-        }}
-      >
-        <Typography
-          sx={{
-            color: isDark ? "rgba(255,255,255,0.5)" : "rgba(17,24,39,0.5)",
-            fontSize: 13.5,
-          }}
-        >
-          {filteredCustomers.length} tài khoản khách hàng trong hệ thống
-        </Typography>
-
-        <Chip
-          icon={<Block sx={{ color: "#fb923c !important" }} />}
-          label="Kiểm soát tài khoản nhanh"
-          variant="outlined"
-          sx={{
-            color: TEXT_PRIMARY,
-            borderColor: "rgba(249,115,22,0.28)",
-            backgroundColor: isDark ? "transparent" : "rgba(255,255,255,0.68)",
-          }}
-        />
-      </Box>
 
       <TablePagination
         component="div"
@@ -442,9 +713,6 @@ const CustomerTable: React.FC = () => {
         onClose={handleCloseMenu}
         PaperProps={{
           sx: {
-            background: isDark
-              ? "#171717"
-              : "linear-gradient(180deg, #ffffff, #fff7ed)",
             color: isDark ? "white" : "#111827",
             border: isDark
               ? "1px solid rgba(255,255,255,0.08)"
@@ -466,12 +734,140 @@ const CustomerTable: React.FC = () => {
         }}
       >
         <MenuItem onClick={() => handleChangeStatus("ACTIVE")}>
-          Hoạt động
+          <CheckCircle sx={{ fontSize: 18, color: "#22c55e", mr: 1 }} />
+          Mở khóa tài khoản
         </MenuItem>
         <MenuItem onClick={() => handleChangeStatus("BANNED")}>
+          <Block sx={{ fontSize: 18, color: "#ef4444", mr: 1 }} />
           Khóa tài khoản
         </MenuItem>
       </Menu>
+
+      <Dialog
+        open={openExportDialog}
+        onClose={handleCloseExportDialog}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+
+            color: isDark ? "white" : "#111827",
+            borderRadius: "24px",
+            border: isDark
+              ? "1px solid rgba(255,255,255,0.08)"
+              : "1px solid rgba(15,23,42,0.08)",
+            boxShadow: isDark
+              ? "0 24px 60px rgba(0,0,0,0.28)"
+              : "0 18px 45px rgba(15,23,42,0.08)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            color: isDark ? "white" : "#111827",
+            pb: 1,
+          }}
+        >
+          Chọn các mục muốn xuất Excel
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: "8px !important" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ mb: 1.8, flexWrap: "wrap", rowGap: 1 }}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleSelectAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Chọn tất cả
+            </Button>
+
+            <Button
+              variant="outlined"
+              onClick={handleClearAllExportFields}
+              sx={{
+                borderRadius: 999,
+                textTransform: "none",
+                color: TEXT_PRIMARY,
+                borderColor: BORDER_SOFT,
+              }}
+            >
+              Bỏ chọn tất cả
+            </Button>
+          </Stack>
+
+          <FormGroup>
+            {EXPORT_FIELD_OPTIONS.map((field) => (
+              <FormControlLabel
+                key={field.key}
+                control={
+                  <Checkbox
+                    checked={selectedExportFields.includes(field.key)}
+                    onChange={() => handleToggleExportField(field.key)}
+                    sx={{
+                      color: "rgba(249,115,22,0.6)",
+                      "&.Mui-checked": {
+                        color: "#f97316",
+                      },
+                    }}
+                  />
+                }
+                label={field.label}
+                sx={{
+                  color: TEXT_PRIMARY,
+                  ".MuiFormControlLabel-label": {
+                    fontSize: 14.5,
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={handleCloseExportDialog}
+            sx={{
+              textTransform: "none",
+              color: isDark ? "rgba(255,255,255,0.72)" : "rgba(17,24,39,0.72)",
+              backgroundColor: isDark
+                ? "transparent"
+                : "rgba(255,255,255,0.68)",
+              borderRadius: 999,
+            }}
+          >
+            Hủy
+          </Button>
+
+          <Button
+            onClick={handleExportExcel}
+            variant="contained"
+
+            sx={{
+              borderRadius: 999,
+              textTransform: "none",
+              px: 2.8,
+              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              boxShadow: "none",
+              "&:hover": {
+                background: "linear-gradient(135deg, #ea580c, #c2410c)",
+                boxShadow: "none",
+              },
+            }}
+          >
+<span className="text-slate-100"><Download /> Xuất file</span>
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };

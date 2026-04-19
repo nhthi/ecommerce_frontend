@@ -12,12 +12,13 @@ import {
   PostAdd,
   Settings,
   ShoppingBag,
+  Support,
 } from "@mui/icons-material";
 import React from "react";
 import DrawerList from "../../component/DrawerList";
 
 const iconClass = "text-orange-300";
-const activeIconClass = "text-black";
+const activeIconClass = "text-white";
 
 const menu = [
   {
@@ -71,8 +72,8 @@ const menu = [
   {
     name: "Hỗ trợ khách hàng",
     path: "/admin/support-page",
-    icon: <FitnessCenter className={iconClass} />,
-    activeIcon: <FitnessCenter className={activeIconClass} />,
+    icon: <Support className={iconClass} />,
+    activeIcon: <Support className={activeIconClass} />,
   },
       {
     name: "Trả hàng",

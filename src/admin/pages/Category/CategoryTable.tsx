@@ -1,4 +1,6 @@
-import { DeleteOutline, Edit, FolderOpen, Search } from "@mui/icons-material";
+import { DeleteOutline, Download, Edit, FolderOpen, Search } from "@mui/icons-material";
+import * as XLSX from "xlsx";
+import { format } from "date-fns";
 import {
   Box,
   Button,
@@ -147,7 +149,45 @@ const Category = () => {
     },
     enableReinitialize: true,
   });
+const handleExportExcel = () => {
+  const sourceCategories = filteredCategories || [];
 
+  if (!sourceCategories.length) {
+    alert("Không có dữ liệu danh mục để xuất Excel");
+    return;
+  }
+
+  const exportData = sourceCategories.map((item, index) => ({
+    STT: index + 1,
+    ID: item.id ?? "",
+    "Tên danh mục": item.name ?? "",
+    "Mã danh mục": item.categoryId ?? "",
+    "Cấp độ": item.level ?? "",
+    "Danh mục cha": item.parentCategory?.name ?? "",
+    "Mã danh mục cha": item.parentCategory?.categoryId ?? "",
+
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+  worksheet["!cols"] = [
+    { wch: 6 },
+    { wch: 8 },
+    { wch: 28 },
+    { wch: 18 },
+    { wch: 10 },
+    { wch: 24 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 20 },
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
+
+  const fileName = `categories_${format(new Date(), "ddMMyyyy_HHmmss")}.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+};
   const handleEditClick = (categoryItem: CategoryType) => {
     setSelectedCategory(categoryItem);
     formik.setValues({
@@ -259,19 +299,47 @@ const Category = () => {
                   <MenuItem value={3}>Cấp 3</MenuItem>
                 </Select>
               </FormControl>
-
+<Button
+  variant="outlined"
+  startIcon={<Download />}
+  onClick={handleExportExcel}
+  disabled={!filteredCategories.length}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.5,
+    color: "white",
+    borderColor: "rgba(249,115,22,0.28)",
+    backgroundColor: "rgba(255,255,255,0.02)",
+    "&:hover": {
+      borderColor: "rgba(249,115,22,0.45)",
+      backgroundColor: "rgba(249,115,22,0.08)",
+    },
+    "&.Mui-disabled": {
+      color: "rgba(255,255,255,0.35)",
+      borderColor: "rgba(255,255,255,0.08)",
+    },
+  }}
+>
+  Xuất Excel
+</Button>
               <Button
-                variant="contained"
-                onClick={() => navigate("/admin/add-category")}
-                sx={{
-                  borderRadius: 999,
-                  textTransform: "none",
-                  px: 2.5,
-                  background: "linear-gradient(135deg, #f97316, #ea580c)",
-                }}
-              >
-                Thêm danh mục
-              </Button>
+  variant="contained"
+  onClick={() => navigate("/admin/add-category")}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.5,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Thêm danh mục</span>
+</Button>
             </Box>
           </Box>
         </Box>
@@ -383,9 +451,7 @@ const Category = () => {
   maxWidth="sm"
   PaperProps={{
     sx: {
-      background: isDark
-        ? "linear-gradient(180deg, rgba(20,20,20,0.98), rgba(10,10,10,0.99))"
-        : "linear-gradient(180deg, #ffffff, #fff7ed)",
+      
       color: isDark ? "white" : "#111827",
       borderRadius: "24px",
       border: isDark
@@ -485,18 +551,23 @@ const Category = () => {
         Hủy
       </Button>
 
-      <Button
-        type="submit"
-        variant="contained"
-        sx={{
-          borderRadius: 999,
-          textTransform: "none",
-          px: 2.5,
-          background: "linear-gradient(135deg, #f97316, #ea580c)",
-        }}
-      >
-        Lưu thay đổi
-      </Button>
+                <Button
+  type="submit"
+  variant="contained"
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.8,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Lưu thay đổi</span>
+</Button>
     </DialogActions>
   </form>
 </Dialog>

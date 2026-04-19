@@ -223,20 +223,28 @@ export default function BlogCategoryTable() {
             }}
           />
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{
-              borderRadius: 999,
-              textTransform: "none",
-              px: 2.2,
-              fontWeight: 700,
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
-            }}
-            onClick={() => navigate("/admin/blog/category/create")}
-          >
-            Thêm danh mục
-          </Button>
+<Button
+  variant="contained"
+  startIcon={<AddIcon />}
+  sx={{
+    borderRadius: 999,
+    textTransform: "none",
+    px: 2.2,
+    fontWeight: 700,
+    background: "linear-gradient(135deg, #f97316, #ea580c)",
+    boxShadow: "none",
+    "& .MuiButton-startIcon, & .MuiSvgIcon-root": {
+      color: "#fff !important",
+    },
+    "&:hover": {
+      background: "linear-gradient(135deg, #ea580c, #c2410c)",
+      boxShadow: "none",
+    },
+  }}
+  onClick={() => navigate("/admin/blog/category/create")}
+>
+  <span style={{ color: "#fff", fontWeight: 700 }}>Thêm danh mục</span>
+</Button>
         </Stack>
       </Box>
 
@@ -346,9 +354,7 @@ export default function BlogCategoryTable() {
                       onClose={handleCloseMenu}
                       PaperProps={{
                         sx: {
-                          background: isDark
-                            ? "#171717"
-                            : "linear-gradient(180deg, #ffffff, #fff7ed)",
+                          
                           color: isDark ? "white" : "#111827",
                           border: isDark
                             ? "1px solid rgba(255,255,255,0.08)"
