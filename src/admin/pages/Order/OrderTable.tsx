@@ -105,6 +105,7 @@ const EXPORT_FIELD_OPTIONS = [
 ] as const;
 
 type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
+type RecentFilter = "ALL" | "TODAY" | "7_DAYS" | "30_DAYS";
 
 export default function OrderTable() {
   const { isDark } = useSiteThemeMode();
@@ -114,6 +115,8 @@ export default function OrderTable() {
 
   const [loading, setLoading] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [selectedStatus, setSelectedStatus] = React.useState<string>("ALL");
+  const [recentFilter, setRecentFilter] = React.useState<RecentFilter>("ALL");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(6);
   const [menuState, setMenuState] = React.useState<{
@@ -195,61 +198,98 @@ export default function OrderTable() {
 
   const filteredOrders = React.useMemo(() => {
     const orders = sellerOrder.orders || [];
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(now.getDate() - 7);
 
-    if (!normalizedSearch) return orders;
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
 
-    return orders.filter((order: any) => {
-      const orderId = String(order.orderCode || "").toLowerCase();
-      const customerName = order.user?.fullName?.toLowerCase() || "";
-      const phone = order.shippingAddress?.phoneNumber?.toLowerCase() || "";
-      const paymentMethod = order.paymentMethod?.toLowerCase() || "";
-      const paymentStatus = order.paymentStatus?.toLowerCase() || "";
-      const orderStatus = order.orderStatus?.toLowerCase() || "";
-      const receiverName =
-        order.shippingAddress?.receiverName?.toLowerCase() || "";
-      const address = [
-        order.shippingAddress?.streetDetail,
-        order.shippingAddress?.ward,
-        order.shippingAddress?.district,
-        order.shippingAddress?.province,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+    return orders
+      .filter((order: any) => {
+        const orderId = String(order.orderCode || "").toLowerCase();
+        const customerName = order.user?.fullName?.toLowerCase() || "";
+        const phone = order.shippingAddress?.phoneNumber?.toLowerCase() || "";
+        const paymentMethod = order.paymentMethod?.toLowerCase() || "";
+        const paymentStatus = order.paymentStatus?.toLowerCase() || "";
+        const orderStatus = order.orderStatus?.toLowerCase() || "";
+        const receiverName =
+          order.shippingAddress?.receiverName?.toLowerCase() || "";
+        const address = [
+          order.shippingAddress?.streetDetail,
+          order.shippingAddress?.ward,
+          order.shippingAddress?.district,
+          order.shippingAddress?.province,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-      const productText = Array.isArray(order.orderItems)
-        ? order.orderItems
-            .map((item: any) =>
-              [
-                item.product?.title,
-                item.product?.color,
-                item.size?.name,
-                item.productName,
-              ]
-                .filter(Boolean)
-                .join(" ")
-            )
-            .join(" ")
-            .toLowerCase()
-        : "";
+        const productText = Array.isArray(order.orderItems)
+          ? order.orderItems
+              .map((item: any) =>
+                [
+                  item.product?.title,
+                  item.product?.color,
+                  item.size?.name,
+                  item.productName,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+              )
+              .join(" ")
+              .toLowerCase()
+          : "";
 
-      return (
-        orderId.includes(normalizedSearch) ||
-        customerName.includes(normalizedSearch) ||
-        phone.includes(normalizedSearch) ||
-        paymentMethod.includes(normalizedSearch) ||
-        paymentStatus.includes(normalizedSearch) ||
-        orderStatus.includes(normalizedSearch) ||
-        receiverName.includes(normalizedSearch) ||
-        address.includes(normalizedSearch) ||
-        productText.includes(normalizedSearch)
-      );
-    });
-  }, [sellerOrder.orders, normalizedSearch]);
+        const matchesSearch =
+          !normalizedSearch ||
+          orderId.includes(normalizedSearch) ||
+          customerName.includes(normalizedSearch) ||
+          phone.includes(normalizedSearch) ||
+          paymentMethod.includes(normalizedSearch) ||
+          paymentStatus.includes(normalizedSearch) ||
+          orderStatus.includes(normalizedSearch) ||
+          receiverName.includes(normalizedSearch) ||
+          address.includes(normalizedSearch) ||
+          productText.includes(normalizedSearch);
+
+        const matchesStatus =
+          selectedStatus === "ALL" || order.orderStatus === selectedStatus;
+
+        const orderDateValue = order.orderDate || order.createdAt;
+        const orderDate = orderDateValue ? new Date(orderDateValue) : null;
+
+        let matchesRecent = true;
+
+        if (recentFilter === "TODAY") {
+          matchesRecent = !!orderDate && orderDate >= startOfToday;
+        } else if (recentFilter === "7_DAYS") {
+          matchesRecent = !!orderDate && orderDate >= sevenDaysAgo;
+        } else if (recentFilter === "30_DAYS") {
+          matchesRecent = !!orderDate && orderDate >= thirtyDaysAgo;
+        }
+
+        return matchesSearch && matchesStatus && matchesRecent;
+      })
+      .sort((a: any, b: any) => {
+        const aTime = new Date(a.orderDate || a.createdAt || 0).getTime();
+        const bTime = new Date(b.orderDate || b.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+  }, [sellerOrder.orders, normalizedSearch, selectedStatus, recentFilter]);
 
   React.useEffect(() => {
     setPage(0);
-  }, [searchTerm]);
+  }, [searchTerm, selectedStatus, recentFilter]);
 
   React.useEffect(() => {
     const maxPage = Math.max(
@@ -452,9 +492,7 @@ export default function OrderTable() {
             <Typography fontSize={26} fontWeight={800} color={TEXT_PRIMARY}>
               Đơn hàng
             </Typography>
-            <Typography sx={{ mt: 0.6, color: TEXT_SECONDARY }}>
-              Quản lý và theo dõi toàn bộ đơn hàng của cửa hàng
-            </Typography>
+            
           </Box>
 
           <Stack
@@ -501,6 +539,76 @@ export default function OrderTable() {
                 ),
               }}
             />
+
+            <TextField
+              select
+              size="small"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              sx={{
+                minWidth: { xs: "100%", sm: 170 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.78)",
+                  "& fieldset": {
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.10)"
+                      : "rgba(15,23,42,0.12)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.36)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+              }}
+            >
+              <MenuItem value="ALL">Tất cả trạng thái</MenuItem>
+              {Object.entries(orderStatusColors).map(([key, item]) => (
+                <MenuItem key={key} value={key}>
+                  {item.label}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              size="small"
+              value={recentFilter}
+              onChange={(e) =>
+                setRecentFilter(e.target.value as RecentFilter)
+              }
+              sx={{
+                minWidth: { xs: "100%", sm: 150 },
+                "& .MuiOutlinedInput-root": {
+                  color: TEXT_PRIMARY,
+                  borderRadius: "999px",
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(255,255,255,0.78)",
+                  "& fieldset": {
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.10)"
+                      : "rgba(15,23,42,0.12)",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "rgba(249,115,22,0.36)",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#f97316",
+                  },
+                },
+              }}
+            >
+              <MenuItem value="ALL">Tất cả</MenuItem>
+              <MenuItem value="TODAY">Hôm nay</MenuItem>
+              <MenuItem value="7_DAYS">7 ngày qua</MenuItem>
+              <MenuItem value="30_DAYS">30 ngày qua</MenuItem>
+            </TextField>
 
             <Chip
               label={`${filteredOrders.length} đơn hàng`}
@@ -952,7 +1060,7 @@ export default function OrderTable() {
                     color: TEXT_SECONDARY,
                   }}
                 >
-                  {searchTerm
+                  {searchTerm || selectedStatus !== "ALL" || recentFilter !== "ALL"
                     ? "Không tìm thấy đơn hàng phù hợp."
                     : "Chưa có đơn hàng nào."}
                 </TableCell>
@@ -1004,7 +1112,6 @@ export default function OrderTable() {
         maxWidth="sm"
         PaperProps={{
           sx: {
-            
             color: isDark ? "white" : "#111827",
             borderRadius: "24px",
             border: isDark
@@ -1117,7 +1224,9 @@ export default function OrderTable() {
               },
             }}
           >
-            <span className="text-slate-100"><Download /> Xuất file</span>
+            <span className="text-slate-100">
+              <Download /> Xuất file
+            </span>
           </Button>
         </DialogActions>
       </Dialog>

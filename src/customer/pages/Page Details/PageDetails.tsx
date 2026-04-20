@@ -468,7 +468,7 @@ useEffect(() => {
                           fontWeight: 700,
                           px: 2,
                           py: 0.9,
-                          color: selectedSize?.id === size.id ? "#050505" : isDark ? "#fff" : "#0f172a",
+                          color: selectedSize?.id === size.id ? "#fff" : isDark ? "#fff" : "#0f172a",
                           backgroundColor:
                             selectedSize?.id === size.id ? "#f97316" : "transparent",
                           borderColor: isDark ? "rgba(249,115,22,0.25)" : "rgba(249,115,22,0.32)",

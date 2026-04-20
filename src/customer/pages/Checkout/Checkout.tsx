@@ -10,19 +10,17 @@ import {
   Snackbar,
 } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
+import { Add, CreditCard, LocalAtm } from "@mui/icons-material";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import AddressCard from "./AddressCard";
 import AddressForm from "./AddressForm";
-import { Add, CreditCard, LocalAtm } from "@mui/icons-material";
 import PricingCart from "../Cart/PricingCart";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import { Address } from "../../../types/UserType";
-import {
-  createOrder,
-  getPaymentOrderStatus,
-} from "../../../state/customer/orderSlice";
+import { getPaymentOrderStatus } from "../../../state/customer/orderSlice";
 import { setSelectedAddress } from "../../../state/customer/addressSlice";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
-import { useNavigate } from "react-router-dom";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
 import { api } from "../../../config/Api";
 
@@ -56,6 +54,21 @@ const paymentGatewayList = [
 
 const FREE_SHIPPING_THRESHOLD = 300000;
 
+type CheckoutLocationState = {
+  couponCode?: string | null;
+  couponDiscount?: number;
+  selectedCartItemIds?: number[];
+};
+
+type SepayInfoState = {
+  paymentOrderId?: number | string | null;
+  bankName?: string;
+  accountNumber?: string;
+  accountName?: string;
+  amount?: number;
+  paymentCode?: string;
+};
+
 const Checkout = () => {
   const [open, setOpen] = useState(false);
   const [paymentGateway, setPaymentGateway] = useState("COD");
@@ -73,16 +86,41 @@ const Checkout = () => {
 
   const [remainingTime, setRemainingTime] = useState(180);
   const [paymentStatus, setPaymentStatus] = useState<
-    "PENDING" | "SUCCESS" | "EXPIRED"
+    "PENDING" | "SUCCESS" | "EXPIRED" | "FAILED"
   >("PENDING");
   const [loading, setLoading] = useState(false);
-  const [sepayInfo, setSepayInfo] = useState<any>(null);
+  const [sepayInfo, setSepayInfo] = useState<SepayInfoState | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDark } = useSiteThemeMode();
   const { auth, address, cart } = useAppSelector((store) => store);
+
+  const checkoutState = (location.state || {}) as CheckoutLocationState;
+  const couponCode = checkoutState.couponCode || null;
+  const couponDiscount = Number(checkoutState.couponDiscount || 0);
+  const selectedCartItemIds = checkoutState.selectedCartItemIds || [];
+
+  const cartItems = cart.cart?.cartItems ?? [];
+
+  const selectedItems = useMemo(() => {
+    if (!selectedCartItemIds.length) return [];
+    return cartItems.filter((item: any) => selectedCartItemIds.includes(item.id));
+  }, [cartItems, selectedCartItemIds]);
+
+  const selectedTotalSellingPrice = useMemo(() => {
+    return selectedItems.reduce(
+      (sum: number, item: any) =>
+        sum + Number(item.sellingPrice || 0) * Number(item.quantity || 0),
+      0
+    );
+  }, [selectedItems]);
+
+  const selectedTotalCouponPrice = useMemo(() => {
+    return Math.max(selectedTotalSellingPrice + shippingFee - couponDiscount, 0);
+  }, [selectedTotalSellingPrice, shippingFee, couponDiscount]);
 
   const activeAddresses = useMemo(() => {
     const merged = [
@@ -104,8 +142,9 @@ const Checkout = () => {
 
   useEffect(() => {
     const selected = address.selectedAddress;
-    const totalSelling = cart.cart?.totalSellingPrice || 0;
-    const isFreeShipping = totalSelling >= FREE_SHIPPING_THRESHOLD;
+    const totalSelling = selectedTotalSellingPrice || 0;
+    const isFreeShipping =
+      totalSelling >= FREE_SHIPPING_THRESHOLD && totalSelling > 0;
 
     if (isFreeShipping) {
       setShippingFee(0);
@@ -113,7 +152,7 @@ const Checkout = () => {
       return;
     }
 
-    if (!selected?.districtId || !selected?.wardCode) {
+    if (!selected?.districtId || !selected?.wardCode || selectedItems.length === 0) {
       setShippingFee(0);
       setShippingLoading(false);
       return;
@@ -128,7 +167,7 @@ const Checkout = () => {
           toWardCode: selected.wardCode,
         })
         .then((res) => {
-          setShippingFee(res.data?.data?.total ?? 0);
+          setShippingFee(Number(res.data?.data?.total ?? 0));
         })
         .catch((err) => {
           console.error("Lỗi tính phí ship", err);
@@ -143,7 +182,8 @@ const Checkout = () => {
   }, [
     address.selectedAddress?.districtId,
     address.selectedAddress?.wardCode,
-    cart.cart?.totalSellingPrice,
+    selectedTotalSellingPrice,
+    selectedItems.length,
   ]);
 
   useEffect(() => {
@@ -181,6 +221,31 @@ const Checkout = () => {
     dispatch(setSelectedAddress(item));
   };
 
+  const buildSepayInfoFromResponse = (data: any): SepayInfoState | null => {
+    if (!data) return null;
+
+    const paymentOrderId = data?.paymentOrderId ?? null;
+    const paymentCode = data?.paymentCode ?? null;
+    const amount = Number(data?.totalPrice ?? 0);
+
+    const bankName = data?.bankName ?? "ACB";
+    const accountNumber = data?.accountNumber ?? "10310717";
+    const accountName = data?.accountName ?? "NHTHI SHOPPING";
+
+    if (!paymentOrderId || !paymentCode || !amount) {
+      return null;
+    }
+
+    return {
+      paymentOrderId,
+      bankName,
+      accountNumber,
+      accountName,
+      amount,
+      paymentCode,
+    };
+  };
+
   const handleCheckout = async () => {
     if (!selectedId) {
       setSnackbar({
@@ -191,38 +256,69 @@ const Checkout = () => {
       return;
     }
 
-    const req = {
+    if (selectedCartItemIds.length === 0) {
+      setSnackbar({
+        open: true,
+        message: "Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.",
+        severity: "error",
+      });
+      return;
+    }
+
+    const payload: Record<string, any> = {
       addressId: Number(selectedId),
-      paymentGateway,
+      paymentMethod: paymentGateway,
       shippingFee,
-      navigate,
+      cartItemIds: selectedCartItemIds,
     };
+
+    if (couponCode) {
+      payload.couponCode = couponCode;
+    }
 
     try {
       setLoading(true);
 
-      const res = await dispatch(createOrder(req)).unwrap();
+      const res = await api.post("/api/orders", payload);
+      const data = res.data;
 
       if (paymentGateway === "SEPAY") {
-        setSepayInfo(res);
-      }
+        const extractedSepay = buildSepayInfoFromResponse(data);
 
-      if (paymentGateway === "COD") {
+        if (!extractedSepay) {
+          throw new Error("Không nhận được thông tin thanh toán SEPAY từ hệ thống.");
+        }
+
+        setSepayInfo(extractedSepay);
+
         setSnackbar({
           open: true,
-          message: "Đặt hàng thành công. Bạn sẽ thanh toán khi nhận hàng.",
+          message: "Đơn hàng đã được tạo. Vui lòng quét mã để thanh toán.",
           severity: "success",
         });
 
-        setTimeout(() => {
-          navigate("/ordersuccess");
-        }, 1200);
+        return;
       }
+
+      setSnackbar({
+        open: true,
+        message:
+          data?.message || "Đặt hàng thành công. Bạn sẽ thanh toán khi nhận hàng.",
+        severity: "success",
+      });
+
+      setTimeout(() => {
+        navigate("/ordersuccess");
+      }, 1200);
     } catch (error: any) {
       console.error("Create order error:", error);
       setSnackbar({
         open: true,
-        message: typeof error === "string" ? error : "Đặt hàng thất bại",
+        message:
+          error?.response?.data?.message ||
+          error?.response?.data ||
+          error?.message ||
+          "Đặt hàng thất bại",
         severity: "error",
       });
     } finally {
@@ -242,7 +338,6 @@ const Checkout = () => {
         if (prev <= 1) {
           clearInterval(timer);
           setPaymentStatus("EXPIRED");
-          setSepayInfo(null);
           return 0;
         }
         return prev - 1;
@@ -253,15 +348,21 @@ const Checkout = () => {
   }, [sepayInfo]);
 
   useEffect(() => {
-    if (!sepayInfo || paymentStatus !== "PENDING") return;
+    if (!sepayInfo?.paymentOrderId || paymentStatus !== "PENDING") return;
 
     const interval = setInterval(async () => {
       try {
         const res = await dispatch(
-          getPaymentOrderStatus(sepayInfo.paymentOrderId)
+          getPaymentOrderStatus(String(sepayInfo.paymentOrderId))
         ).unwrap();
 
-        if (res.status === "SUCCESS") {
+        const status = res?.status as
+          | "PENDING"
+          | "SUCCESS"
+          | "EXPIRED"
+          | "FAILED";
+
+        if (status === "SUCCESS") {
           setPaymentStatus("SUCCESS");
           setShowSuccessMessage(true);
           clearInterval(interval);
@@ -272,8 +373,13 @@ const Checkout = () => {
           }, 3000);
         }
 
-        if (res.status === "EXPIRED") {
+        if (status === "EXPIRED") {
           setPaymentStatus("EXPIRED");
+          clearInterval(interval);
+        }
+
+        if (status === "FAILED") {
+          setPaymentStatus("FAILED");
           clearInterval(interval);
         }
       } catch (e) {
@@ -379,7 +485,7 @@ const Checkout = () => {
                       isDark ? "text-white" : "text-black"
                     }`}
                   >
-                    {(cart.cart?.totalCouponPrice || 0).toLocaleString()}đ
+                    {selectedTotalCouponPrice.toLocaleString()}đ
                   </p>
                 </div>
               </div>
@@ -628,40 +734,34 @@ const Checkout = () => {
               <PricingCart
                 shippingFee={shippingFee}
                 shippingLoading={shippingLoading}
+                couponCode={couponCode}
+                couponDiscount={couponDiscount}
+                selectedCartItemIds={selectedCartItemIds}
               />
+
               <div className="p-5 pt-0">
                 <Button
                   onClick={handleCheckout}
                   fullWidth
                   variant="outlined"
-                  disabled={!selectedId || loading}
+                  disabled={!selectedId || loading || selectedCartItemIds.length === 0}
                   sx={{
                     py: "12px",
                     borderRadius: "14px",
                     textTransform: "none",
                     fontWeight: 800,
                     fontSize: "0.98rem",
-                    // color: isDark ? "#ffffff" : "#000000",
                     borderColor: isDark
                       ? "rgba(255,255,255,0.16)"
                       : "rgba(0,0,0,0.14)",
-                    // backgroundColor: "transparent",
                     boxShadow: "none",
-                    // "&:hover": {
-                    //   borderColor: isDark
-                    //     ? "rgba(255,255,255,0.28)"
-                    //     : "rgba(0,0,0,0.28)",
-                    //   backgroundColor: isDark
-                    //     ? "rgba(255,255,255,0.04)"
-                    //     : "rgba(0,0,0,0.04)",
-                    //   boxShadow: "none",
-                    // },
                     background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                      color: "#fff",
-                      "&:hover": {
-                        background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
-                        boxShadow: "none",
-                      },
+                    color: "#fff",
+                    "&:hover": {
+                      background:
+                        "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
+                      boxShadow: "none",
+                    },
                     "&.Mui-disabled": {
                       color: isDark
                         ? "rgba(255,255,255,0.35)"
@@ -672,7 +772,11 @@ const Checkout = () => {
                     },
                   }}
                 >
-                  {!selectedId ? "Chọn địa chỉ để tiếp tục" : "Xác nhận và đặt hàng"}
+                  {!selectedId
+                    ? "Chọn địa chỉ để tiếp tục"
+                    : selectedCartItemIds.length === 0
+                    ? "Chưa chọn sản phẩm"
+                    : "Xác nhận và đặt hàng"}
                 </Button>
               </div>
             </div>
@@ -701,7 +805,12 @@ const Checkout = () => {
         </Alert>
       </Snackbar>
 
-<Modal open={!!sepayInfo} onClose={() => setSepayInfo(null)}>
+      <Modal
+        open={!!sepayInfo}
+        onClose={() => {
+          if (paymentStatus !== "SUCCESS") setSepayInfo(null);
+        }}
+      >
         <Box sx={modalStyle}>
           <div
             className={`mx-auto w-[95%] max-w-[420px] rounded-[1.8rem] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.25)] ${
@@ -726,7 +835,11 @@ const Checkout = () => {
                 <h3 className="mt-4 text-2xl font-black tracking-tight text-orange-400">
                   Thanh toán thành công
                 </h3>
-                <p className={`mt-2 text-sm leading-6 ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
+                <p
+                  className={`mt-2 text-sm leading-6 ${
+                    isDark ? "text-neutral-400" : "text-slate-600"
+                  }`}
+                >
                   Hệ thống đang chuyển bạn đến trang xác nhận đơn hàng
                 </p>
               </div>
@@ -736,46 +849,74 @@ const Checkout = () => {
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-400">
                     Thanh toán trực tuyến
                   </p>
-                  <h2 className={`text-2xl font-black tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+                  <h2
+                    className={`text-2xl font-black tracking-tight ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
                     Quét QR để chuyển khoản
                   </h2>
                 </div>
 
                 <div
                   className={`mt-5 overflow-hidden rounded-[1.5rem] border p-4 ${
-                    isDark ? "border-white/8 bg-white" : "border-slate-200 bg-slate-50"
+                    isDark
+                      ? "border-white/8 bg-white"
+                      : "border-slate-200 bg-slate-50"
                   }`}
                 >
                   <img
                     className="mx-auto h-56 w-56"
                     alt="QR Payment"
-                    src={`https://qr.sepay.vn/img?acc=LOCSPAY000336637&bank=ACB&amount=${sepayInfo?.amount}&des=${sepayInfo?.paymentCode}`}
+                    src={`https://qr.sepay.vn/img?acc=LOCSPAY000336637&bank=${
+                      sepayInfo?.bankName || "ACB"
+                    }&amount=${sepayInfo?.amount || 0}&des=${
+                      sepayInfo?.paymentCode || ""
+                    }`}
                   />
                 </div>
 
                 <Divider
                   sx={{
                     my: 3,
-                    borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)",
+                    borderColor: isDark
+                      ? "rgba(255,255,255,0.08)"
+                      : "rgba(15,23,42,0.08)",
                   }}
                 />
 
-                <div className={`space-y-2 text-sm ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
+                <div
+                  className={`space-y-2 text-sm ${
+                    isDark ? "text-neutral-300" : "text-slate-600"
+                  }`}
+                >
                   <p>
-                    <b className={isDark ? "text-white" : "text-slate-900"}>Ngân hàng:</b>{" "}
+                    <b className={isDark ? "text-white" : "text-slate-900"}>
+                      Ngân hàng:
+                    </b>{" "}
                     {sepayInfo?.bankName}
                   </p>
                   <p>
-                    <b className={isDark ? "text-white" : "text-slate-900"}>Số TK:</b>{" "}
+                    <b className={isDark ? "text-white" : "text-slate-900"}>
+                      Số TK:
+                    </b>{" "}
                     {sepayInfo?.accountNumber}
                   </p>
                   <p>
-                    <b className={isDark ? "text-white" : "text-slate-900"}>Chủ TK:</b>{" "}
+                    <b className={isDark ? "text-white" : "text-slate-900"}>
+                      Chủ TK:
+                    </b>{" "}
                     {sepayInfo?.accountName}
                   </p>
-                  <p className="font-semibold text-orange-400">Nội dung: {sepayInfo?.paymentCode}</p>
-                  <p className={`text-base font-black ${isDark ? "text-white" : "text-slate-900"}`}>
-                    Số tiền: {sepayInfo?.amount?.toLocaleString()}đ
+                  <p className="font-semibold text-orange-400">
+                    Nội dung: {sepayInfo?.paymentCode}
+                  </p>
+                  <p
+                    className={`text-base font-black ${
+                      isDark ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    Số tiền: {(sepayInfo?.amount || 0).toLocaleString()}đ
                   </p>
                 </div>
 
@@ -783,13 +924,23 @@ const Checkout = () => {
                   Hệ thống sẽ tự động xác nhận sau khi giao dịch thành công.
                 </Alert>
 
-                <p className={`mt-3 text-center text-sm ${isDark ? "text-neutral-400" : "text-slate-600"}`}>
+                <p
+                  className={`mt-3 text-center text-sm ${
+                    isDark ? "text-neutral-400" : "text-slate-600"
+                  }`}
+                >
                   Thời gian còn lại:{" "}
                   <b className={remainingTime <= 30 ? "text-red-400" : "text-orange-400"}>
                     {Math.floor(remainingTime / 60)}:
                     {(remainingTime % 60).toString().padStart(2, "0")}
                   </b>
                 </p>
+
+                {paymentStatus === "EXPIRED" && (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    Phiên thanh toán đã hết hạn. Vui lòng tạo lại đơn hàng.
+                  </Alert>
+                )}
               </>
             )}
           </div>

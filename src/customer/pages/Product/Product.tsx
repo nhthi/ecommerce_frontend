@@ -153,7 +153,15 @@ const Product = () => {
             {/* SORT + ACTION */}
             <div className="flex justify-between mb-4">
               <p className="text-white">{product.products.length} sản phẩm</p>
-
+                <Button
+                  variant="outlined"
+                  startIcon={<AutoAwesome />}
+                  endIcon={showRecommendations ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                  onClick={() => setShowRecommendations((prev) => !prev)}
+                  sx={recommendationButtonSx}
+                >
+                  Xem gợi ý dành cho bạn
+                </Button>
               <FormControl size="small" sx={selectSx}>
                 <Select value={sort} displayEmpty onChange={handleSortChange}>
                   <MenuItem value="">Mặc định</MenuItem>
@@ -162,7 +170,61 @@ const Product = () => {
                 </Select>
               </FormControl>
             </div>
+ <Collapse in={showRecommendations} timeout={280} unmountOnExit>
+              <section className="overflow-hidden rounded-[1.7rem] my-4 border border-orange-500/15 bg-[linear-gradient(135deg,rgba(249,115,22,0.12),rgba(255,255,255,0.02))] px-4 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.24)] sm:px-5">
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">Recommendation</p>
+                    <h2 className="mt-2 text-2xl font-black text-white">Danh sách gợi ý dành cho bạn</h2>
+                  </div>
+                  
+                </div>
 
+                {recommendationSlice.loading ? (
+                  <div className="rounded-[1.2rem] border border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
+                    Đang tải gợi ý...
+                  </div>
+                ) : recommendations.length === 0 ? (
+                  <div className="rounded-[1.2rem] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-center text-slate-300">
+                    Chưa có gợi ý phù hợp
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {recommendations.map((item: RecommendedProductDto) => (
+                      <button
+                        key={item.productId}
+                        type="button"
+                        onClick={() => navigate(`/product-details/${item.title.replaceAll("/", "_")}/${item.productId}`)}
+                        className="group overflow-hidden rounded-[1.2rem] border border-white/10 bg-[#101010] text-left transition duration-300 hover:-translate-y-1 hover:border-orange-400/35 hover:shadow-[0_20px_40px_rgba(249,115,22,0.12)]"
+                      >
+                        <div className="aspect-[4/3] overflow-hidden bg-white/[0.04]">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <div className="mb-3 inline-flex rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300">
+                            {sourceLabelMap[item.source] || "Goi y"}
+                          </div>
+                          <h3 className="min-h-[3.2rem] text-sm font-black leading-6 text-white">{item.title}</h3>
+                          <div className="mt-4 flex items-end justify-between gap-3">
+                            <div>
+                              <p className="text-base font-black text-orange-400">{formatCurrencyVND(item.sellingPrice)}</p>
+                              <p className="mt-1 text-xs text-slate-500 line-through">{formatCurrencyVND(item.mrpPrice)}</p>
+                            </div>
+                            {/* <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                              Score {item.score.toFixed(1)}
+                            </div> */}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </Collapse>
             {/* PRODUCT LIST */}
             <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {paginatedProducts.map((item: ProductType) => (

@@ -43,49 +43,53 @@ export const addItemToCart = createAsyncThunk<Cart, AddItemRequest>(
   async (itemDetails, { rejectWithValue }) => {
     try {
       const response = await api.put("/api/cart/add", itemDetails);
-      console.log("add item to cart:", response.data);
+      console.log("Thêm sản phẩm vào giỏ hàng:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error("Error adding item to cart:", error);
+      console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error);
 
-      // ✅ Có phản hồi từ server (backend có trả status)
+      // Có phản hồi từ server
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message;
 
         switch (status) {
           case 400:
-            return rejectWithValue(message || "Invalid request data.");
+            return rejectWithValue(message || "Dữ liệu gửi lên không hợp lệ.");
           case 401:
             return rejectWithValue(
-              "You must be logged in to add items to the cart."
+              "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng."
             );
           case 403:
             return rejectWithValue(
-              "You do not have permission to perform this action."
+              "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng."
             );
           case 404:
             return rejectWithValue(
-              "The product you’re trying to add was not found."
+              "Không tìm thấy sản phẩm bạn đang muốn thêm."
             );
           case 500:
-            return rejectWithValue("Server error. Please try again later.");
+            return rejectWithValue(
+              "Máy chủ đang gặp sự cố. Vui lòng thử lại sau."
+            );
           default:
             return rejectWithValue(
-              message || "An unexpected backend error occurred."
+              message || "Đã xảy ra lỗi từ hệ thống."
             );
         }
       }
 
-      // ❌ Không có phản hồi (ví dụ: mất kết nối, timeout)
+      // Không có phản hồi từ server
       if (error.request) {
         return rejectWithValue(
-          "No response from server. Please check your connection."
+          "Không nhận được phản hồi từ máy chủ. Vui lòng kiểm tra kết nối mạng."
         );
       }
 
-      // ❗ Lỗi không xác định
-      return rejectWithValue(error.message || "An unknown error occurred.");
+      // Lỗi không xác định
+      return rejectWithValue(
+        error.message || "Đã xảy ra lỗi không xác định."
+      );
     }
   }
 );

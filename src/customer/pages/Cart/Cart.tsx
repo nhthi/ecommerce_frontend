@@ -1,73 +1,149 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import CartItem from "./CartItem";
 import { Close, Favorite, LocalOffer, ShoppingCart } from "@mui/icons-material";
-import { Button, IconButton, TextField, Typography } from "@mui/material";
+import { Button, IconButton, TextField, Typography, Checkbox } from "@mui/material";
 import PricingCart from "./PricingCart";
 import { useNavigate } from "react-router-dom";
-import { applyCoupon, fetchUserCart } from "../../../state/customer/cartSlice";
+import { fetchUserCart } from "../../../state/customer/cartSlice";
 import { useAppDispatch, useAppSelector } from "../../../state/Store";
 import CustomLoading from "../../components/CustomLoading/CustomLoading";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import { api } from "../../../config/Api";
 
 const Cart = () => {
-  const [couponCode, setCouponCode] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<any>("");
+  const [couponCodeInput, setCouponCodeInput] = useState<string>("");
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState<number[]>([]);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { cart } = useAppSelector((store) => store);
   const { isDark } = useSiteThemeMode();
 
+  useEffect(() => {
+    dispatch(fetchUserCart());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const ids =
+      cart.cart?.cartItems
+        ?.map((item: any) => item.id)
+        .filter((id: number | undefined) => typeof id === "number") || [];
+    setSelectedCartItemIds(ids);
+  }, [cart.cart?.cartItems]);
+
   const handleChangeCouponCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCouponCode(e.target.value);
+    setCouponCodeInput(e.target.value);
     setErrorMessage("");
   };
 
+  const selectedItems = useMemo(() => {
+    return (
+      cart.cart?.cartItems?.filter((item: any) =>
+        selectedCartItemIds.includes(item.id)
+      ) || []
+    );
+  }, [cart.cart?.cartItems, selectedCartItemIds]);
+
+  const selectedSubtotal = useMemo(() => {
+    return selectedItems.reduce(
+      (sum: number, item: any) => sum + Number(item.sellingPrice || 0) * Number(item.quantity || 0),
+      0
+    );
+  }, [selectedItems]);
+
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
+    if (!couponCodeInput.trim()) {
       setErrorMessage("Vui lòng nhập mã giảm giá.");
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      setErrorMessage("Vui lòng chọn ít nhất 1 sản phẩm trước khi áp mã.");
       return;
     }
 
     try {
       setLoading(true);
-      await dispatch(
-        applyCoupon({
-          apply: "true",
-          code: couponCode,
-          orderValue: Number(cart.cart?.totalSellingPrice),
-        })
-      ).unwrap();
+
+      const res = await api.post("/api/coupons/preview", {
+        code: couponCodeInput.trim(),
+        subtotalPrice: selectedSubtotal,
+      });
+
+      setAppliedCouponCode(res.data?.couponCode || couponCodeInput.trim());
+      setCouponDiscount(Number(res.data?.discountAmount || 0));
       setErrorMessage("");
-    } catch (error) {
-      setErrorMessage(error);
+    } catch (error: any) {
+      setAppliedCouponCode(null);
+      setCouponDiscount(0);
+      setErrorMessage(
+        error?.response?.data?.message ||
+          error?.response?.data ||
+          error?.message ||
+          "Không thể áp dụng mã giảm giá."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemoveCoupon = async () => {
-    await dispatch(
-      applyCoupon({
-        apply: "false",
-        code: cart.cart?.coupon ? cart.cart?.coupon.code : "code",
-        orderValue: Number(cart.cart?.totalSellingPrice),
-      })
+  const handleRemoveCoupon = () => {
+    setAppliedCouponCode(null);
+    setCouponDiscount(0);
+    setCouponCodeInput("");
+    setErrorMessage("");
+  };
+
+  const handleToggleCartItem = (cartItemId: number) => {
+    setSelectedCartItemIds((prev) =>
+      prev.includes(cartItemId)
+        ? prev.filter((id) => id !== cartItemId)
+        : [...prev, cartItemId]
     );
   };
 
-  useEffect(() => {
-    dispatch(fetchUserCart());
-  }, [dispatch]);
+  const handleSelectAll = () => {
+    const allIds =
+      cart.cart?.cartItems
+        ?.map((item: any) => item.id)
+        .filter((id: number | undefined) => typeof id === "number") || [];
+
+    const isAllSelected =
+      allIds.length > 0 && allIds.every((id: number) => selectedCartItemIds.includes(id));
+
+    if (isAllSelected) {
+      setSelectedCartItemIds([]);
+    } else {
+      setSelectedCartItemIds(allIds);
+    }
+  };
 
   const isEmpty = !cart.cart?.cartItems || cart.cart.cartItems.length === 0;
 
-  const hasOutOfStock = cart.cart?.cartItems?.some(
-    (item) =>
+  const hasOutOfStock = selectedItems.some(
+    (item: any) =>
       Number(item.size?.quantity || 0) === 0 ||
       Number(item.size?.quantity || 0) < item.quantity
   );
+
+  const handleGoCheckout = () => {
+    if (selectedCartItemIds.length === 0) {
+      setErrorMessage("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.");
+      return;
+    }
+
+    navigate("/checkout", {
+      state: {
+        couponCode: appliedCouponCode,
+        couponDiscount,
+        selectedCartItemIds,
+      },
+    });
+  };
 
   return (
     <div
@@ -75,422 +151,147 @@ const Cart = () => {
         isDark ? "bg-[#0f0f0f]" : "bg-[#f6f6f6]"
       }`}
     >
-      {loading && <CustomLoading message="Đang áp dụng mã giảm giá..." />}
+      {loading && <CustomLoading message="Đang kiểm tra mã giảm giá..." />}
 
       <div className="mx-auto max-w-7xl">
         <div
           className={`overflow-hidden rounded-[2rem] border px-6 py-8 shadow-sm sm:px-8 lg:px-10 ${
-            isDark
-              ? "border-white/10 bg-[#111111]"
-              : "border-black/10 bg-white"
+            isDark ? "border-white/10 bg-[#111111]" : "border-black/10 bg-white"
           }`}
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl space-y-3">
-              <span
-                className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.28em] ${
-                  isDark
-                    ? "border-white/12 bg-white/[0.05] text-white"
-                    : "border-black/10 bg-black/[0.04] text-black"
-                }`}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <Typography variant="h5" fontWeight={800}>
+                Giỏ hàng của bạn
+              </Typography>
+              <Typography
+                sx={{ mt: 1, color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.65)" }}
               >
-                Giỏ hàng
-              </span>
-
-              <div className="space-y-2">
-                <p
-                  className={`max-w-xl text-sm leading-6 sm:text-base ${
-                    isDark ? "text-white/70" : "text-black/65"
-                  }`}
-                >
-                  Kiểm tra lại sản phẩm, mã giảm giá và tổng tiền trước khi qua bước thanh toán.
-                </p>
-              </div>
+                Chọn các sản phẩm bạn muốn đặt hàng.
+              </Typography>
             </div>
 
             {!isEmpty && (
-              <div
-                className={`grid grid-cols-2 gap-3 text-sm sm:w-auto ${
-                  isDark ? "text-white/70" : "text-black/70"
-                }`}
-              >
-                <div
-                  className={`rounded-2xl border px-4 py-3 ${
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-black/10 bg-black/[0.03]"
-                  }`}
-                >
-                  <p
-                    className={`text-[11px] uppercase tracking-[0.22em] ${
-                      isDark ? "text-white/45" : "text-black/45"
-                    }`}
-                  >
-                    Số món
-                  </p>
-                  <p className={`mt-2 text-2xl font-black ${isDark ? "text-white" : "text-black"}`}>
-                    {cart.cart?.cartItems?.length || 0}
-                  </p>
-                </div>
-
-                <div
-                  className={`rounded-2xl border px-4 py-3 ${
-                    isDark
-                      ? "border-white/10 bg-white/[0.04]"
-                      : "border-black/10 bg-black/[0.03]"
-                  }`}
-                >
-                  <p
-                    className={`text-[11px] uppercase tracking-[0.22em] ${
-                      isDark ? "text-white/45" : "text-black/45"
-                    }`}
-                  >
-                    Tổng tạm tính
-                  </p>
-                  <p className={`mt-2 text-2xl font-black ${isDark ? "text-white" : "text-black"}`}>
-                    {(cart.cart?.totalSellingPrice || 0).toLocaleString()}đ
-                  </p>
-                </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={
+                    (cart.cart?.cartItems?.length || 0) > 0 &&
+                    cart.cart?.cartItems.every((item: any) =>
+                      selectedCartItemIds.includes(item.id)
+                    )
+                  }
+                  indeterminate={
+                    selectedCartItemIds.length > 0 &&
+                    selectedCartItemIds.length < (cart.cart?.cartItems?.length || 0)
+                  }
+                  onChange={handleSelectAll}
+                />
+                <span className={isDark ? "text-white" : "text-black"}>Chọn tất cả</span>
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {isEmpty ? (
-        <div
-          className={`mx-auto mt-8 flex max-w-4xl flex-col items-center justify-center rounded-[2rem] border px-6 py-16 text-center shadow-sm sm:px-10 ${
-            isDark
-              ? "border-white/10 bg-[#111111]"
-              : "border-black/10 bg-white"
-          }`}
-        >
-          <div
-            className={`flex h-20 w-20 items-center justify-center rounded-full border ${
-              isDark
-                ? "border-white/12 bg-white/[0.05] text-white"
-                : "border-black/10 bg-black/[0.04] text-black"
-            }`}
-          >
-            <ShoppingCart sx={{ fontSize: 38 }} />
-          </div>
-
-          <h2 className={`mt-6 text-3xl font-black uppercase tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-            Giỏ hàng đang trống
-          </h2>
-
-          <p
-            className={`mt-3 max-w-xl text-base leading-7 ${
-              isDark ? "text-white/65" : "text-black/60"
-            }`}
-          >
-            Bạn chưa có sản phẩm nào trong giỏ. Quay lại trang chủ để chọn thêm tạ,
-            găng tay, bộ dây kháng lực hoặc phụ kiện tập luyện.
-          </p>
-
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/")}
-            sx={{
-              mt: 4,
-              px: 4,
-              py: 1.4,
-              borderRadius: "999px",
-              textTransform: "none",
-              fontWeight: 800,
-              fontSize: "0.98rem",
-              color: isDark ? "#ffffff" : "#000000",
-              borderColor: isDark
-                ? "rgba(255,255,255,0.16)"
-                : "rgba(0,0,0,0.14)",
-              backgroundColor: "transparent",
-              boxShadow: "none",
-              "&:hover": {
-                borderColor: isDark
-                  ? "rgba(255,255,255,0.3)"
-                  : "rgba(0,0,0,0.3)",
-                backgroundColor: isDark
-                  ? "rgba(255,255,255,0.04)"
-                  : "rgba(0,0,0,0.04)",
-                boxShadow: "none",
-              },
-            }}
-          >
-            Quay lại mua hàng
-          </Button>
-        </div>
-      ) : (
-        <div className="mx-auto mt-8 grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
-          <div className="space-y-4 lg:col-span-2">
-            {cart.cart?.cartItems?.map((item) => (
-              <CartItem item={item} key={item.id} />
-            ))}
-          </div>
-
-          <div className="space-y-4 lg:sticky lg:top-24">
-            <div
-              className={`rounded-[1.8rem] border p-5 shadow-sm ${
-                isDark
-                  ? "border-white/10 bg-[#111111]"
-                  : "border-black/10 bg-white"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
-                    isDark
-                      ? "bg-white/[0.05] text-white"
-                      : "bg-black/[0.04] text-black"
-                  }`}
-                >
-                  <LocalOffer sx={{ fontSize: 20 }} />
-                </div>
-
-                <div className="space-y-1">
-                  <p className={`text-lg font-black uppercase tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-                    Mã giảm giá
-                  </p>
-                  <p
-                    className={`text-sm leading-6 ${
-                      isDark ? "text-white/65" : "text-black/60"
-                    }`}
-                  >
-                    Nhập coupon nếu bạn đang có ưu đãi cho đơn hàng này.
-                  </p>
-                </div>
+          {isEmpty ? (
+            <div className="py-16 text-center">
+              <ShoppingCart sx={{ fontSize: 56, opacity: 0.5 }} />
+              <Typography sx={{ mt: 2 }}>Giỏ hàng đang trống</Typography>
+            </div>
+          ) : (
+            <div className="grid gap-8 lg:grid-cols-[1.35fr_0.65fr]">
+              <div className="space-y-4">
+                {cart.cart?.cartItems?.map((item: any) => (
+                  <div key={item.id} className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedCartItemIds.includes(item.id)}
+                      onChange={() => handleToggleCartItem(item.id)}
+                      sx={{ mt: 1 }}
+                    />
+                    <div className="flex-1">
+                      <CartItem item={item} />
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {cart.cart?.coupon ? (
+              <div className="space-y-4">
                 <div
-                  className={`mt-4 flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 ${
-                    isDark
-                      ? "border-white/12 bg-white/[0.05]"
-                      : "border-black/10 bg-black/[0.04]"
+                  className={`rounded-[1.5rem] border p-4 ${
+                    isDark ? "border-white/10 bg-[#111111]" : "border-black/10 bg-white"
                   }`}
                 >
-                  <div>
-                    <p
-                      className={`text-sm font-black uppercase tracking-[0.18em] ${
-                        isDark ? "text-white" : "text-black"
-                      }`}
-                    >
-                      {cart.cart.coupon.code}
-                    </p>
-                    <p
-                      className={`mt-1 text-sm ${
-                        isDark ? "text-white/70" : "text-black/65"
-                      }`}
-                    >
-                      {cart.cart.coupon.name} - Giảm{" "}
-                      {cart.cart.coupon.discountPercentage}%
-                    </p>
+                  <div className="mb-3 flex items-center gap-2">
+                    <LocalOffer />
+                    <Typography fontWeight={700}>Mã giảm giá</Typography>
                   </div>
 
-                  <IconButton
-                    onClick={handleRemoveCoupon}
-                    size="small"
-                    sx={{
-                      color: isDark ? "#fff" : "#000",
-                      border: isDark
-                        ? "1px solid rgba(255,255,255,0.10)"
-                        : "1px solid rgba(0,0,0,0.10)",
-                      backgroundColor: "transparent",
-                      "&:hover": {
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.04)"
-                          : "rgba(0,0,0,0.04)",
-                      },
-                    }}
-                  >
-                    <Close fontSize="small" />
-                  </IconButton>
+<div className="flex gap-2">
+  <TextField
+    fullWidth
+    size="small"
+    value={couponCodeInput}
+    onChange={handleChangeCouponCode}
+    placeholder="Nhập mã giảm giá"
+  />
+  <Button
+    variant="contained"
+    onClick={handleApplyCoupon}
+    sx={{
+      textTransform: "none",
+      whiteSpace: "nowrap",
+      minWidth: "fit-content",
+      borderRadius: "999px",
+      px: 3,
+      py: 1.1,
+      fontWeight: 800,
+      backgroundColor: "#f97316",
+      boxShadow: "none",
+      "&:hover": {
+        backgroundColor: "#ea580c",
+        boxShadow: "none",
+      },
+    }}
+  >
+    <span className="text-slate-100 text-sm whitespace-nowrap">Áp dụng</span>
+  </Button>
+</div>
+
+                  {appliedCouponCode && (
+                    <div className="mt-3 flex items-center justify-between">
+                      <span>Đã áp dụng: {appliedCouponCode}</span>
+                      <IconButton onClick={handleRemoveCoupon}>
+                        <Close />
+                      </IconButton>
+                    </div>
+                  )}
+
+                  {errorMessage && (
+                    <Typography color="error" sx={{ mt: 2 }}>
+                      {errorMessage}
+                    </Typography>
+                  )}
                 </div>
-              ) : (
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                  <TextField
-                    placeholder="Nhập mã giảm giá"
-                    size="small"
-                    value={couponCode}
-                    onChange={handleChangeCouponCode}
-                    fullWidth
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "14px",
-                        color: isDark ? "#fff" : "#000",
-                        backgroundColor: isDark ? "#151515" : "#fff",
-                        "& fieldset": {
-                          borderColor: isDark
-                            ? "rgba(255,255,255,0.12)"
-                            : "rgba(0,0,0,0.12)",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: isDark
-                            ? "rgba(255,255,255,0.22)"
-                            : "rgba(0,0,0,0.22)",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: isDark
-                            ? "rgba(255,255,255,0.28)"
-                            : "rgba(0,0,0,0.28)",
-                        },
-                      },
-                      "& .MuiInputBase-input::placeholder": {
-                        color: isDark
-                          ? "rgba(255,255,255,0.45)"
-                          : "rgba(0,0,0,0.45)",
-                        opacity: 1,
-                      },
-                    }}
-                  />
 
-                  <Button
-                    onClick={handleApplyCoupon}
-                    variant="outlined"
-                    sx={{
-                      minWidth: 120,
-                      borderRadius: "14px",
-                      textTransform: "none",
-                      fontWeight: 700,
-                      color: isDark ? "#fff" : "#000",
-                      borderColor: isDark
-                        ? "rgba(255,255,255,0.14)"
-                        : "rgba(0,0,0,0.14)",
-                      backgroundColor: "transparent",
-                      boxShadow: "none",
-                      "&:hover": {
-                        borderColor: isDark
-                          ? "rgba(255,255,255,0.28)"
-                          : "rgba(0,0,0,0.28)",
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.04)"
-                          : "rgba(0,0,0,0.04)",
-                        boxShadow: "none",
-                      },
-                    }}
-                  >
-                    Áp dụng
-                  </Button>
-                </div>
-              )}
+                <PricingCart
+                  couponCode={appliedCouponCode}
+                  couponDiscount={couponDiscount}
+                  selectedCartItemIds={selectedCartItemIds}
+                />
 
-              {errorMessage && (
-                <Typography
-                  sx={{
-                    mt: 2,
-                    color: isDark ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)",
-                    fontSize: "0.92rem",
-                  }}
-                >
-                  {errorMessage}
-                </Typography>
-              )}
-            </div>
-
-            <div
-              className={`overflow-hidden rounded-[1.8rem] border shadow-sm ${
-                isDark
-                  ? "border-white/10 bg-[#111111]"
-                  : "border-black/10 bg-white"
-              }`}
-            >
-              <PricingCart />
-
-              {hasOutOfStock && (
-                <div
-                  className={`mx-5 my-3 rounded-xl border px-4 py-3 text-sm ${
-                    isDark
-                      ? "border-white/14 bg-white/[0.05] text-white/80"
-                      : "border-black/10 bg-black/[0.04] text-black/75"
-                  }`}
-                >
-                  Có sản phẩm trong giỏ đã <b>hết hàng</b> hoặc không đủ số lượng.
-                  Vui lòng xóa hoặc cập nhật lại trước khi thanh toán.
-                </div>
-              )}
-
-              <div className="p-5 pt-0">
                 <Button
-                  onClick={() => navigate("/checkout")}
                   fullWidth
-                  variant="outlined"
-                  disabled={hasOutOfStock}
-                  sx={{
-                    borderRadius: "14px",
-                    py: 1.2,
-                    textTransform: "none",
-                    fontWeight: 800,
-                    borderColor: isDark
-                      ? "rgba(255,255,255,0.16)"
-                      : "rgba(0,0,0,0.14)",
-                    boxShadow: "none",
-                    background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-                      color: "#fff",
-                      "&:hover": {
-                        background: "linear-gradient(135deg, #fb923c 0%, #f97316 100%)",
-                        boxShadow: "none",
-                      },
-                    "&.Mui-disabled": {
-                      color: isDark
-                        ? "rgba(255,255,255,0.35)"
-                        : "rgba(0,0,0,0.35)",
-                      borderColor: isDark
-                        ? "rgba(255,255,255,0.08)"
-                        : "rgba(0,0,0,0.08)",
-                    },
-                  }}
+                  variant="contained"
+                  size="large"
+                  disabled={selectedCartItemIds.length === 0 || hasOutOfStock}
+                  onClick={handleGoCheckout}
                 >
-                  {hasOutOfStock ? "Không thể thanh toán" : "Sang bước thanh toán"}
+                  <span className="text-slate-100">Sang bước thanh toán</span>
+                  
                 </Button>
               </div>
             </div>
-
-            <div
-              className={`rounded-[1.8rem] border p-5 shadow-sm ${
-                isDark
-                  ? "border-white/10 bg-[#111111]"
-                  : "border-black/10 bg-white"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className={`text-lg font-black uppercase tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-                    Wishlist
-                  </p>
-                  <p
-                    className={`mt-1 text-sm leading-6 ${
-                      isDark ? "text-white/65" : "text-black/60"
-                    }`}
-                  >
-                    Xem lại các món bạn đã lưu và đưa vào giỏ khi sẵn sàng.
-                  </p>
-                </div>
-
-                <IconButton
-                  onClick={() => navigate("/wishlist")}
-                  size="small"
-                  sx={{
-                    borderRadius: "999px",
-                    color: isDark ? "#fff" : "#000",
-                    border: isDark
-                      ? "1px solid rgba(255,255,255,0.10)"
-                      : "1px solid rgba(0,0,0,0.10)",
-                    backgroundColor: isDark
-                      ? "rgba(255,255,255,0.04)"
-                      : "rgba(0,0,0,0.04)",
-                    "&:hover": {
-                      backgroundColor: isDark
-                        ? "rgba(255,255,255,0.08)"
-                        : "rgba(0,0,0,0.08)",
-                    },
-                  }}
-                >
-                  <Favorite fontSize="small" />
-                </IconButton>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

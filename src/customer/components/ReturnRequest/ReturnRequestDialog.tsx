@@ -55,7 +55,8 @@ const ReturnRequestDialog: React.FC<ReturnRequestDialogProps> = ({
   const { actionLoading, error, success } = useAppSelector(
     (store) => store.returnRequestSlice
   );
-const { isDark } = useSiteThemeMode();
+  const { isDark } = useSiteThemeMode();
+
   const [quantity, setQuantity] = useState(1);
   const [reasonCode, setReasonCode] = useState("DEFECTIVE");
   const [note, setNote] = useState("");
@@ -142,9 +143,7 @@ const { isDark } = useSiteThemeMode();
       setLocalError("Tải ảnh minh chứng thất bại.");
     } finally {
       setUploadingImage(false);
-      if (event.target) {
-        event.target.value = "";
-      }
+      event.target.value = "";
     }
   };
 
@@ -154,10 +153,12 @@ const { isDark } = useSiteThemeMode();
 
   const handleSubmit = async () => {
     if (!orderItem?.id) return;
-  if (reasonCode === "Khác" && !note.trim()) {
-    setLocalError("Vui lòng nhập lý do cụ thể khi chọn 'Khác'.");
-    return;
-  }
+
+    if (reasonCode === "Khác" && !note.trim()) {
+      setLocalError("Vui lòng nhập lý do cụ thể khi chọn 'Khác'.");
+      return;
+    }
+
     await dispatch(
       createReturnRequest({
         orderId,
@@ -177,6 +178,14 @@ const { isDark } = useSiteThemeMode();
     !uploadingImage &&
     !actionLoading;
 
+  const titleColor = isDark ? "#ffffff" : "#0f172a";
+  const textColor = isDark ? "#cbd5e1" : "#475569";
+  const mutedColor = isDark ? "#94a3b8" : "#64748b";
+  const innerBorderColor = isDark
+    ? "rgba(255,255,255,0.08)"
+    : "rgba(15,23,42,0.08)";
+  const subCardBg = isDark ? "rgba(0,0,0,0.2)" : "#f8fafc";
+
   return (
     <>
       <Dialog
@@ -185,57 +194,87 @@ const { isDark } = useSiteThemeMode();
         fullWidth
         maxWidth="sm"
         PaperProps={{
-  sx: {
-    borderRadius: "1.5rem",
-    backgroundColor: isDark ? "#141414" : "#ffffff",
-    color: isDark ? "#fff" : "#0f172a",
-    border: isDark
-      ? "1px solid rgba(249,115,22,0.12)"
-      : "1px solid rgba(15,23,42,0.08)",
-    boxShadow: isDark
-      ? "0 20px 60px rgba(0,0,0,0.18)"
-      : "0 20px 60px rgba(15,23,42,0.08)",
-      overflow: "visible",
-      maxHeight: "none",
-  },
-}}
+          sx: {
+            borderRadius: "1.5rem",
+            backgroundColor: isDark ? "#141414" : "#ffffff",
+            color: isDark ? "#fff" : "#0f172a",
+            border: isDark
+              ? "1px solid rgba(249,115,22,0.12)"
+              : "1px solid rgba(15,23,42,0.08)",
+            boxShadow: isDark
+              ? "0 20px 60px rgba(0,0,0,0.18)"
+              : "0 20px 60px rgba(15,23,42,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            maxHeight: "90vh",
+            overflow: "hidden",
+            m: 1.5,
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 900, fontSize: "1.4rem" }}>
+        <DialogTitle
+          sx={{
+            fontWeight: 900,
+            fontSize: "1.4rem",
+            flexShrink: 0,
+            borderBottom: `1px solid ${innerBorderColor}`,
+          }}
+        >
           Yêu cầu trả hàng
         </DialogTitle>
 
-       <DialogContent
-  dividers
-  sx={{
-    borderColor: "rgba(249,115,22,0.12)",
-    overflowY: "visible",
-    "&::-webkit-scrollbar": {
-      display: "none",
-    },
-    scrollbarWidth: "none",
-  }}
->
+        <DialogContent
+          dividers
+          sx={{
+            borderColor: innerBorderColor,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            px: 3,
+            py: 2.5,
+            "&::-webkit-scrollbar": {
+              width: 8,
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: isDark
+                ? "rgba(255,255,255,0.16)"
+                : "rgba(15,23,42,0.18)",
+              borderRadius: "999px",
+            },
+          }}
+        >
           {orderItem && (
             <Box className="space-y-5">
-              <div className="flex gap-4 rounded-2xl border border-white/8 bg-black/20 p-4">
+              <div
+                className="flex gap-4 rounded-2xl p-4"
+                style={{
+                  border: `1px solid ${innerBorderColor}`,
+                  backgroundColor: subCardBg,
+                }}
+              >
                 <img
                   src={orderItem.product?.images?.[0]}
                   alt={orderItem.product?.title}
-                  className="h-24 w-20 rounded-xl border border-white/8 object-cover"
+                  className="h-24 w-20 rounded-xl object-cover"
+                  style={{ border: `1px solid ${innerBorderColor}` }}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="line-clamp-2 text-lg font-bold text-white">
+                  <p
+                    className="line-clamp-2 text-lg font-bold"
+                    style={{ color: titleColor }}
+                  >
                     {orderItem.product?.title}
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm" style={{ color: mutedColor }}>
                     Kích thước:{" "}
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold" style={{ color: titleColor }}>
                       {orderItem.size?.name || "Không có"}
                     </span>
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm" style={{ color: mutedColor }}>
                     Đã mua:{" "}
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold" style={{ color: titleColor }}>
                       {orderItem.quantity}
                     </span>
                   </p>
@@ -252,7 +291,7 @@ const { isDark } = useSiteThemeMode();
                 value={reasonCode}
                 onChange={(e) => setReasonCode(e.target.value)}
                 InputLabelProps={{ shrink: true }}
-                sx={fieldSx}
+                sx={fieldSx(isDark)}
               >
                 {RETURN_REASONS.map((reason) => (
                   <MenuItem key={reason.value} value={reason.value}>
@@ -281,7 +320,7 @@ const { isDark } = useSiteThemeMode();
                 }}
                 inputProps={{ min: 1, max: maxQuantity }}
                 InputLabelProps={{ shrink: true }}
-                sx={fieldSx}
+                sx={fieldSx(isDark)}
               />
 
               <TextField
@@ -292,17 +331,20 @@ const { isDark } = useSiteThemeMode();
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={
-  reasonCode === "Khác"
-    ? "Vui lòng mô tả lý do trả hàng..."
-    : "Mô tả chi tiết tình trạng sản phẩm hoặc lý do trả hàng..."
-}
+                  reasonCode === "Khác"
+                    ? "Vui lòng mô tả lý do trả hàng..."
+                    : "Mô tả chi tiết tình trạng sản phẩm hoặc lý do trả hàng..."
+                }
                 InputLabelProps={{ shrink: true }}
-                sx={fieldSx}
+                sx={fieldSx(isDark)}
               />
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-bold uppercase tracking-[0.12em] text-slate-400">
+                  <p
+                    className="text-sm font-bold uppercase tracking-[0.12em]"
+                    style={{ color: mutedColor }}
+                  >
                     Ảnh minh chứng
                   </p>
 
@@ -310,7 +352,7 @@ const { isDark } = useSiteThemeMode();
                     variant="outlined"
                     onClick={handleChooseImages}
                     disabled={uploadingImage}
-                    sx={outlineButtonSx}
+                    sx={outlineButtonSx(isDark)}
                   >
                     {uploadingImage ? "Đang tải ảnh..." : "Chọn ảnh"}
                   </Button>
@@ -325,7 +367,7 @@ const { isDark } = useSiteThemeMode();
                   onChange={handleUploadImages}
                 />
 
-                <p className="text-xs leading-6 text-slate-500">
+                <p className="text-xs leading-6" style={{ color: mutedColor }}>
                   Bạn có thể chọn một hoặc nhiều ảnh từ thiết bị. Ảnh sẽ được tải
                   lên Cloudinary và tự động đính kèm vào yêu cầu trả hàng.
                 </p>
@@ -335,7 +377,11 @@ const { isDark } = useSiteThemeMode();
                     {imageUrls.map((url) => (
                       <div
                         key={url}
-                        className="overflow-hidden rounded-2xl border border-white/8 bg-black/20"
+                        className="overflow-hidden rounded-2xl"
+                        style={{
+                          border: `1px solid ${innerBorderColor}`,
+                          backgroundColor: subCardBg,
+                        }}
                       >
                         <img
                           src={url}
@@ -361,12 +407,17 @@ const { isDark } = useSiteThemeMode();
 
               <Divider sx={{ borderColor: "rgba(249,115,22,0.12)" }} />
 
-              <div className="rounded-2xl bg-black/20 p-4">
-                <p className="text-sm text-slate-400">Tiền hoàn dự kiến</p>
+              <div
+                className="rounded-2xl p-4"
+                style={{ backgroundColor: subCardBg }}
+              >
+                <p className="text-sm" style={{ color: mutedColor }}>
+                  Tiền hoàn dự kiến
+                </p>
                 <p className="mt-1 text-2xl font-black text-orange-400">
                   {formatVND(refundPreview)}
                 </p>
-                <p className="mt-2 text-xs leading-6 text-slate-500">
+                <p className="mt-2 text-xs leading-6" style={{ color: mutedColor }}>
                   Giá trị hoàn tiền hiện được tính theo giá bán của sản phẩm nhân
                   với số lượng trả.
                 </p>
@@ -375,11 +426,17 @@ const { isDark } = useSiteThemeMode();
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 3 }}>
+        <DialogActions
+          sx={{
+            p: 3,
+            flexShrink: 0,
+            borderTop: `1px solid ${innerBorderColor}`,
+          }}
+        >
           <Button
             onClick={onClose}
             disabled={actionLoading || uploadingImage}
-            sx={ghostButtonSx}
+            sx={ghostButtonSx(isDark)}
           >
             Đóng
           </Button>
@@ -389,7 +446,8 @@ const { isDark } = useSiteThemeMode();
             disabled={!canSubmit}
             sx={primaryButtonSx}
           >
-            {actionLoading ? "Đang gửi..." : "Gửi yêu cầu"}
+            <span className="text-slate-100">{actionLoading ? "Đang gửi..." : "Gửi yêu cầu"}</span>
+            
           </Button>
         </DialogActions>
       </Dialog>
@@ -413,13 +471,15 @@ const { isDark } = useSiteThemeMode();
   );
 };
 
-const fieldSx = {
+const fieldSx = (isDark: boolean) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: "1rem",
-    color: "#fff",
-    backgroundColor: "rgba(0,0,0,0.2)",
+    color: isDark ? "#fff" : "#0f172a",
+    backgroundColor: isDark ? "rgba(0,0,0,0.2)" : "#f8fafc",
     "& fieldset": {
-      borderColor: "rgba(255,255,255,0.1)",
+      borderColor: isDark
+        ? "rgba(255,255,255,0.1)"
+        : "rgba(15,23,42,0.12)",
     },
     "&:hover fieldset": {
       borderColor: "rgba(249,115,22,0.3)",
@@ -429,32 +489,33 @@ const fieldSx = {
     },
   },
   "& .MuiInputLabel-root": {
-    color: "#94a3b8",
+    color: isDark ? "#94a3b8" : "#64748b",
   },
   "& .MuiSvgIcon-root": {
-    color: "#cbd5e1",
+    color: isDark ? "#cbd5e1" : "#475569",
   },
-};
+});
 
-const outlineButtonSx = {
+const outlineButtonSx = (isDark: boolean) => ({
   minWidth: 110,
   textTransform: "none",
   borderRadius: "999px",
   fontWeight: 700,
   borderColor: "rgba(249,115,22,0.3)",
   color: "#fb923c",
+  backgroundColor: "transparent",
   "&:hover": {
     borderColor: "#fb923c",
-    backgroundColor: "rgba(249,115,22,0.08)",
+    backgroundColor: isDark ? "rgba(249,115,22,0.08)" : "rgba(249,115,22,0.06)",
   },
-};
+});
 
-const ghostButtonSx = {
+const ghostButtonSx = (isDark: boolean) => ({
   textTransform: "none",
   borderRadius: "999px",
-  color: "#cbd5e1",
+  color: isDark ? "#cbd5e1" : "#475569",
   px: 2.5,
-};
+});
 
 const primaryButtonSx = {
   textTransform: "none",
@@ -463,8 +524,10 @@ const primaryButtonSx = {
   py: 1.1,
   fontWeight: 800,
   backgroundColor: "#f97316",
+  boxShadow: "none",
   "&:hover": {
     backgroundColor: "#ea580c",
+    boxShadow: "none",
   },
 };
 

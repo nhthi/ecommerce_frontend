@@ -181,7 +181,7 @@ dispatch(
           : "overflow-x-hidden bg-[#f6f7fb] text-slate-900"
       }
     >
-      <div className="border-b border-orange-500/20 bg-gradient-to-r from-orange-500 to-orange-600 text-black">
+      <div className="border-b border-orange-500/20 bg-gradient-to-r from-orange-500 to-orange-600 text-slate-100">
         <motion.div
           animate={{ x: ["100%", "-100%"] }}
           transition={{ duration: 18, repeat: Infinity, ease: "linear" }}

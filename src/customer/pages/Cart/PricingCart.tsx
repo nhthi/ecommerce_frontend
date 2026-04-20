@@ -11,39 +11,59 @@ interface PricingCartProps {
   shippingFee?: number;
   shippingLoading?: boolean;
   readonly?: boolean;
+  couponCode?: string | null;
+  couponDiscount?: number;
+  selectedCartItemIds?: number[];
 }
 
 const PricingCart: React.FC<PricingCartProps> = ({
   shippingFee: shippingFeeProp,
   shippingLoading: shippingLoadingProp = false,
   readonly = false,
+  couponCode = null,
+  couponDiscount = 0,
+  selectedCartItemIds = [],
 }) => {
   const { cart, address } = useAppSelector((store) => store);
   const { isDark } = useSiteThemeMode();
 
-  const totalMrp = cart.cart?.totalMrpPrice || 0;
-  const totalSelling = cart.cart?.totalSellingPrice || 0;
+  const selectedItems = useMemo(() => {
+    const allItems = cart.cart?.cartItems || [];
+    if (!selectedCartItemIds.length) return [];
+    return allItems.filter((item: any) => selectedCartItemIds.includes(item.id));
+  }, [cart.cart?.cartItems, selectedCartItemIds]);
+
+  const totalMrp = useMemo(() => {
+    return selectedItems.reduce(
+      (sum: number, item: any) => sum + Number(item.mrpPrice || 0) * Number(item.quantity || 0),
+      0
+    );
+  }, [selectedItems]);
+
+  const totalSelling = useMemo(() => {
+    return selectedItems.reduce(
+      (sum: number, item: any) => sum + Number(item.sellingPrice || 0) * Number(item.quantity || 0),
+      0
+    );
+  }, [selectedItems]);
+
   const discount = Math.max(totalMrp - totalSelling, 0);
 
-  const couponPercent = cart.cart?.coupon
-    ? Number(cart.cart?.coupon?.discountPercentage)
-    : 0;
-
-  const couponValue = cart.cart?.coupon
-    ? (totalSelling * couponPercent) / 100
-    : 0;
-
   const selected = address?.selectedAddress;
-  const isFreeShipping = totalSelling >= FREE_SHIPPING_THRESHOLD;
+  const isFreeShipping = totalSelling >= FREE_SHIPPING_THRESHOLD && totalSelling > 0;
   const useExternalShipping = shippingFeeProp !== undefined;
 
-  const [internalShippingFee, setInternalShippingFee] = useState<number | null>(
-    null
-  );
+  const [internalShippingFee, setInternalShippingFee] = useState<number | null>(null);
   const [internalShippingLoading, setInternalShippingLoading] = useState(false);
 
   useEffect(() => {
     if (useExternalShipping || readonly) return;
+
+    if (selectedItems.length === 0) {
+      setInternalShippingFee(null);
+      setInternalShippingLoading(false);
+      return;
+    }
 
     if (isFreeShipping) {
       setInternalShippingFee(0);
@@ -68,8 +88,7 @@ const PricingCart: React.FC<PricingCartProps> = ({
         .then((res) => {
           setInternalShippingFee(res.data?.data?.total ?? 0);
         })
-        .catch((err) => {
-          console.error("Lỗi tính phí ship", err);
+        .catch(() => {
           setInternalShippingFee(0);
         })
         .finally(() => {
@@ -84,6 +103,7 @@ const PricingCart: React.FC<PricingCartProps> = ({
     isFreeShipping,
     useExternalShipping,
     readonly,
+    selectedItems.length,
   ]);
 
   const finalShipping = isFreeShipping
@@ -96,14 +116,13 @@ const PricingCart: React.FC<PricingCartProps> = ({
     ? shippingLoadingProp
     : internalShippingLoading;
 
-  const totalCouponPrice = useMemo(() => {
-    return Math.max(totalSelling + finalShipping - couponValue, 0);
-  }, [totalSelling, finalShipping, couponValue]);
+  const safeCouponDiscount = Math.max(couponDiscount, 0);
 
-  const remainingForFreeShip = Math.max(
-    FREE_SHIPPING_THRESHOLD - totalSelling,
-    0
-  );
+  const totalCouponPrice = useMemo(() => {
+    return Math.max(totalSelling + finalShipping - safeCouponDiscount, 0);
+  }, [totalSelling, finalShipping, safeCouponDiscount]);
+
+  const remainingForFreeShip = Math.max(FREE_SHIPPING_THRESHOLD - totalSelling, 0);
 
   return (
     <div
@@ -113,26 +132,28 @@ const PricingCart: React.FC<PricingCartProps> = ({
           : "border-black/10 bg-white text-black"
       }`}
     >
-      <div
-        className={`border-b pb-4 ${
-          isDark ? "border-white/10" : "border-black/10"
-        }`}
-      >
+      <div className={`border-b pb-4 ${isDark ? "border-white/10" : "border-black/10"}`}>
         <p className={`text-lg font-black uppercase tracking-tight ${isDark ? "text-white" : "text-black"}`}>
           Tổng kết đơn hàng
         </p>
 
-        <p
-          className={`mt-1 text-sm leading-6 ${
-            isDark ? "text-white/70" : "text-black/60"
-          }`}
-        >
+        <p className={`mt-1 text-sm leading-6 ${isDark ? "text-white/70" : "text-black/60"}`}>
           {readonly
             ? "Xem trước giá trị đơn hàng hiện tại."
-            : "Giá trị đơn hàng sẽ tự cập nhật theo địa chỉ giao hàng đã chọn."}
+            : "Giá trị đơn hàng sẽ cập nhật theo các sản phẩm bạn đã chọn."}
         </p>
 
-        {isFreeShipping ? (
+        {selectedItems.length === 0 ? (
+          <div
+            className={`mt-3 rounded-2xl border px-3.5 py-3 text-sm ${
+              isDark
+                ? "border-white/10 bg-white/[0.04] text-white/72"
+                : "border-black/8 bg-black/[0.03] text-black/70"
+            }`}
+          >
+            Chưa chọn sản phẩm nào
+          </div>
+        ) : isFreeShipping ? (
           <div
             className={`mt-3 inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] ${
               isDark
@@ -169,7 +190,7 @@ const PricingCart: React.FC<PricingCartProps> = ({
 
         <Row
           label="Giảm giá sản phẩm"
-          value={`-${formatPrice(discount)}`}
+          value={`- ${formatPrice(discount)}`}
           isDark={isDark}
           valueClass={isDark ? "text-white" : "text-black"}
         />
@@ -179,21 +200,20 @@ const PricingCart: React.FC<PricingCartProps> = ({
             Vận chuyển
           </span>
 
-          {isFreeShipping ? (
-            <div className="flex items-center gap-2">
-              <span className={isDark ? "text-sm text-white/35 line-through" : "text-sm text-black/35 line-through"}>
-                50.000đ
-              </span>
-              <span
-                className={`rounded-full border px-3 py-1 text-sm font-semibold ${
-                  isDark
-                    ? "border-white/12 bg-white/[0.06] text-white"
-                    : "border-black/10 bg-black/[0.045] text-black"
-                }`}
-              >
-                Miễn phí
-              </span>
-            </div>
+          {selectedItems.length === 0 ? (
+            <span
+              className={`rounded-full border px-3 py-1 text-sm ${
+                isDark
+                  ? "border-white/10 bg-white/[0.05] text-white/68"
+                  : "border-black/10 bg-black/[0.045] text-black/65"
+              }`}
+            >
+              Chọn sản phẩm trước
+            </span>
+          ) : isFreeShipping ? (
+            <span className={`font-semibold ${isDark ? "text-white" : "text-black"}`}>
+              Miễn phí
+            </span>
           ) : readonly ? (
             <span
               className={`rounded-full border px-3 py-1 text-sm ${
@@ -228,12 +248,8 @@ const PricingCart: React.FC<PricingCartProps> = ({
         </div>
 
         <Row
-          label="Coupon"
-          value={
-            cart.cart?.coupon
-              ? `- ${couponPercent}% (${formatPrice(couponValue)})`
-              : "- 0đ"
-          }
+          label={couponCode ? `Coupon (${couponCode})` : "Coupon"}
+          value={safeCouponDiscount > 0 ? `- ${formatPrice(safeCouponDiscount)}` : "- 0đ"}
           isDark={isDark}
           valueClass={isDark ? "text-white" : "text-black"}
         />
@@ -244,45 +260,32 @@ const PricingCart: React.FC<PricingCartProps> = ({
           isDark={isDark}
           valueClass={isDark ? "text-white" : "text-black"}
         />
-      </div>
 
-      <div
-        className={`flex items-end justify-between gap-4 border-t pt-4 ${
-          isDark ? "border-white/10" : "border-black/10"
-        }`}
-      >
-        <div>
-          <p className={isDark ? "text-[11px] uppercase tracking-[0.2em] text-white/45" : "text-[11px] uppercase tracking-[0.2em] text-black/45"}>
-            Tổng thanh toán
-          </p>
-          <p className={isDark ? "mt-1 text-sm text-white/70" : "mt-1 text-sm text-black/60"}>
-            Đã tính giảm giá, coupon và phí vận chuyển.
-          </p>
+        <div className={`mt-4 border-t pt-4 ${isDark ? "border-white/10" : "border-black/10"}`}>
+          <div className="flex items-center justify-between">
+            <span className="text-base font-bold">Tổng thanh toán</span>
+            <span className="text-lg font-extrabold">{formatPrice(totalCouponPrice)}</span>
+          </div>
         </div>
-
-        <span className={`text-3xl font-black tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-          {formatPrice(totalCouponPrice)}
-        </span>
       </div>
     </div>
   );
 };
 
-const Row = ({
-  label,
-  value,
-  valueClass,
-  isDark,
-}: {
+interface RowProps {
   label: string;
   value: string;
-  valueClass?: string;
   isDark: boolean;
-}) => (
-  <div className="flex items-center justify-between gap-4">
-    <span className={isDark ? "text-white/70" : "text-black/60"}>{label}</span>
-    <span className={`font-semibold ${valueClass}`}>{value}</span>
-  </div>
-);
+  valueClass?: string;
+}
+
+const Row: React.FC<RowProps> = ({ label, value, isDark, valueClass }) => {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className={isDark ? "text-white/70" : "text-black/60"}>{label}</span>
+      <span className={valueClass}>{value}</span>
+    </div>
+  );
+};
 
 export default PricingCart;

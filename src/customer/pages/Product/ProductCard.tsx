@@ -91,23 +91,23 @@ const ProductCard = ({ product }: { product: Product }) => {
   onClick={handleWishlist}
   sx={{
     minWidth: 0,
-    color: "#111111",
+    color: "#fff",
     "&:hover": {
       backgroundColor: "transparent",
-      color: "#111111",
+      color: "#fff",
     },
     "&:active": {
-      color: "#111111",
+      color: "#fff",
     },
     "&:focus": {
-      color: "#111111",
+      color: "#fff",
     },
   }}
 >
   {isWishlist(wishlist.wishlist?.products, Number(product.id)) ? (
-    <Favorite sx={{ color: "#111111", fontSize: 18 }} />
+    <Favorite sx={{ color: "#fff", fontSize: 18 }} />
   ) : (
-    <FavoriteBorderOutlined sx={{ color: "#111111", fontSize: 18 }} />
+    <FavoriteBorderOutlined sx={{ color: "#fff", fontSize: 18 }} />
   )}
 </Button>
 
@@ -116,20 +116,20 @@ const ProductCard = ({ product }: { product: Product }) => {
   onClick={handleOpenChat}
   sx={{
     minWidth: 0,
-    color: "#111111",
+    color: "#fff",
     "&:hover": {
       backgroundColor: "transparent",
-      color: "#111111",
+      color: "#fff",
     },
     "&:active": {
-      color: "#111111",
+      color: "#fff",
     },
     "&:focus": {
-      color: "#111111",
+      color: "#fff",
     },
   }}
 >
-  <ModeComment sx={{ color: "#111111", fontSize: 18 }} />
+  <ModeComment sx={{ color: "#fff", fontSize: 18 }} />
 </Button>
               </div>
             </div>
