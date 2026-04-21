@@ -88,25 +88,25 @@ const OrderDetails = () => {
     setReturnDialogOpen(true);
   };
 
-  const handleCustomerShipped = async (requestId: number) => {
-    try {
-      await dispatch(markReturnCustomerShipped(requestId)).unwrap();
-      setSnackbar({
-        open: true,
-        message: "Đã cập nhật trạng thái khách gửi hàng trả.",
-        severity: "success",
-      });
-    } catch (err: any) {
-      setSnackbar({
-        open: true,
-        message:
-          typeof err === "string"
-            ? err
-            : "Không thể cập nhật trạng thái trả hàng lúc này.",
-        severity: "error",
-      });
-    }
-  };
+  // const handleCustomerShipped = async (requestId: number) => {
+  //   try {
+  //     await dispatch(markReturnCustomerShipped(requestId)).unwrap();
+  //     setSnackbar({
+  //       open: true,
+  //       message: "Đã cập nhật trạng thái khách gửi hàng trả.",
+  //       severity: "success",
+  //     });
+  //   } catch (err: any) {
+  //     setSnackbar({
+  //       open: true,
+  //       message:
+  //         typeof err === "string"
+  //           ? err
+  //           : "Không thể cập nhật trạng thái trả hàng lúc này.",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
 
   const pricing = useMemo(() => {
     const originalPrice = currentOrder?.originalPrice || 0;
@@ -237,7 +237,7 @@ const OrderDetails = () => {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className={`text-3xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
-              Đơn hàng #{currentOrder.orderId || currentOrder.id}
+              Đơn hàng #{currentOrder.orderCode || currentOrder.orderCode}
             </h2>
 
             <p className={`mt-3 text-base leading-7 ${isDark ? "text-neutral-300" : "text-slate-600"}`}>
@@ -425,7 +425,7 @@ const OrderDetails = () => {
                       </Button>
                     )}
 
-                    {itemReturnRequest?.status === "APPROVED" && (
+                    {/* {itemReturnRequest?.status === "APPROVED" && (
                       <Button
                         variant="contained"
                         sx={primaryButtonSx}
@@ -433,7 +433,7 @@ const OrderDetails = () => {
                       >
                         Tôi đã gửi hàng trả
                       </Button>
-                    )}
+                    )} */}
 
                     {itemReturnRequest && (
                       <Button

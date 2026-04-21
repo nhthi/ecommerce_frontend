@@ -96,7 +96,7 @@ const TopSellersShowcase: React.FC = () => {
                 className="h-44 w-full object-cover"
               />
               <div className="p-5">
-                <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-black">
+                <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-100">
                   <WorkspacePremiumIcon sx={{ fontSize: 14 }} />
                   {brand.badge}
                 </span>

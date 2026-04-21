@@ -15,46 +15,46 @@ const HERO_IMAGES = [
 
 const slides = [
   {
-    eyebrow: "Thiết bị fitness",
-    title: "Dụng cụ gym cho người tập tại nhà",
-    highlight: "Đẹp, gọn, dễ chọn",
+    eyebrow: "Gym & fitness",
+    title: "Mọi thứ cho buổi tập",
+    highlight: "Gọn, đẹp, dễ chọn",
     description:
-      "Máy cardio, tạ, ghế tập và phụ kiện được sắp xếp theo nhu cầu thực tế, giúp bạn tìm nhanh và dễ dàng hơn.",
+      "Từ dụng cụ tập luyện, quần áo thể thao đến thực phẩm bổ sung, mọi sản phẩm đều được sắp xếp rõ ràng để bạn tìm nhanh hơn.",
     primaryLabel: "Xem sản phẩm",
     primaryPath: "/products/all",
     secondaryLabel: "Xem blog tập luyện",
     secondaryPath: "/blog",
     metricLabel: "Danh mục nổi bật",
     metricValue: "320+",
-    metricItems: ["Máy cardio", "Tạ và bánh tạ", "Phụ kiện tập luyện"],
+    metricItems: ["Dụng cụ tập luyện", "Dinh dưỡng thể thao", "Thời trang gym"],
   },
   {
-    eyebrow: "Blog & khóa học",
-    title: "Học cách tập đúng trước khi mua thêm",
+    eyebrow: "Kiến thức tập luyện",
+    title: "Tập đúng, chọn đúng",
     highlight: "Dễ hiểu, dễ áp dụng",
     description:
-      "Nội dung tập trung vào kỹ thuật, lịch tập và cách chọn dụng cụ phù hợp với từng mục tiêu.",
+      "Khám phá lịch tập, kỹ thuật, chế độ dinh dưỡng và cách chọn sản phẩm phù hợp với mục tiêu của bạn.",
     primaryLabel: "Xem khóa học",
     primaryPath: "/training",
     secondaryLabel: "Đọc tin tức",
     secondaryPath: "/blog",
     metricLabel: "Nội dung hữu ích",
     metricValue: "80+",
-    metricItems: ["Hướng dẫn kỹ thuật", "Lịch tập cơ bản", "Mẹo chọn dụng cụ"],
+    metricItems: ["Hướng dẫn tập luyện", "Mẹo dinh dưỡng", "Kinh nghiệm chọn đồ"],
   },
   {
-    eyebrow: "Gợi ý setup",
-    title: "Chọn nhanh combo dụng cụ theo mục tiêu tập",
-    highlight: "Không cần tìm từng món",
+    eyebrow: "Gợi ý mua sắm",
+    title: "Mua sắm nhanh chóng",
+    highlight: "Chốt đơn liền tay",
     description:
-      "Nếu bạn chưa biết nên mua gì trước, các gợi ý sẵn có sẽ giúp bắt đầu nhanh gọn và tiết kiệm hơn.",
+      "Các gợi ý sẵn có giúp bạn dễ bắt đầu hơn, tăng cơ, giảm mỡ hay xây dựng góc tập luyện tại nhà.",
     primaryLabel: "Nhận tư vấn",
     primaryPath: "/message",
     secondaryLabel: "Xem phụ kiện",
     secondaryPath: "/search?keyword=phu%20kien%20tap%20gym",
-    metricLabel: "Combo gợi ý",
+    metricLabel: "Gợi ý nổi bật",
     metricValue: "24",
-    metricItems: ["Giảm mỡ tại nhà", "Tăng cơ cơ bản", "Setup phòng gym mini"],
+    metricItems: ["Tăng cơ", "Giảm mỡ", "Tập luyện tại nhà"],
   },
 ];
 
@@ -70,7 +70,7 @@ const fadeUp = {
 const Hero = () => {
   const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
-  const { isDark } = useSiteThemeMode();
+  const  isDark  = true;
 
   const currentSlide = useMemo(() => slides[activeSlide], [activeSlide]);
 
@@ -83,7 +83,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className={isDark ? "relative overflow-hidden rounded-b-[2.25rem] bg-black md:rounded-b-[3rem]" : "relative overflow-hidden rounded-b-[2.25rem] bg-white md:rounded-b-[3rem]"}>
+    <section className={isDark ? "relative overflow-hidden  bg-black " : "relative overflow-hidden rounded-b-[2.25rem] bg-white md:rounded-b-[3rem]"}>
       <motion.img
         key={activeSlide}
         src={HERO_IMAGES[activeSlide % HERO_IMAGES.length]}
@@ -113,10 +113,12 @@ const Hero = () => {
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
-                className={isDark ? "mb-6 inline-flex items-center gap-2 rounded-full border border-orange-400/25 bg-white/8 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200 backdrop-blur-sm" : "mb-6 inline-flex items-center gap-2 rounded-full border border-orange-300/40 bg-white/75 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-700 backdrop-blur-sm"}
+                className={true ? "mb-6 inline-flex items-center gap-2 rounded-full border border-orange-400/25 bg-white/8 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200 backdrop-blur-sm" : "mb-6 inline-flex items-center gap-2 rounded-full border border-orange-300/40 bg-white/75 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-700 backdrop-blur-sm"}
               >
                 <span className="h-2 w-2 rounded-full bg-orange-400" />
-                {currentSlide.eyebrow}
+                                <span className="text-orange-400" >{currentSlide.eyebrow}</span>
+
+                
               </motion.div>
 
               <motion.h1
@@ -124,7 +126,7 @@ const Hero = () => {
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
-                className={isDark ? "max-w-[680px] text-[34px] font-black leading-[1.02] text-white sm:text-[44px] lg:text-[60px]" : "max-w-[680px] text-[34px] font-black leading-[1.02] text-slate-900 sm:text-[44px] lg:text-[60px]"}
+                className={isDark ? "max-w-[680px] text-[34px] font-black leading-[1.02] text-slate-100 sm:text-[44px] lg:text-[60px]" : "max-w-[680px] text-[34px] font-black leading-[1.02] text-slate-100 sm:text-[44px] lg:text-[60px]"}
               >
                 {currentSlide.title}
                 <span className="mt-2 block text-orange-500">
@@ -137,9 +139,12 @@ const Hero = () => {
                 variants={fadeUp}
                 initial="hidden"
                 animate="visible"
-                className={isDark ? "mt-6 max-w-[600px] text-[15px] leading-7 text-slate-200 sm:text-base" : "mt-6 max-w-[600px] text-[15px] leading-7 text-slate-700 sm:text-base"}
+                className={true ? "mt-6 max-w-[600px] text-[15px] leading-7 text-slate-100 sm:text-base" : "mt-6 max-w-[600px] text-[15px] leading-7 text-slate-200 sm:text-base"}
               >
+                <span className="text-slate-100">
+
                 {currentSlide.description}
+                </span>
               </motion.p>
 
               <motion.div
@@ -204,13 +209,13 @@ const Hero = () => {
                 animate="visible"
                 className="mt-10 grid max-w-[620px] grid-cols-1 gap-3 sm:grid-cols-3"
               >
-                <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
+                <div className={isDark ? "rounded-2xl border border-white/5 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
                   Chọn nhanh theo nhu cầu
                 </div>
-                <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
+                <div className={isDark ? "rounded-2xl border border-white/5 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
                   Giao hàng toàn quốc
                 </div>
-                <div className={isDark ? "rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
+                <div className={isDark ? "rounded-2xl border border-white/5 bg-white/6 px-4 py-3 text-sm text-slate-100 backdrop-blur-sm" : "rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-700 backdrop-blur-sm"}>
                   Có blog & khóa học
                 </div>
               </motion.div>
@@ -224,16 +229,16 @@ const Hero = () => {
               className="hidden lg:flex lg:justify-end"
             >
               <div className={isDark ? "w-full max-w-[320px] rounded-[1.75rem] border border-orange-400/15 bg-[#101010]/78 p-5 text-white shadow-2xl backdrop-blur-md" : "w-full max-w-[320px] rounded-[1.75rem] border border-slate-200 bg-white/88 p-5 text-slate-900 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-md"}>
-                <div className={isDark ? "flex items-start justify-between gap-4 border-b border-white/10 pb-4" : "flex items-start justify-between gap-4 border-b border-slate-200 pb-4"}>
+                <div className={isDark ? "flex items-start justify-between gap-4 border-b border-white/5 pb-4" : "flex items-start justify-between gap-4 border-b border-slate-200 pb-4"}>
                   <div>
-                    <p className={isDark ? "text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-300" : "text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-600"}>
+                    <p className={isDark ? "text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-300" : "text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-300"}>
                       {currentSlide.metricLabel}
                     </p>
-                    <h3 className={isDark ? "mt-2 text-4xl font-black text-white" : "mt-2 text-4xl font-black text-slate-900"}>
+                    <h3 className={isDark ? "mt-2 text-4xl font-black text-slate-100" : "mt-2 text-4xl font-black text-slate-900"}>
                       {currentSlide.metricValue}
                     </h3>
                   </div>
-                  <div className="rounded-full bg-orange-500 p-3 text-black">
+                  <div className="rounded-full bg-orange-500 p-3 text-slate-100">
                     <ArrowForwardIcon />
                   </div>
                 </div>
@@ -242,7 +247,7 @@ const Hero = () => {
                   {currentSlide.metricItems.map((item) => (
                     <div
                       key={item}
-                      className={isDark ? "rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-slate-100" : "rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"}
+                      className={ "rounded-2xl border border-white/5  px-4 py-3 text-sm text-slate-100" }
                     >
                       {item}
                     </div>

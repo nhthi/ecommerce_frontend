@@ -28,6 +28,8 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
+  LabelList,
 } from "recharts";
 import { DashboardOverviewDto } from "../../../../state/admin/adminDashboardSlice";
 import { danger, getCardSx, getSectionTitleSx, info, primary, success, violet } from "../dashboardData";
@@ -42,7 +44,7 @@ interface OverviewTabProps {
   error: string | null;
 }
 
-const piePalette = ["#f97316", "#fb923c", "#fdba74", "#f59e0b", "#fbbf24"];
+const piePalette =   ["#6fcf97", "#56ccf2", "#9b8cff", "#f2c94c", "#7ed6df"];
 const accentPalette = ["#f97316", "#3b82f6", "#8b5cf6", "#16a34a", "#ef4444"];
 
 const formatCurrency = (value: number) => {
@@ -72,7 +74,16 @@ const OverviewTab = ({
     borderRadius: "14px",
     color: isDark ? "#ffffff" : "#0f172a",
   };
+const legendSx = {
+  fontSize: 16,
+  color: isDark ? "#e5e7eb" : "#334155",
+};
 
+const helperTextSx = {
+  mt: 0.6,
+  fontSize: 16,
+  color: axisColor,
+};
   const summaryCards = useMemo(() => {
   const summary = data?.summary;
   return [
@@ -201,6 +212,7 @@ const OverviewTab = ({
                 <Typography sx={sectionTitleSx}>
                   Doanh thu {overviewFilter === "month" ? `tháng ${selectedMonth}/${selectedYear}` : `năm ${selectedYear}`}
                 </Typography>
+
                 <Box sx={{ mt: 2, height: 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueData}>
@@ -208,7 +220,13 @@ const OverviewTab = ({
                       <XAxis dataKey="name" stroke={axisColor} />
                       <YAxis stroke={axisColor} />
                       <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={tooltipStyle} />
-                      <Area type="monotone" dataKey="revenue" stroke="#8b5cf6" fill="#c4b5fd" />
+                      <Area
+  type="monotone"
+  dataKey="revenue"
+  name="Doanh thu"
+  stroke="#8b5cf6"
+  fill="#c4b5fd"
+/><Legend wrapperStyle={legendSx} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </Box>
@@ -223,12 +241,26 @@ const OverviewTab = ({
                 <Box sx={{ height: 300 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={paymentData} dataKey="value" outerRadius={90}>
-                        {paymentData.map((item) => <Cell key={item.name} fill={item.color} />)}
-                      </Pie>
-                                            <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
-  itemStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}/>
-                    </PieChart>
+  <Pie
+    data={paymentData}
+    dataKey="value"
+    nameKey="name"
+    outerRadius={90}
+    label={({ name, percent }) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+  >
+    {paymentData.map((item) => (
+      <Cell key={item.name} fill={item.color} />
+    ))}
+  </Pie>
+
+  <Legend wrapperStyle={legendSx} />
+  <Tooltip
+    contentStyle={tooltipStyle}
+    labelStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
+    itemStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
+    formatter={(value: number, name: string) => [`${value}`, name]}
+  />
+</PieChart>
                   </ResponsiveContainer>
                 </Box>
               </Paper>
@@ -236,20 +268,23 @@ const OverviewTab = ({
           </Grid>
 
           <Grid container spacing={2.2}>
-            <Grid size={{ xs: 12, xl: 4 }}>
+            <Grid size={{ xs: 12, xl: 8 }}>
               <Paper elevation={0} sx={{ ...cardSx, p: 2.5 }}>
                 <Typography sx={sectionTitleSx}>
                   Số lượng sản phẩm bán ra {overviewFilter === "month" ? `tháng ${selectedMonth}/${selectedYear}` : `năm ${selectedYear}`}
                 </Typography>
                 <Box sx={{ height: 260 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={productSoldData}>
-                      <CartesianGrid stroke={gridStroke} />
-                      <XAxis dataKey="name" stroke={axisColor} />
-                      <YAxis stroke={axisColor} />
-                      <Tooltip contentStyle={tooltipStyle} />
-                      <Area type="monotone" dataKey="sold" stroke="#86efac" fill="#bbf7d0" />
-                    </AreaChart>
+                    <BarChart data={productSoldData}>
+  <CartesianGrid stroke={gridStroke} />
+  <XAxis dataKey="name" stroke={axisColor} />
+  <YAxis stroke={axisColor} />
+  <Tooltip contentStyle={tooltipStyle} />
+  <Legend wrapperStyle={legendSx} />
+  <Bar dataKey="sold" fill="#f97316" name="Số lượng bán">
+    <LabelList dataKey="sold" position="top" />
+  </Bar>
+</BarChart>
                   </ResponsiveContainer>
                 </Box>
               </Paper>
@@ -265,12 +300,25 @@ const OverviewTab = ({
                 <Box sx={{ height: 260 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={categoryData} dataKey="sales" outerRadius={88}>
-                        {categoryData.map((item) => <Cell key={item.name} fill={item.color} />)}
-                      </Pie>
-                                            <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
-  itemStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}/>
-                    </PieChart>
+  <Pie
+    data={categoryData}
+    dataKey="sales"
+    nameKey="name"
+    outerRadius={88}
+    label={({ name, percent }) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+  >
+    {categoryData.map((item) => (
+      <Cell key={item.name} fill={item.color} />
+    ))}
+  </Pie>
+
+  <Legend wrapperStyle={legendSx} />
+  <Tooltip
+    contentStyle={tooltipStyle}
+    labelStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
+    itemStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
+  />
+</PieChart>
                   </ResponsiveContainer>
                 </Box>
               </Paper>
@@ -286,13 +334,18 @@ const OverviewTab = ({
                 <Box sx={{ height: 260 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={orderStatusData}>
-                      <CartesianGrid stroke={gridStroke} />
-                      <XAxis dataKey="name" stroke={axisColor} />
-                      <YAxis stroke={axisColor} />
-                      <Tooltip contentStyle={tooltipStyle} />
-                      <Bar dataKey="paid" fill="#818cf8" name="Đã thanh toán" />
-                      <Bar dataKey="unpaid" fill="#86efac" name="Chưa thanh toán" />
-                    </BarChart>
+  <CartesianGrid stroke={gridStroke} />
+  <XAxis dataKey="name" stroke={axisColor} />
+  <YAxis stroke={axisColor} />
+  <Tooltip contentStyle={tooltipStyle} />
+  <Legend wrapperStyle={legendSx} />
+  <Bar dataKey="paid" fill="#818cf8" name="Đã thanh toán">
+    <LabelList dataKey="paid" position="top" />
+  </Bar>
+<Bar dataKey="unpaid" fill="#9fc9ea" name="Chưa thanh toán">
+  <LabelList dataKey="unpaid" position="top" />
+</Bar>
+</BarChart>
                   </ResponsiveContainer>
                 </Box>
               </Paper>
@@ -306,11 +359,18 @@ const OverviewTab = ({
                 <Box sx={{ height: 260 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={addressData} dataKey="value" outerRadius={88}>
-                        {addressData.map((item) => <Cell key={item.name} fill={item.color} />)}
-                      </Pie>
-                      <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}
-  itemStyle={{ color: isDark ? "#ffffff" : "#0f172a" }}/>
+                      <Pie
+  data={addressData}
+  dataKey="value"
+  nameKey="name"
+  outerRadius={88}
+  label={({ name, percent }) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+>
+  {addressData.map((item) => (
+    <Cell key={item.name} fill={item.color} />
+  ))}
+</Pie>
+<Legend wrapperStyle={legendSx} />
                       
                     </PieChart>
                   </ResponsiveContainer>

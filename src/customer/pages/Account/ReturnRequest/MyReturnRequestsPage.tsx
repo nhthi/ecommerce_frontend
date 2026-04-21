@@ -6,7 +6,10 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogContent,
   Divider,
+  IconButton,
   MenuItem,
   Snackbar,
   TextField,
@@ -22,6 +25,7 @@ import {
 } from "../../../../state/customer/returnRequestSlice";
 import { useAppDispatch, useAppSelector } from "../../../../state/Store";
 import { useSiteThemeMode } from "../../../../Theme/SiteThemeProvider";
+import { Close } from "@mui/icons-material";
 
 const STATUS_FILTERS = [
   { value: "", label: "Tất cả trạng thái" },
@@ -42,6 +46,12 @@ const SORT_OPTIONS = [
   { value: "refund_asc", label: "Hoàn tiền thấp nhất" },
 ];
 
+type ShippingFormState = {
+  trackingCode: string;
+  carrier: string;
+  shipmentNote: string;
+};
+
 const MyReturnRequestsPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -56,6 +66,10 @@ const MyReturnRequestsPage = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [expandedId, setExpandedId] = useState<number | false>(false);
 
+  const [shippingForms, setShippingForms] = useState<
+    Record<number, ShippingFormState>
+  >({});
+const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -65,6 +79,28 @@ const MyReturnRequestsPage = () => {
   useEffect(() => {
     dispatch(fetchMyReturnRequests());
   }, [dispatch]);
+
+  useEffect(() => {
+    const approvedRequests = myRequests.filter(
+      (request) => request.status === "APPROVED"
+    );
+
+    setShippingForms((prev) => {
+      const next = { ...prev };
+
+      approvedRequests.forEach((request) => {
+        if (!next[request.id]) {
+          next[request.id] = {
+            trackingCode: request.returnTrackingCode || "",
+            carrier: request.returnCarrier || "",
+            shipmentNote: request.returnShipmentNote || "",
+          };
+        }
+      });
+
+      return next;
+    });
+  }, [myRequests]);
 
   const formatVND = (value: number | undefined) =>
     new Intl.NumberFormat("vi-VN", {
@@ -112,6 +148,9 @@ const MyReturnRequestsPage = () => {
           request.status,
           request.note,
           request.adminNote,
+          request.returnTrackingCode,
+          request.returnCarrier,
+          request.returnShipmentNote,
         ]
           .join(" ")
           .toLowerCase();
@@ -119,7 +158,9 @@ const MyReturnRequestsPage = () => {
         const itemsText = (request.items || [])
           .map(
             (item) =>
-              `${item.productName || ""} ${item.sizeName || ""} ${item.orderItemId || ""}`
+              `${item.productName || ""} ${item.sizeName || ""} ${
+                item.orderItemId || ""
+              }`
           )
           .join(" ")
           .toLowerCase();
@@ -167,9 +208,48 @@ const MyReturnRequestsPage = () => {
     }
   };
 
+  const handleShippingFieldChange = (
+    requestId: number,
+    field: keyof ShippingFormState,
+    value: string
+  ) => {
+    setShippingForms((prev) => ({
+      ...prev,
+      [requestId]: {
+        trackingCode: prev[requestId]?.trackingCode || "",
+        carrier: prev[requestId]?.carrier || "",
+        shipmentNote: prev[requestId]?.shipmentNote || "",
+        [field]: value,
+      },
+    }));
+  };
+
   const handleCustomerShipped = async (id: number) => {
+    const form = shippingForms[id] || {
+      trackingCode: "",
+      carrier: "",
+      shipmentNote: "",
+    };
+
+    if (!form.trackingCode.trim()) {
+      setSnackbar({
+        open: true,
+        message: "Vui lòng nhập mã vận đơn trước khi xác nhận gửi hàng trả.",
+        severity: "error",
+      });
+      return;
+    }
+
     try {
-      await dispatch(markReturnCustomerShipped(id)).unwrap();
+      await dispatch(
+        markReturnCustomerShipped({
+          id,
+          trackingCode: form.trackingCode.trim(),
+          carrier: form.carrier.trim(),
+          shipmentNote: form.shipmentNote.trim(),
+        })
+      ).unwrap();
+
       setSnackbar({
         open: true,
         message: "Đã cập nhật trạng thái khách gửi hàng trả.",
@@ -226,9 +306,6 @@ const MyReturnRequestsPage = () => {
               >
                 Yêu cầu trả hàng của tôi
               </h2>
-              <p className="mt-2" style={{ color: textColor }}>
-                Quản lý và theo dõi toàn bộ yêu cầu trả hàng của bạn theo từng trạng thái.
-              </p>
             </div>
 
             <Button
@@ -376,10 +453,10 @@ const MyReturnRequestsPage = () => {
                     </div>
 
                     <div
-                      className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm"
+                      className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xl"
                       style={{ color: textColor }}
                     >
-                      <p>Đơn hàng #{request.orderId}</p>
+                      <p>Đơn hàng #{request.orderCode || request.orderId}</p>
                       <p>Ngày tạo: {formatDate(request.requestedAt)}</p>
                       <p>{request.items?.length || 0} sản phẩm</p>
                     </div>
@@ -402,8 +479,8 @@ const MyReturnRequestsPage = () => {
               <AccordionDetails sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
                 <Divider sx={{ borderColor, mb: 3 }} />
 
-                <div className="grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
-                  <div className="space-y-3">
+                <div className="">
+                  <div className="space-y-3 mb-4">
                     {request.items?.map((item) => (
                       <div
                         key={item.id}
@@ -429,7 +506,7 @@ const MyReturnRequestsPage = () => {
                           </p>
 
                           <div
-                            className="mt-2 flex flex-wrap gap-4 text-sm"
+                            className="mt-2 flex flex-wrap gap-4 text-xl"
                             style={{ color: textColor }}
                           >
                             <p>
@@ -452,7 +529,7 @@ const MyReturnRequestsPage = () => {
                             </p>
                           </div>
 
-                          <p className="mt-2 text-sm font-bold text-orange-400">
+                          <p className="mt-2 text-xl font-bold text-orange-400">
                             Hoàn: {formatVND(item.refundAmount)}
                           </p>
                         </div>
@@ -469,23 +546,63 @@ const MyReturnRequestsPage = () => {
                       }}
                     >
                       <p
-                        className="text-sm font-bold uppercase tracking-[0.12em]"
+                        className="text-xl font-bold uppercase tracking-[0.12em]"
                         style={{ color: mutedColor }}
                       >
                         Thông tin yêu cầu
                       </p>
-                      <div className="mt-3 space-y-2 text-sm" style={{ color: textColor }}>
+                      <div
+                        className="mt-3 space-y-2 text-xl"
+                        style={{ color: textColor }}
+                      >
                         <p>
                           Trạng thái:{" "}
                           <span
                             className="font-semibold"
-                            style={{ color: getReturnStatusColor(request.status) }}
+                            style={{
+                              color: getReturnStatusColor(request.status),
+                            }}
                           >
                             {getReturnStatusLabel(request.status)}
                           </span>
                         </p>
                         <p>Ngày tạo: {formatDateTime(request.requestedAt)}</p>
                         <p>Lý do: {request.reasonCode || "Không có"}</p>
+
+                        {request.customerShippedAt && (
+                          <p>
+                            Khách gửi hàng lúc:{" "}
+                            {formatDateTime(request.customerShippedAt)}
+                          </p>
+                        )}
+
+                        {request.returnTrackingCode && (
+                          <p>
+                            Mã vận đơn:{" "}
+                            <span
+                              className="font-semibold"
+                              style={{ color: titleColor }}
+                            >
+                              {request.returnTrackingCode}
+                            </span>
+                          </p>
+                        )}
+
+                        {request.returnCarrier && (
+                          <p>
+                            Đơn vị vận chuyển:{" "}
+                            <span
+                              className="font-semibold"
+                              style={{ color: titleColor }}
+                            >
+                              {request.returnCarrier}
+                            </span>
+                          </p>
+                        )}
+
+                        {request.returnShipmentNote && (
+                          <p>Ghi chú gửi trả: {request.returnShipmentNote}</p>
+                        )}
                       </div>
                     </div>
 
@@ -500,12 +617,15 @@ const MyReturnRequestsPage = () => {
                             }}
                           >
                             <p
-                              className="text-sm font-bold uppercase tracking-[0.12em]"
+                              className="text-xl font-bold uppercase tracking-[0.12em]"
                               style={{ color: mutedColor }}
                             >
                               Ghi chú của bạn
                             </p>
-                            <p className="mt-2 text-sm" style={{ color: textColor }}>
+                            <p
+                              className="mt-2 text-xl"
+                              style={{ color: textColor }}
+                            >
                               {request.note}
                             </p>
                           </div>
@@ -520,12 +640,15 @@ const MyReturnRequestsPage = () => {
                             }}
                           >
                             <p
-                              className="text-sm font-bold uppercase tracking-[0.12em]"
+                              className="text-xl font-bold uppercase tracking-[0.12em]"
                               style={{ color: mutedColor }}
                             >
                               Ghi chú từ shop
                             </p>
-                            <p className="mt-2 text-sm" style={{ color: textColor }}>
+                            <p
+                              className="mt-2 text-xl"
+                              style={{ color: textColor }}
+                            >
                               {request.adminNote}
                             </p>
                           </div>
@@ -548,15 +671,125 @@ const MyReturnRequestsPage = () => {
                           Ảnh minh chứng
                         </p>
                         <div className="mt-3 grid grid-cols-2 gap-3">
-                          {request.imageUrls.map((url) => (
-                            <img
-                              key={url}
-                              src={url}
-                              alt="return-proof"
-                              className="h-24 w-full rounded-xl object-cover"
-                              style={{ border: `1px solid ${innerBorderColor}` }}
-                            />
-                          ))}
+  {request.imageUrls.map((url) => (
+    <button
+      key={url}
+      type="button"
+      onClick={() => setPreviewImage(url)}
+      className="overflow-hidden rounded-xl"
+      style={{ border: `1px solid ${innerBorderColor}` }}
+    >
+      <img
+        src={url}
+        alt="return-proof"
+        className="h-50 w-full object-fit transition hover:scale-105"
+      />
+    </button>
+  ))}
+</div>
+
+                      </div>
+                    )}
+<Dialog
+  open={!!previewImage}
+  onClose={() => setPreviewImage(null)}
+  maxWidth="md"
+  fullWidth
+>
+  <DialogContent className="relative p-2">
+    <IconButton
+      onClick={() => setPreviewImage(null)}
+      sx={{
+        position: "absolute",
+        right: 8,
+        top: 8,
+        zIndex: 10,
+        bgcolor: "rgba(0,0,0,0.45)",
+        color: "#fff",
+        "&:hover": {
+          bgcolor: "rgba(0,0,0,0.65)",
+        },
+      }}
+    >
+      <Close />
+    </IconButton>
+
+    {previewImage && (
+      <img
+        src={previewImage}
+        alt="preview"
+        className="max-h-[80vh] w-full rounded-lg object-contain"
+      />
+    )}
+  </DialogContent>
+</Dialog>
+                    {request.status === "APPROVED" && (
+                      <div
+                        className="rounded-2xl p-4"
+                        style={{
+                          backgroundColor: subCardBg,
+                          border: `1px solid ${innerBorderColor}`,
+                        }}
+                      >
+                        <p
+                          className="text-sm font-bold uppercase tracking-[0.12em]"
+                          style={{ color: mutedColor }}
+                        >
+                          Thông tin gửi hàng trả
+                        </p>
+
+                        <div className="mt-3 space-y-3">
+                          <TextField
+                            fullWidth
+                            label="Mã vận đơn"
+                            placeholder="Nhập mã vận đơn trả hàng"
+                            value={shippingForms[request.id]?.trackingCode || ""}
+                            onChange={(e) =>
+                              handleShippingFieldChange(
+                                request.id,
+                                "trackingCode",
+                                e.target.value
+                              )
+                            }
+                            sx={filterFieldSx(isDark)}
+                          />
+
+                          <TextField
+                            fullWidth
+                            label="Đơn vị vận chuyển"
+                            placeholder="Ví dụ: GHN, GHTK, Viettel Post..."
+                            value={shippingForms[request.id]?.carrier || ""}
+                            onChange={(e) =>
+                              handleShippingFieldChange(
+                                request.id,
+                                "carrier",
+                                e.target.value
+                              )
+                            }
+                            sx={filterFieldSx(isDark)}
+                          />
+
+                          <TextField
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            label="Ghi chú gửi trả"
+                            placeholder="Nhập ghi chú thêm nếu có"
+                            value={shippingForms[request.id]?.shipmentNote || ""}
+                            onChange={(e) =>
+                              handleShippingFieldChange(
+                                request.id,
+                                "shipmentNote",
+                                e.target.value
+                              )
+                            }
+                            sx={filterFieldSx(isDark)}
+                          />
+
+                          <p className="text-sm" style={{ color: mutedColor }}>
+                            Sau khi gửi hàng cho shop, vui lòng nhập thông tin
+                            vận chuyển và xác nhận để shop dễ theo dõi hơn.
+                          </p>
                         </div>
                       </div>
                     )}
@@ -591,7 +824,9 @@ const MyReturnRequestsPage = () => {
                       sx={primaryButtonSx}
                       onClick={() => handleCustomerShipped(request.id)}
                     >
-                      Tôi đã gửi hàng trả
+                      <span className="text-slate-100">
+                        Xác nhận đã gửi hàng trả
+                      </span>
                     </Button>
                   )}
                 </div>
@@ -682,6 +917,12 @@ const filterFieldSx = (isDark: boolean) => ({
     "&.Mui-focused fieldset": {
       borderColor: "#fb923c",
     },
+  },
+  "& .MuiInputLabel-root": {
+    color: isDark ? "#94a3b8" : "#64748b",
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#fb923c",
   },
   "& .MuiInputBase-input::placeholder": {
     color: isDark ? "#94a3b8" : "#64748b",

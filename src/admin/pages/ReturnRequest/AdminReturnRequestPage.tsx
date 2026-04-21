@@ -81,6 +81,12 @@ const EXPORT_FIELD_OPTIONS = [
   { key: "receivedAt", label: "Ngày nhận hàng trả" },
   { key: "refundedAt", label: "Ngày hoàn tiền" },
   { key: "items", label: "Danh sách sản phẩm" },
+  { key: "customerShippedAt", label: "Khách gửi hàng lúc" },
+{ key: "completedAt", label: "Ngày hoàn tất" },
+{ key: "returnTrackingCode", label: "Mã vận đơn" },
+{ key: "returnCarrier", label: "Đơn vị vận chuyển" },
+{ key: "returnShipmentNote", label: "Ghi chú gửi trả" },
+{ key: "imageUrls", label: "Ảnh minh chứng" },
 ] as const;
 
 type ExportFieldKey = (typeof EXPORT_FIELD_OPTIONS)[number]["key"];
@@ -406,7 +412,7 @@ const AdminReturnRequestPage = () => {
       }
 
       if (selectedExportFields.includes("orderId")) {
-        row["Mã đơn hàng"] = request.orderId ?? "";
+        row["Mã đơn hàng"] = request.orderCode || request.orderId || "";
       }
 
       if (selectedExportFields.includes("userId")) {
@@ -466,6 +472,35 @@ const AdminReturnRequestPage = () => {
       if (selectedExportFields.includes("items")) {
         row["Danh sách sản phẩm"] = getItemsText(request);
       }
+      if (selectedExportFields.includes("customerShippedAt")) {
+  row["Khách gửi hàng lúc"] = request.customerShippedAt
+    ? format(new Date(request.customerShippedAt), "dd/MM/yyyy HH:mm")
+    : "";
+}
+
+if (selectedExportFields.includes("completedAt")) {
+  row["Ngày hoàn tất"] = request.completedAt
+    ? format(new Date(request.completedAt), "dd/MM/yyyy HH:mm")
+    : "";
+}
+
+if (selectedExportFields.includes("returnTrackingCode")) {
+  row["Mã vận đơn"] = request.returnTrackingCode ?? "";
+}
+
+if (selectedExportFields.includes("returnCarrier")) {
+  row["Đơn vị vận chuyển"] = request.returnCarrier ?? "";
+}
+
+if (selectedExportFields.includes("returnShipmentNote")) {
+  row["Ghi chú gửi trả"] = request.returnShipmentNote ?? "";
+}
+
+if (selectedExportFields.includes("imageUrls")) {
+  row["Ảnh minh chứng"] = Array.isArray(request.imageUrls)
+    ? request.imageUrls.join(" | ")
+    : "";
+}
 
       return row;
     });
@@ -517,10 +552,7 @@ const AdminReturnRequestPage = () => {
               <h2 className="text-3xl font-black" style={{ color: titleColor }}>
                 Quản lý trả hàng
               </h2>
-              <p className="mt-2" style={{ color: textColor }}>
-                Theo dõi, xét duyệt và cập nhật trạng thái các yêu cầu trả hàng từ
-                khách hàng.
-              </p>
+              
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -683,20 +715,20 @@ const AdminReturnRequestPage = () => {
                       </div>
 
                       <div
-                        className="text-sm font-semibold"
+                        className="text-xl font-semibold"
                         style={{ color: titleColor }}
                       >
-                        Đơn hàng #{request.orderId} • User #{request.userId}
+                        Đơn hàng #{request.orderCode || request.orderId} • User #{request.userId}
                       </div>
 
-                      <div className="text-sm" style={{ color: mutedColor }}>
+                      <div className="text-xl" style={{ color: mutedColor }}>
                         Tạo lúc {formatDateTime(request.requestedAt)}
                       </div>
                     </div>
 
                     <div className="text-right">
                       <p
-                        className="text-sm font-bold uppercase tracking-[0.12em]"
+                        className="text-xl font-bold uppercase tracking-[0.12em]"
                         style={{ color: mutedColor }}
                       >
                         Hoàn dự kiến
@@ -711,191 +743,307 @@ const AdminReturnRequestPage = () => {
                   </div>
                 </AccordionSummary>
 
-                <AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
-                  <Divider sx={{ mb: 2, borderColor }} />
+<AccordionDetails sx={{ px: 3, pb: 3, pt: 0 }}>
+  <Divider sx={{ mb: 2, borderColor }} />
 
-                  <div className="grid gap-4 lg:grid-cols-2">
-                    <div
-                      className="rounded-2xl p-4"
-                      style={{
-                        backgroundColor: subCardBg,
-                        border: `1px solid ${innerBorderColor}`,
-                      }}
-                    >
-                      <p
-                        className="text-sm font-bold uppercase tracking-[0.12em]"
-                        style={{ color: mutedColor }}
-                      >
-                        Thông tin xử lý
-                      </p>
+  <div className="grid gap-4 lg:grid-cols-2">
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: subCardBg,
+        border: `1px solid ${innerBorderColor}`,
+      }}
+    >
+      <p
+        className="text-xl font-bold uppercase tracking-[0.12em]"
+        style={{ color: mutedColor }}
+      >
+        Thông tin xử lý
+      </p>
 
-                      <div
-                        className="mt-2 space-y-1 text-sm"
-                        style={{ color: textColor }}
-                      >
-                        <p>Trạng thái: {getReturnStatusLabel(request.status)}</p>
-                        <p>Ngày tạo: {formatDateTime(request.requestedAt)}</p>
-                        <p>Ngày duyệt: {formatDateTime(request.reviewedAt)}</p>
-                        <p>
-                          Ngày nhận hàng trả: {formatDateTime(request.receivedAt)}
-                        </p>
-                        <p>Ngày hoàn tiền: {formatDateTime(request.refundedAt)}</p>
-                      </div>
-                    </div>
+      <div
+        className="mt-3 space-y-2 text-xl"
+        style={{ color: textColor }}
+      >
+        <p>
+          <span className="font-semibold">Trạng thái:</span>{" "}
+          <span style={{ color: getReturnStatusColor(request.status) }}>
+            {getReturnStatusLabel(request.status)}
+          </span>
+        </p>
+        <p>
+          <span className="font-semibold">Ngày tạo:</span>{" "}
+          {formatDateTime(request.requestedAt)}
+        </p>
+        <p>
+          <span className="font-semibold">Ngày duyệt:</span>{" "}
+          {formatDateTime(request.reviewedAt)}
+        </p>
+        <p>
+          <span className="font-semibold">Khách gửi hàng lúc:</span>{" "}
+          {formatDateTime(request.customerShippedAt)}
+        </p>
+        <p>
+          <span className="font-semibold">Ngày shop nhận hàng trả:</span>{" "}
+          {formatDateTime(request.receivedAt)}
+        </p>
+        <p>
+          <span className="font-semibold">Ngày hoàn tiền:</span>{" "}
+          {formatDateTime(request.refundedAt)}
+        </p>
+        <p>
+          <span className="font-semibold">Ngày hoàn tất:</span>{" "}
+          {formatDateTime(request.completedAt)}
+        </p>
+      </div>
+    </div>
 
-                    <div
-                      className="rounded-2xl p-4"
-                      style={{
-                        backgroundColor: subCardBg,
-                        border: `1px solid ${innerBorderColor}`,
-                      }}
-                    >
-                      <p
-                        className="text-sm font-bold uppercase tracking-[0.12em]"
-                        style={{ color: mutedColor }}
-                      >
-                        Lý do và ghi chú
-                      </p>
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: subCardBg,
+        border: `1px solid ${innerBorderColor}`,
+      }}
+    >
+      <p
+        className="text-xl font-bold uppercase tracking-[0.12em]"
+        style={{ color: mutedColor }}
+      >
+        Lý do và ghi chú
+      </p>
 
-                      <div
-                        className="mt-2 space-y-2 text-sm"
-                        style={{ color: textColor }}
-                      >
-                        <p>
-                          <span className="font-semibold">Lý do:</span>{" "}
-                          {request.reasonCode || "Chưa có"}
-                        </p>
-                        <p>
-                          <span className="font-semibold">Khách ghi chú:</span>{" "}
-                          {request.note || "Không có"}
-                        </p>
-                        <p>
-                          <span className="font-semibold">Nội bộ:</span>{" "}
-                          {request.adminNote || "Chưa có"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+      <div
+        className="mt-3 space-y-2 text-xl"
+        style={{ color: textColor }}
+      >
+        <p>
+          <span className="font-semibold">Lý do:</span>{" "}
+          {request.reasonCode || "Chưa có"}
+        </p>
+        <p>
+          <span className="font-semibold">Khách ghi chú:</span>{" "}
+          {request.note || "Không có"}
+        </p>
+        <p>
+          <span className="font-semibold">Nội bộ:</span>{" "}
+          {request.adminNote || "Chưa có"}
+        </p>
+      </div>
+    </div>
+  </div>
 
-                  <div
-                    className="mt-4 rounded-2xl p-4"
-                    style={{
-                      backgroundColor: subCardBg,
-                      border: `1px solid ${innerBorderColor}`,
-                    }}
-                  >
-                    <p
-                      className="text-sm font-bold uppercase tracking-[0.12em]"
-                      style={{ color: mutedColor }}
-                    >
-                      Sản phẩm trả hàng
-                    </p>
+  <div className="mt-4 grid gap-4 lg:grid-cols-2">
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: subCardBg,
+        border: `1px solid ${innerBorderColor}`,
+      }}
+    >
+      <p
+        className="text-xl font-bold uppercase tracking-[0.12em]"
+        style={{ color: mutedColor }}
+      >
+        Thông tin gửi trả
+      </p>
 
-                    <div className="mt-3 flex flex-col gap-3">
-                      {(request.items || []).length > 0 ? (
-                        request.items.map((item: any, index: number) => (
-                          <div
-                            key={item.orderItemId || index}
-                            className="rounded-2xl p-3"
-                            style={{
-                              border: `1px solid ${innerBorderColor}`,
-                              backgroundColor: isDark
-                                ? "rgba(255,255,255,0.02)"
-                                : "#ffffff",
-                            }}
-                          >
-                            <div
-                              className="text-sm font-semibold"
-                              style={{ color: titleColor }}
-                            >
-                              {item.productName || "Sản phẩm"}
-                            </div>
+      <div
+        className="mt-3 space-y-2 text-xl"
+        style={{ color: textColor }}
+      >
+        <p>
+          <span className="font-semibold">Mã vận đơn:</span>{" "}
+          {request.returnTrackingCode || "Chưa cập nhật"}
+        </p>
+        <p>
+          <span className="font-semibold">Đơn vị vận chuyển:</span>{" "}
+          {request.returnCarrier || "Chưa cập nhật"}
+        </p>
+        <p>
+          <span className="font-semibold">Ghi chú gửi trả:</span>{" "}
+          {request.returnShipmentNote || "Không có"}
+        </p>
+      </div>
+    </div>
 
-                            <div
-                              className="mt-1 text-sm"
-                              style={{ color: textColor }}
-                            >
-                              Mã item: #{item.orderItemId || "-"} • Size:{" "}
-                              {item.sizeName || "-"} • Số lượng:{" "}
-                              {item.quantity ?? 0}
-                            </div>
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: subCardBg,
+        border: `1px solid ${innerBorderColor}`,
+      }}
+    >
+      <p
+        className="text-xl font-bold uppercase tracking-[0.12em]"
+        style={{ color: mutedColor }}
+      >
+        Ảnh minh chứng
+      </p>
 
-                            <div
-                              className="mt-1 text-sm font-semibold"
-                              style={{ color: titleColor }}
-                            >
-                              Hoàn: {formatVND(item.refundAmount)}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm" style={{ color: mutedColor }}>
-                          Không có sản phẩm trong yêu cầu trả hàng.
-                        </p>
-                      )}
-                    </div>
-                  </div>
+      {(request.imageUrls || []).length > 0 ? (
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          {request.imageUrls.map((url: string, index: number) => (
+            <a
+              key={`${url}-${index}`}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="block"
+            >
+              <img
+                src={url}
+                alt={`return-proof-${index + 1}`}
+                className="h-28 w-full rounded-xl object-cover"
+                style={{
+                  border: `1px solid ${innerBorderColor}`,
+                  backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#fff",
+                }}
+              />
+            </a>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-xl" style={{ color: mutedColor }}>
+          Không có ảnh minh chứng.
+        </p>
+      )}
+    </div>
+  </div>
 
-                  <div className="flex flex-wrap gap-3 pt-4">
-                    {(isAdmin || isStaff) && request.status === "REQUESTED" && (
-                      <>
-                        <Button
-                          variant="contained"
-                          disabled={actionLoading}
-                          sx={primaryButtonSx}
-                          onClick={() => openReviewDialog(request, "approve")}
-                        >
-                          <span className="text-slate-100">Duyệt</span>
-                          
-                        </Button>
+  <div
+    className="mt-4 rounded-2xl p-4"
+    style={{
+      backgroundColor: subCardBg,
+      border: `1px solid ${innerBorderColor}`,
+    }}
+  >
+    <p
+      className="text-xl font-bold uppercase tracking-[0.12em]"
+      style={{ color: mutedColor }}
+    >
+      Sản phẩm trả hàng
+    </p>
 
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          disabled={actionLoading}
-                          sx={dangerOutlineButtonSx}
-                          onClick={() => openReviewDialog(request, "reject")}
-                        >
-                          Từ chối
-                        </Button>
-                      </>
-                    )}
+    <div className="mt-3 flex flex-col gap-3">
+      {(request.items || []).length > 0 ? (
+        request.items.map((item: any, index: number) => (
+          <div
+            key={item.orderItemId || index}
+            className="rounded-2xl p-3"
+            style={{
+              border: `1px solid ${innerBorderColor}`,
+              backgroundColor: isDark
+                ? "rgba(255,255,255,0.02)"
+                : "#ffffff",
+            }}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row">
+              
+              <img
+                src={
+                  item.productImage ||
+                  "https://placehold.co/120x120?text=No+Image"
+                }
+                alt={item.productName || "Sản phẩm"}
+                className="h-24 w-24 rounded-xl object-cover"
+                style={{
+                  border: `1px solid ${innerBorderColor}`,
+                  backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "#fff",
+                }}
+              />
 
-                    {(isAdmin || isStaff) &&
-                      request.status === "CUSTOMER_SHIPPED" && (
-                        <Button
-                          variant="contained"
-                          disabled={actionLoading}
-                          sx={primaryButtonSx}
-                          onClick={() => handleMarkReceived(request.id)}
-                        >
-                          Xác nhận đã nhận hàng trả
-                        </Button>
-                      )}
+              <div className="min-w-0 flex-1">
+                <div
+                  className="text-xl font-semibold"
+                  style={{ color: titleColor }}
+                >
+                  {item.productName || "Sản phẩm"}
+                </div>
 
-                    {isAdmin && request.status === "RECEIVED" && (
-                      <Button
-                        variant="contained"
-                        disabled={actionLoading}
-                        sx={primaryButtonSx}
-                        onClick={() => handleRefunded(request.id)}
-                      >
-                        Xác nhận hoàn tiền
-                      </Button>
-                    )}
+                <div
+                  className="mt-1 text-xl"
+                  style={{ color: textColor }}
+                >
+                  Mã item: #{item.orderItemId || "-"} • Size:{" "}
+                  {item.sizeName || "-"} • Số lượng: {item.quantity ?? 0}
+                </div>
 
-                    {isAdmin && request.status === "REFUNDED" && (
-                      <Button
-                        variant="contained"
-                        disabled={actionLoading}
-                        sx={primaryButtonSx}
-                        onClick={() => handleComplete(request.id)}
-                      >
-                        Hoàn tất yêu cầu
-                      </Button>
-                    )}
-                  </div>
-                </AccordionDetails>
+                <div
+                  className="mt-1 text-xl font-semibold"
+                  style={{ color: titleColor }}
+                >
+                  Hoàn: {formatVND(item.refundAmount)}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm" style={{ color: mutedColor }}>
+          Không có sản phẩm trong yêu cầu trả hàng.
+        </p>
+      )}
+    </div>
+  </div>
+
+  <div className="flex flex-wrap gap-3 pt-4">
+    {(isAdmin || isStaff) && request.status === "REQUESTED" && (
+      <>
+        <Button
+          variant="contained"
+          disabled={actionLoading}
+          sx={primaryButtonSx}
+          onClick={() => openReviewDialog(request, "approve")}
+        >
+          <span className="text-slate-100">Duyệt</span>
+        </Button>
+
+        <Button
+          variant="outlined"
+          color="error"
+          disabled={actionLoading}
+          sx={dangerOutlineButtonSx}
+          onClick={() => openReviewDialog(request, "reject")}
+        >
+          Từ chối
+        </Button>
+      </>
+    )}
+
+    {(isAdmin || isStaff) && request.status === "CUSTOMER_SHIPPED" && (
+      <Button
+        variant="contained"
+        disabled={actionLoading}
+        sx={primaryButtonSx}
+        onClick={() => handleMarkReceived(request.id)}
+      >
+        <span className="text-slate-100">Xác nhận đã nhận hàng trả</span>
+      </Button>
+    )}
+
+    {isAdmin && request.status === "RECEIVED" && (
+      <Button
+        variant="contained"
+        disabled={actionLoading}
+        sx={primaryButtonSx}
+        onClick={() => handleRefunded(request.id)}
+      >
+        <span className="text-slate-100">Xác nhận hoàn tiền</span>
+      </Button>
+    )}
+
+    {isAdmin && request.status === "REFUNDED" && (
+      <Button
+        variant="contained"
+        disabled={actionLoading}
+        sx={primaryButtonSx}
+        onClick={() => handleComplete(request.id)}
+      >
+        <span className="text-slate-100">Hoàn tất yêu cầu</span>
+      </Button>
+    )}
+  </div>
+</AccordionDetails>
               </Accordion>
             ))}
           </div>
@@ -966,11 +1114,14 @@ const AdminReturnRequestPage = () => {
             sx={primaryButtonSx}
             disabled={actionLoading}
           >
+            <span className="text-slate-100">
+
             {actionLoading
               ? "Đang xử lý..."
               : reviewAction === "approve"
               ? "Xác nhận duyệt"
               : "Xác nhận từ chối"}
+            </span>
           </Button>
         </DialogActions>
       </Dialog>

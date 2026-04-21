@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import {
   OrderStatusSummaryDto,
   RecentOrderDto,
@@ -129,7 +129,10 @@ const OrdersTab = ({
     borderRadius: "14px",
     color: isDark ? "#ffffff" : "#0f172a",
   };
-
+const legendStyle = {
+  fontSize: 16,
+  color: isDark ? "#e5e7eb" : "#334155",
+};
   const statusChartData = useMemo(
     () =>
       orderStatusSummary.map((item, index) => ({
@@ -154,7 +157,7 @@ const OrdersTab = ({
         <Paper elevation={0} sx={{ ...cardSx, p: 2.5, height: "100%" }}>
           <Typography sx={sectionTitleSx}>Trạng thái đơn hàng</Typography>
 
-          <Box sx={{ mt: 1.2, height: 260 }}>
+          <Box sx={{ mt: 1.2, height: 280,marginTop:4 }}>
             {loading && statusChartData.length === 0 ? (
               <Stack
                 alignItems="center"
@@ -168,19 +171,26 @@ const OrdersTab = ({
                 </Typography>
               </Stack>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" >
                 <PieChart>
                   <Pie
-                    data={statusChartData}
-                    dataKey="value"
-                    innerRadius={54}
-                    outerRadius={84}
-                    paddingAngle={3}
-                  >
-                    {statusChartData.map((item) => (
-                      <Cell key={item.name} fill={item.color} />
-                    ))}
-                  </Pie>
+  data={statusChartData}
+  dataKey="value"
+  nameKey="name"
+  innerRadius={54}
+  outerRadius={84}
+  paddingAngle={3}
+  label={({ name, percent }) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+>
+  {statusChartData.map((item) => (
+    <Cell key={item.name} fill={item.color} />
+  ))}
+</Pie>
+<Legend wrapperStyle={legendStyle} />
+<Tooltip
+  contentStyle={tooltipStyle}
+  formatter={(value: number, name: string) => [value, name]}
+/>
                   <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>

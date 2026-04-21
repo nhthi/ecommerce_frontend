@@ -17,6 +17,8 @@ import {
 } from "@mui/icons-material";
 import {
   CartesianGrid,
+  LabelList,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -74,7 +76,16 @@ const ContentTab = ({
     borderRadius: "14px",
     color: isDark ? "#ffffff" : "#0f172a",
   };
+const legendStyle = {
+  fontSize: 16,
+  color: isDark ? "#e5e7eb" : "#334155",
+};
 
+const helperTextSx = {
+  mt: 0.6,
+  color: muted,
+  fontSize: 13.5,
+};
   const periodLabel =
     overviewFilter === "month"
       ? `Tháng ${selectedMonth}/${selectedYear}`
@@ -122,30 +133,37 @@ const ContentTab = ({
               </Stack>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={blogPerformance}>
-                  <CartesianGrid stroke={gridStroke} vertical={false} />
-                  <XAxis dataKey="name" stroke={axisColor} />
-                  <YAxis stroke={axisColor} />
-                  <Tooltip
-                    formatter={(value: number) => formatValue(value)}
-                    contentStyle={tooltipStyle}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="posts"
-                    stroke="#f97316"
-                    strokeWidth={3}
-                    name="Bài viết"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="views"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    name="Lượt xem"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+  <LineChart data={blogPerformance}>
+    <CartesianGrid stroke={gridStroke} vertical={false} />
+    <XAxis dataKey="name" stroke={axisColor} />
+    <YAxis stroke={axisColor} />
+    <Tooltip
+      formatter={(value: number) => formatValue(value)}
+      contentStyle={tooltipStyle}
+    />
+    <Legend wrapperStyle={legendStyle} />
+
+    <Line
+      type="monotone"
+      dataKey="posts"
+      stroke="#f97316"
+      strokeWidth={3}
+      name="Bài viết"
+    >
+      <LabelList dataKey="posts" position="top" />
+    </Line>
+
+    <Line
+      type="monotone"
+      dataKey="views"
+      stroke="#3b82f6"
+      strokeWidth={3}
+      name="Lượt xem"
+    >
+      <LabelList dataKey="views" position="top" />
+    </Line>
+  </LineChart>
+</ResponsiveContainer>
             )}
           </Box>
         </Paper>

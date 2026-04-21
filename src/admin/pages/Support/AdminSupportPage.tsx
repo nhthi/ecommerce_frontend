@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { AttachFile, Close, ImageOutlined, SmartDisplay } from "@mui/icons-material";
+import { Alert } from "@mui/material";
+import { uploadToCloundinary } from "../../../utils/uploadToCloudinary";
 import {
   Accordion,
   AccordionDetails,
@@ -53,6 +56,7 @@ import {
   updateSupportConversationStatus,
 } from "../../../state/customer/supportSlice";
 import { useSiteThemeMode } from "../../../Theme/SiteThemeProvider";
+import { fetchAllStaff } from "../../../state/admin/adminUserSlice";
 
 const statusOptions: SupportStatus[] = ["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLVED", "CLOSED"];
 const priorityOptions: SupportPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
@@ -145,7 +149,8 @@ const AdminSupportPage: React.FC = () => {
     totalElements,
     currentPage,
   } = useAppSelector((store) => store.supportSlice);
-
+  const { adminUser } = useAppSelector((store) => store);
+const staffs = adminUser.staffs || [];
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -158,7 +163,17 @@ const AdminSupportPage: React.FC = () => {
   const [internalNoteText, setInternalNoteText] = useState("");
   const [assignStaffId, setAssignStaffId] = useState("");
   const [localStatus, setLocalStatus] = useState<string>("");
-
+const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+const [uploadingAttachment, setUploadingAttachment] = useState(false);
+const [previewImage, setPreviewImage] = useState<string | null>(null);
+const previewUrl = useMemo(() => {
+  if (!attachmentFile) return "";
+  return URL.createObjectURL(attachmentFile);
+}, [attachmentFile]);
+const handleSelectFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0] || null;
+  setAttachmentFile(file);
+};
   const pageBg = isDark ? "#0b0b0b" : "#f7f8fc";
   const cardBg = isDark ? "#141414" : "#ffffff";
   const altBg = isDark ? "#101010" : "#f8fafc";
@@ -255,18 +270,56 @@ const AdminSupportPage: React.FC = () => {
     }
   };
 
-  const handleSendReply = async () => {
-    if (!selectedConversationId || !replyText.trim()) return;
-    await dispatch(
-      sendAdminSupportMessage({
-        conversationId: selectedConversationId,
-        content: replyText.trim(),
-        messageType: "TEXT",
-      })
-    );
+const handleSendReply = async () => {
+  if (!selectedConversationId) return;
+  if (!replyText.trim() && !attachmentFile) return;
+
+  try {
+    if (replyText.trim()) {
+      await dispatch(
+        sendAdminSupportMessage({
+          conversationId: selectedConversationId,
+          content: replyText.trim(),
+        }) as any
+      );
+    }
+
+    if (attachmentFile) {
+      setUploadingAttachment(true);
+
+      const cloudType = attachmentFile.type.startsWith("video/") ? "video" : "image";
+      const url = await uploadToCloundinary(attachmentFile, cloudType);
+
+      await dispatch(
+        sendAdminSupportMessage({
+          conversationId: selectedConversationId,
+          content: attachmentFile.name,
+          messageType: attachmentFile.type.startsWith("image/") ? "IMAGE" : "FILE",
+          attachmentUrl: url,
+          attachmentName: attachmentFile.name,
+          attachmentType: attachmentFile.type,
+        }) as any
+      );
+
+      setUploadingAttachment(false);
+      setAttachmentFile(null);
+    }
+
     setReplyText("");
     dispatch(fetchAdminSupportFullDetail(selectedConversationId));
-  };
+    dispatch(fetchAdminSupportConversations({
+      page,
+      size: 20,
+      keyword,
+      status: selectedStatus ? (selectedStatus as SupportStatus) : undefined,
+      priority: selectedPriority ? (selectedPriority as SupportPriority) : undefined,
+      staffId: staffIdFilter ? Number(staffIdFilter) : undefined,
+    }));
+  } catch (error) {
+    setUploadingAttachment(false);
+    console.error(error);
+  }
+};
 
   const handleAddInternalNote = async () => {
     if (!selectedConversationId || !internalNoteText.trim()) return;
@@ -299,7 +352,10 @@ const AdminSupportPage: React.FC = () => {
     dispatch(fetchAdminSupportFullDetail(selectedConversationId));
     refreshList();
   };
-
+  useEffect(() => {
+    dispatch(fetchAllStaff());
+  }, [dispatch]);
+  
   const renderToneChip = (label: string, tone: { color: string; soft: string }) => (
     <Chip
       size="small"
@@ -446,7 +502,7 @@ const AdminSupportPage: React.FC = () => {
                       <TableCell>{renderToneChip(statusLabelMap[item.status], getStatusTone(item.status))}</TableCell>
                       <TableCell>{renderToneChip(priorityLabelMap[item.priority], getPriorityTone(item.priority))}</TableCell>
                       <TableCell>
-                        <Typography fontWeight={700}>{item.assignedStaffName || "Chua phan cong"}</Typography>
+                        <Typography fontWeight={700}>{item.assignedStaffName || "Chưa phân công"}</Typography>
                         {!!item.unreadStaffCount && <Typography sx={{ color: "#ef4444", fontSize: 12 }}>{item.unreadStaffCount} chưa đọc</Typography>}
                       </TableCell>
                       <TableCell>
@@ -542,6 +598,8 @@ const AdminSupportPage: React.FC = () => {
                 ) : (
                   <Stack spacing={1.3}>
                     {messages.map((msg: any) => {
+                      const isImage = msg.attachmentType?.startsWith("image/");
+const isVideo = msg.attachmentType?.startsWith("video/");
                       const isStaff = msg.senderType === "STAFF" || msg.senderType === "SYSTEM";
                       const isInternalNote = msg.internalNote;
                       const bubbleBg = isInternalNote
@@ -555,13 +613,55 @@ const AdminSupportPage: React.FC = () => {
                           <Box sx={{ maxWidth: isInternalNote ? "92%" : "78%", px: 1.5, py: 1.2, borderRadius: 0, bgcolor: bubbleBg, color: bubbleColor, border: `1px solid ${isInternalNote ? "rgba(249,115,22,0.22)" : isStaff ? border : "#111827"}` }}>
                             <Typography fontWeight={800} fontSize={13}>{isInternalNote ? `Ghi chú nội bộ - ${msg.senderName}` : msg.senderName}</Typography>
                             <Typography fontSize={11} sx={{ opacity: 0.72, mt: 0.2 }}>{formatDateTime(msg.createdAt)}</Typography>
-                            <Typography sx={{ mt: 0.75, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.content}</Typography>
-                            {msg.attachmentUrl && <Button size="small" href={msg.attachmentUrl} target="_blank" rel="noreferrer" sx={{ mt: 1, px: 0, color: bubbleColor }}>Xem tệp đính kèm</Button>}
+
+{!!msg.content && (
+  <Typography sx={{ mt: 0.75, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+    {msg.content}
+  </Typography>
+)}
+
+{msg.attachmentUrl && isImage && (
+  <Box
+    component="img"
+    src={msg.attachmentUrl}
+    alt={msg.attachmentName || "attachment"}
+    onClick={() => setPreviewImage(msg.attachmentUrl)}
+    sx={{
+      mt: 1,
+      width: "100%",
+      maxHeight: 280,
+      objectFit: "cover",
+      cursor: "pointer",
+      border: `1px solid ${border}`,
+    }}
+  />
+)}
+
+{msg.attachmentUrl && isVideo && (
+  <Box
+    component="video"
+    src={msg.attachmentUrl}
+    controls
+    sx={{ mt: 1, width: "100%", maxHeight: 320 }}
+  />
+)}
+
+{msg.attachmentUrl && !isImage && !isVideo && (
+  <Button
+    size="small"
+    href={msg.attachmentUrl}
+    target="_blank"
+    rel="noreferrer"
+    sx={{ mt: 1, px: 0, color: bubbleColor }}
+  >
+    Xem tệp đính kèm
+  </Button>
+)}
                           </Box>
                         </Stack>
                       );
                     })}
-                    {messages.length === 0 && <Typography sx={{ color: mutedText }}>Chua co tin nhan nao.</Typography>}
+                    {messages.length === 0 && <Typography sx={{ color: mutedText }}>Chưa có tin nhắn nào.</Typography>}
                   </Stack>
                 )}
               </AccordionDetails>
@@ -576,12 +676,108 @@ const AdminSupportPage: React.FC = () => {
                   <Grid size={{ xs: 12, xl: 6 }}>
                     <Paper elevation={0} sx={{ p: 1.5, borderRadius: 0, bgcolor: softBg, border: `1px solid ${border}`, height: "100%" }}>
                       <Typography fontWeight={900} fontSize={14} sx={{ mb: 1 }}>Phản hồi khách hàng</Typography>
-                      <Stack direction="row" spacing={1}>
-                        <TextField fullWidth multiline minRows={3} maxRows={6} placeholder="Nhập nội dung phản hồi..." value={replyText} onChange={(e) => setReplyText(e.target.value)} disabled={actionLoading} />
-                        <Button variant="contained" onClick={handleSendReply} disabled={!replyText.trim() || actionLoading} sx={{ minWidth: 58 }}>
-                          {actionLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
-                        </Button>
-                      </Stack>
+                      <Stack spacing={1}>
+  {attachmentFile && (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1.2,
+        borderRadius: 0,
+        border: `1px solid ${border}`,
+        bgcolor: cardBg,
+      }}
+    >
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+        {attachmentFile.type.startsWith("video/") ? (
+          <SmartDisplay sx={{ color: "#f97316" }} />
+        ) : (
+          <ImageOutlined sx={{ color: "#f97316" }} />
+        )}
+
+        <Typography fontWeight={700}>{attachmentFile.name}</Typography>
+        <Typography sx={{ color: mutedText, fontSize: 12 }}>
+          ({Math.round(attachmentFile.size / 1024)} KB)
+        </Typography>
+
+        <Button
+          size="small"
+          color="inherit"
+          onClick={() => setAttachmentFile(null)}
+          sx={{ ml: "auto", minWidth: 36 }}
+        >
+          <Close fontSize="small" />
+        </Button>
+      </Stack>
+
+      {attachmentFile.type.startsWith("image/") && previewUrl && (
+        <Box
+          component="img"
+          src={previewUrl}
+          alt="preview"
+          sx={{ width: "100%", maxHeight: 220, objectFit: "cover" }}
+        />
+      )}
+
+      {attachmentFile.type.startsWith("video/") && previewUrl && (
+        <Box
+          component="video"
+          src={previewUrl}
+          controls
+          sx={{ width: "100%", maxHeight: 240 }}
+        />
+      )}
+    </Paper>
+  )}
+
+  {(uploadingAttachment || actionLoading) && (
+    <Alert severity="info">
+      {uploadingAttachment ? "Đang tải tệp đính kèm..." : "Đang gửi phản hồi..."}
+    </Alert>
+  )}
+
+  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+    <TextField
+      fullWidth
+      multiline
+      minRows={3}
+      maxRows={6}
+      placeholder="Nhập nội dung phản hồi..."
+      value={replyText}
+      onChange={(e) => setReplyText(e.target.value)}
+      disabled={actionLoading || uploadingAttachment}
+    />
+
+    <Stack direction={{ xs: "row", sm: "column" }} spacing={1}>
+      <Button
+        component="label"
+        variant="outlined"
+        disabled={actionLoading || uploadingAttachment}
+        sx={{ minWidth: 58 }}
+      >
+        <AttachFile />
+        <input
+          hidden
+          type="file"
+          accept="image/*,video/*"
+          onChange={handleSelectFile}
+        />
+      </Button>
+
+      <Button
+        variant="contained"
+        onClick={handleSendReply}
+        disabled={(!replyText.trim() && !attachmentFile) || actionLoading || uploadingAttachment}
+        sx={{ minWidth: 58 }}
+      >
+        {actionLoading || uploadingAttachment ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : (
+          <Send />
+        )}
+      </Button>
+    </Stack>
+  </Stack>
+</Stack>
                     </Paper>
                   </Grid>
                   <Grid size={{ xs: 12, xl: 6 }}>
@@ -620,14 +816,49 @@ const AdminSupportPage: React.FC = () => {
                     </Paper>
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Paper elevation={0} sx={{ p: 1.5, borderRadius: 0, bgcolor: softBg, border: `1px solid ${border}` }}>
-                      <Typography fontWeight={900} fontSize={14} sx={{ mb: 1 }}>Phân công nhân viên</Typography>
-                      <Stack spacing={1}>
-                        <TextField fullWidth size="small" label="Staff ID" value={assignStaffId} onChange={(e) => setAssignStaffId(e.target.value)} />
-                        <Button variant="outlined" startIcon={<AssignmentInd />} onClick={handleAssignConversation} disabled={!assignStaffId.trim() || actionLoading}>Phân công</Button>
-                      </Stack>
-                    </Paper>
-                  </Grid>
+  <Paper
+    elevation={0}
+    sx={{
+      p: 1.5,
+      borderRadius: 0,
+      bgcolor: softBg,
+      border: `1px solid ${border}`,
+    }}
+  >
+    <Typography fontWeight={900} fontSize={14} sx={{ mb: 1 }}>
+      Phân công nhân viên
+    </Typography>
+
+    <Stack spacing={1}>
+      <Select
+        fullWidth
+        size="small"
+        displayEmpty
+        value={assignStaffId}
+        onChange={(e: SelectChangeEvent<string>) =>
+          setAssignStaffId(e.target.value)
+        }
+      >
+        <MenuItem value="">Chọn nhân viên</MenuItem>
+
+        {staffs.map((staff: any) => (
+          <MenuItem key={staff.id} value={String(staff.id)}>
+            {`Nhân viên #${staff.id}`} - {staff.fullName} - {staff.email}
+          </MenuItem>
+        ))}
+      </Select>
+
+      <Button
+        variant="outlined"
+        startIcon={<AssignmentInd />}
+        onClick={handleAssignConversation}
+        disabled={!assignStaffId || actionLoading}
+      >
+        Phân công
+      </Button>
+    </Stack>
+  </Paper>
+</Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>
@@ -645,7 +876,7 @@ const AdminSupportPage: React.FC = () => {
                       <Paper key={history.id} elevation={0} sx={{ p: 1.2, borderRadius: 0, bgcolor: softBg, border: `1px solid ${border}` }}>
                         <Stack direction="row" spacing={1} alignItems="center">
                           <FiberManualRecord sx={{ fontSize: 10, color: "#fb923c" }} />
-                          <Typography fontWeight={800} fontSize={13}>{history.fromStaffName || "Chua co"}{" -> "}{history.toStaffName || "Chưa có"}</Typography>
+                          <Typography fontWeight={800} fontSize={13}>{history.fromStaffName || "Chưa có"}{" -> "}{history.toStaffName || "Chưa có"}</Typography>
                         </Stack>
                         <Typography sx={{ mt: 0.5, color: mutedText, fontSize: 13 }}>Người phân công: {history.assignedByName || "--"}</Typography>
                         {history.note && <Typography sx={{ mt: 0.4, fontSize: 13 }}>Ghi chú: {history.note}</Typography>}

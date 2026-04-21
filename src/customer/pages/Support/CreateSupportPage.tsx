@@ -67,7 +67,7 @@ const CreateSupportPage = () => {
 
       const conversationId = res?.payload?.id;
       if (!conversationId) {
-        throw new Error("Khong tao duoc hoi thoai");
+        throw new Error("Không tạo được yêu cầu");
       }
 
       if (attachmentFile) {
@@ -90,7 +90,7 @@ const CreateSupportPage = () => {
 
       navigate(`/support/${conversationId}`);
     } catch (err: any) {
-      setError(err?.message || "Khong gui duoc yeu cau ho tro");
+      setError(err?.message || "Không gửi được yêu cầu hỗ trợ");
       setUploading(false);
     } finally {
       setSubmitting(false);

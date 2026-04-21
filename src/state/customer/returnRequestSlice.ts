@@ -15,6 +15,7 @@ export interface ReturnRequestItem {
 export interface ReturnRequest {
   id: number;
   orderId: number;
+  orderCode?:string;
   userId: number;
   status:
     | "REQUESTED"
@@ -31,9 +32,13 @@ export interface ReturnRequest {
   adminNote?: string | null;
   requestedAt?: string | null;
   reviewedAt?: string | null;
+  customerShippedAt?: string | null;
   receivedAt?: string | null;
   refundedAt?: string | null;
   completedAt?: string | null;
+  returnTrackingCode?: string | null;
+  returnCarrier?: string | null;
+  returnShipmentNote?: string | null;
   items: ReturnRequestItem[];
   imageUrls: string[];
 }
@@ -46,7 +51,12 @@ export interface CreateReturnRequestPayload {
   note?: string;
   imageUrls?: string[];
 }
-
+export interface CustomerShippedPayload {
+  id: number;
+  trackingCode: string;
+  carrier?: string;
+  shipmentNote?: string;
+}
 export interface ReviewReturnRequestPayload {
   id: number;
   approved: boolean;
@@ -114,6 +124,8 @@ export const fetchAdminReturnRequests = createAsyncThunk<
     const response = await api.get("/api/return-requests/admin", {
       params: status ? { status } : {},
     });
+    console.log(response.data);
+    
     return response.data;
   } catch (error: any) {
     return rejectWithValue(
@@ -142,18 +154,29 @@ export const reviewReturnRequest = createAsyncThunk<
 
 export const markReturnCustomerShipped = createAsyncThunk<
   ReturnRequest,
-  number,
+  CustomerShippedPayload,
   { rejectValue: string }
->("/returnRequests/customerShipped", async (id, { rejectWithValue }) => {
-  try {
-    const response = await api.put(`/api/return-requests/${id}/customer-shipped`);
-    return response.data;
-  } catch (error: any) {
-    return rejectWithValue(
-      error.response?.data?.message || "Không thể cập nhật trạng thái đã gửi hàng trả"
-    );
+>(
+  "/returnRequests/customerShipped",
+  async ({ id, trackingCode, carrier, shipmentNote }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/api/return-requests/${id}/customer-shipped`,
+        {
+          trackingCode,
+          carrier,
+          shipmentNote,
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Không thể cập nhật trạng thái đã gửi hàng trả"
+      );
+    }
   }
-});
+);
 
 export const markReturnReceived = createAsyncThunk<
   ReturnRequest,

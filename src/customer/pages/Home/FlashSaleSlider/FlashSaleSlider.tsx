@@ -17,18 +17,21 @@ export default function FlashDealSlider({
 
   return (
     <section className={isDark ? "rounded-[2rem] border border-orange-500/15 bg-[#101010] px-4 py-10 md:px-6" : "rounded-[2rem] border border-slate-200 bg-white px-4 py-10 shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:px-6"}>
-      <div className="mb-8 text-center">
+      <div className="mb-8 text-center text-slate-100">
         <Chip
-          icon={<Bolt />}
-          label="FLASH DEAL"
-          sx={{
-            fontSize: "0.9rem",
-            backgroundColor: "#f97316",
-            color: "#fff",
-            fontWeight: 800,
-            px: 1,
-          }}
-        />
+  icon={<Bolt />}
+  label="FLASH DEAL"
+  sx={{
+    fontSize: "0.9rem",
+    backgroundColor: "#f97316",
+    color: "#fff",
+    fontWeight: 800,
+    px: 1,
+    "& .MuiChip-icon": {
+      color: "#fff",
+    },
+  }}
+/>
         <h2 className={isDark ? "mt-4 text-3xl font-black text-white" : "mt-4 text-3xl font-black text-slate-900"}>
           Sản phẩm đang giảm giá nhanh
         </h2>

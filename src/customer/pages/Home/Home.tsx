@@ -223,7 +223,7 @@ dispatch(
                   : "rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
               }
             >
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-white">
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-500 text-slate-100">
                 {item.icon}
               </div>
               <h3
@@ -370,7 +370,7 @@ dispatch(
                 </div>
 
                 <div className="p-5">
-                  <span className="inline-flex rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-black">
+                  <span className="inline-flex rounded-full bg-orange-500 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-100">
                     {item.tag}
                   </span>
                   <h3
@@ -525,7 +525,7 @@ dispatch(
         <h2 className={`text-4xl md:text-5xl font-black tracking-tighter ${
           isDark ? "text-white" : "text-slate-900"
         }`}>
-          Gợi ý theo mục tiêu<span className="text-orange-500">.</span>
+          Gợi ý theo mục tiêu
         </h2>
       </div>
       
@@ -569,7 +569,7 @@ dispatch(
           {/* Content */}
           <div className="absolute inset-x-0 bottom-0 p-8">
             <div className="overflow-hidden">
-                <h3 className="text-2xl font-bold text-white mb-4 translate-y-0 transition-transform duration-500">
+                <h3 className="text-2xl font-bold text-slate-100 mb-4 translate-y-0 transition-transform duration-500">
                 {item.title}
                 </h3>
             </div>

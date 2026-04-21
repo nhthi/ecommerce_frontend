@@ -6,7 +6,7 @@ import PageDetails from "./customer/pages/Page Details/PageDetails";
 import Cart from "./customer/pages/Cart/Cart";
 import Checkout from "./customer/pages/Checkout/Checkout";
 import Account from "./customer/pages/Account/Account";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import BecomeSeller from "./customer/pages/BecomeSeller/BecomeSeller";
 import SellerDashboard from "./seller/pages/SellerDashboard/SellerDashboard";
 import AdminDashboard from "./admin/pages/Dashboard/Dashboard";
@@ -56,21 +56,58 @@ function App() {
             <Route path="/policy/exchange" element={<Exchange />} />
             <Route path="/policy/faq" element={<Faq />} />
             <Route path="/test" element={<TryOn />} />
-            <Route path="/login" element={<Auth />} />
+                        <Route
+  path="/login"
+  element={
+    !auth.user ? <Auth /> : <Navigate to="/" replace />
+  }
+/>
+            {/* <Route path="/login" element={<Auth />} /> */}
             <Route path="/message" element={<Message />} />
             <Route path="/products/:category" element={<Product />} />
             <Route path="/product-details/:name/:productId" element={<PageDetails />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route
+  path="/cart"
+  element={
+    auth.user ? <Cart /> : <Navigate to="/login" replace />
+  }
+/>
+            <Route
+  path="/wishlist"
+  element={
+    auth.user ? <Wishlist /> : <Navigate to="/login" replace />
+  }
+/>
+            <Route
+  path="/checkout"
+  element={
+    auth.user ? <Checkout /> : <Navigate to="/login" replace />
+  }
+/>
             <Route path="/ordersuccess" element={<OrderSuccess />} />
             <Route path="/payment-success/:orderId" element={<PaymentSuccess />} />
             <Route path="/become-seller" element={<BecomeSeller />} />
             <Route path="/search" element={<SearchProduct />} />
-            <Route path="/support/create" element={<CreateSupportPage />} />
+            {/* <Route path="/support/create" element={<CreateSupportPage />} /> */}
             
-<Route path="/support/:id" element={<CustomerSupportChat />} />
-<Route path="/support" element={<CustomerSupportChat />} />
+<Route
+  path="/support/:id"
+  element={
+    auth.user ? <CustomerSupportChat /> : <Navigate to="/login" replace />
+  }
+/>
+<Route
+  path="/support"
+  element={
+    auth.user ? <CustomerSupportChat /> : <Navigate to="/login" replace />
+  }
+/>
+<Route
+  path="/support/create"
+  element={
+    auth.user ? <CreateSupportPage /> : <Navigate to="/login" replace />
+  }
+/>
 
             <Route path="/account/*" element={<Account />} />
             <Route path="/seller/*" element={seller.profile ? <SellerDashboard /> : <NotFound />} />

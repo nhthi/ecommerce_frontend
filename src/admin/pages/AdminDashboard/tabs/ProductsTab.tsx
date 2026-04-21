@@ -13,6 +13,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  LabelList,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -56,7 +58,16 @@ const ProductsTab = ({
     borderRadius: "14px",
     color: isDark ? "#ffffff" : "#0f172a",
   };
+const legendStyle = {
+  fontSize: 16,
+  color: isDark ? "#e5e7eb" : "#334155",
+};
 
+const helperTextSx = {
+  mt: 0.6,
+  color: muted,
+  fontSize: 13.5,
+};
   const periodLabel =
     overviewFilter === "month"
       ? `Tháng ${selectedMonth}/${selectedYear}`
@@ -114,25 +125,35 @@ const ProductsTab = ({
               </Stack>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topCategories}
-                  layout="vertical"
-                  margin={{ left: 10, right: 10 }}
-                >
-                  <CartesianGrid stroke={gridStroke} horizontal={false} />
-                  <XAxis type="number" stroke={axisColor} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={130}
-                    stroke={axisColor}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => formatValue(value)}
-                    contentStyle={tooltipStyle}
-                  />
-                  <Bar dataKey="sales" radius={[0, 10, 10, 0]} fill="#f97316" />
-                </BarChart>
+                <ResponsiveContainer width="100%" height="100%">
+  <BarChart
+    data={topCategories}
+    layout="vertical"
+    margin={{ left: 10, right: 20 }}
+  >
+    <CartesianGrid stroke={gridStroke} horizontal={false} />
+    <XAxis type="number" stroke={axisColor} />
+    <YAxis
+      type="category"
+      dataKey="name"
+      width={130}
+      stroke={axisColor}
+    />
+    <Tooltip
+      formatter={(value: number) => formatValue(value)}
+      contentStyle={tooltipStyle}
+    />
+    <Legend wrapperStyle={legendStyle} />
+    <Bar
+      dataKey="sales"
+      radius={[0, 10, 10, 0]}
+      fill="#f97316"
+      name="Số lượng bán"
+    >
+      <LabelList dataKey="sales" position="right" />
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
               </ResponsiveContainer>
             )}
           </Box>
@@ -161,34 +182,41 @@ const ProductsTab = ({
               </Stack>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={inventoryData}>
-                  <CartesianGrid stroke={gridStroke} vertical={false} />
-                  <XAxis dataKey="month" stroke={axisColor} />
-                  <YAxis stroke={axisColor} />
-                  <Tooltip
-                    formatter={(value: number) => formatValue(value)}
-                    contentStyle={tooltipStyle}
-                  />
-                  <Bar
-                    dataKey="inStock"
-                    fill="#16a34a"
-                    radius={[8, 8, 0, 0]}
-                    name="Còn hàng"
-                  />
-                  <Bar
-                    dataKey="lowStock"
-                    fill="#f59e0b"
-                    radius={[8, 8, 0, 0]}
-                    name="Sắp hết"
-                  />
-                  <Bar
-                    dataKey="outOfStock"
-                    fill="#ef4444"
-                    radius={[8, 8, 0, 0]}
-                    name="Hết hàng"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+  <BarChart data={inventoryData}>
+    <CartesianGrid stroke={gridStroke} vertical={false} />
+    <XAxis dataKey="month" stroke={axisColor} />
+    <YAxis stroke={axisColor} />
+    <Tooltip
+      formatter={(value: number) => formatValue(value)}
+      contentStyle={tooltipStyle}
+    />
+    <Legend wrapperStyle={legendStyle} />
+    <Bar
+      dataKey="inStock"
+      fill="#16a34a"
+      radius={[8, 8, 0, 0]}
+      name="Còn hàng"
+    >
+      <LabelList dataKey="inStock" position="top" />
+    </Bar>
+    <Bar
+      dataKey="lowStock"
+      fill="#f59e0b"
+      radius={[8, 8, 0, 0]}
+      name="Sắp hết"
+    >
+      <LabelList dataKey="lowStock" position="top" />
+    </Bar>
+    <Bar
+      dataKey="outOfStock"
+      fill="#ef4444"
+      radius={[8, 8, 0, 0]}
+      name="Hết hàng"
+    >
+      <LabelList dataKey="outOfStock" position="top" />
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
             )}
           </Box>
         </Paper>

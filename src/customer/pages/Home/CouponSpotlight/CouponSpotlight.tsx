@@ -81,7 +81,7 @@ const CouponRowCard = ({
       }
     >
       <div className="flex items-center gap-3 md:min-w-[220px]">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-slate-100">
           <DiscountIcon />
         </div>
         <div>
