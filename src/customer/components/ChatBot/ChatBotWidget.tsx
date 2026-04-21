@@ -232,7 +232,7 @@ const ChatBotWidget: React.FC<Props> = () => {
 
   const suggestionMessages = useMemo(
     () => [
-      "Quần tập nam dưới 200k",
+      "Shop có những danh mục sản phẩm nào ?",
       "Chính sách giao hàng",
       "Đơn của tôi đang ở đâu?",
       "Có hỗ trợ đổi trả không?",
@@ -263,7 +263,7 @@ const ChatBotWidget: React.FC<Props> = () => {
   };
 
   const handleSuggestionClick = (message: string) => {
-    submitMessage(message);
+    setInput(message);
   };
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
@@ -285,32 +285,32 @@ const ChatBotWidget: React.FC<Props> = () => {
   };
 
   const handleActionClick = (action?: ChatbotAction) => {
-  if (!action) return;
+    if (!action) return;
 
-  if (action.action === "ADD_TO_CART") {
-    return;
-  }
+    if (action.action === "ADD_TO_CART") {
+      return;
+    }
 
-  if (action.action === "LOGIN") {
-    navigate("/login");
-    return;
-  }
+    if (action.action === "LOGIN") {
+      navigate("/login");
+      return;
+    }
 
-  if (action.target) {
-    navigate(action.target);
-    return;
-  }
+    if (action.target) {
+      navigate(action.target);
+      return;
+    }
 
-  if (action.action === "VIEW_PRODUCT" && action.refId) {
-    navigate(`/products/${action.refId}`);
-    return;
-  }
+    if (action.action === "VIEW_PRODUCT" && action.refId) {
+      navigate(`/products/${action.refId}`);
+      return;
+    }
 
-  if (action.action === "VIEW_ORDER" && action.refId) {
-    navigate(`/account/orders/${action.refId}`);
-    return;
-  }
-};
+    if (action.action === "VIEW_ORDER" && action.refId) {
+      navigate(`/account/orders/${action.refId}`);
+      return;
+    }
+  };
 
   const getSelectedSizeObject = (item: ProductItem) => {
     const productId = item.data?.productId;
@@ -352,23 +352,24 @@ const ChatBotWidget: React.FC<Props> = () => {
 
   const handleAddToCart = async (item: ProductItem) => {
     if (!userId) {
-  dispatch(
-    addBotMessage({
-      text: "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.",
-      type: "text",
-      items: [],
-      actions: [
-        {
-          label: "Đăng nhập ngay",
-          action: "LOGIN",
-          target: "/login",
-        },
-      ],
-      metadata: null,
-    })
-  );
-  return;
-}
+      dispatch(
+        addBotMessage({
+          text: "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.",
+          type: "text",
+          items: [],
+          actions: [
+            {
+              label: "Đăng nhập ngay",
+              action: "LOGIN",
+              target: "/login",
+            },
+          ],
+          metadata: null,
+        })
+      );
+      return;
+    }
+
     const productId = item.data?.productId;
     if (!productId) return;
 
@@ -424,28 +425,28 @@ const ChatBotWidget: React.FC<Props> = () => {
         })
       );
     } catch (error: any) {
-    const status = error?.response?.status;
-    const message = error?.response?.data?.message;
+      const status = error?.response?.status;
 
-    if (status === 401 || status === 403) {
-      dispatch(
-        addBotMessage({
-          text: "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.",
-          type: "text",
-          items: [],
-          actions: [
-            {
-              label: "Đăng nhập ngay",
-              action: "LOGIN",
-              target: "/login",
-            },
-          ],
-          metadata: null,
-        })
-      );
+      if (status === 401 || status === 403) {
+        dispatch(
+          addBotMessage({
+            text: "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.",
+            type: "text",
+            items: [],
+            actions: [
+              {
+                label: "Đăng nhập ngay",
+                action: "LOGIN",
+                target: "/login",
+              },
+            ],
+            metadata: null,
+          })
+        );
 
-      return;
-    }
+        return;
+      }
+
       dispatch(
         addBotMessage({
           text:
@@ -492,9 +493,13 @@ const ChatBotWidget: React.FC<Props> = () => {
 
     return (
       <div
-        key={`${item.data?.productId || item.title}-${index}`}
-        className="overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
-      >
+      key={`${item.data?.productId || item.title}-${index}`}
+      className={
+        isDark
+          ? "overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+          : "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+      }
+    >
         <div className="flex gap-3 p-3">
           <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-[#242424]">
             {item.imageUrl ? (
@@ -563,51 +568,73 @@ const ChatBotWidget: React.FC<Props> = () => {
               )}
             </div>
 
-            {!!sizes.length && (
-              <div className="mt-3">
-                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-400">
-                  Chọn size
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map((size) => {
-                    const isSelected = selectedSizeName === size.name;
-                    const isOutOfStock = size.quantity <= 0;
-
-                    return (
-                      <button
-                        key={size.id}
-                        type="button"
-                        disabled={isOutOfStock}
-                        onClick={() =>
-                          productId && handleSelectSize(productId, size.name)
-                        }
-                        className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
-                          isSelected
-                            ? "border-orange-400 bg-orange-500/15 text-orange-300"
-                            : "border-white/10 bg-white/5 text-neutral-200 hover:bg-white/10"
-                        } ${isOutOfStock ? "cursor-not-allowed opacity-40" : ""}`}
-                      >
-                        {size.name} ({size.quantity})
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedSize && (
-                  <div className="mt-2 text-xs text-neutral-400">
-                    Tồn kho size{" "}
-                    <span className="font-semibold text-white">
-                      {selectedSize.name}
-                    </span>
-                    :{" "}
-                    <span className="font-semibold text-orange-300">
-                      {selectedSize.quantity}
-                    </span>
-                  </div>
-                )}
+             {!!sizes.length && (
+            <div className="mt-3">
+              <div
+                className={
+                  isDark
+                    ? "mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-400"
+                    : "mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"
+                }
+              >
+                Chọn size
               </div>
-            )}
+
+              <div className="flex flex-wrap gap-2">
+                {sizes.map((size) => {
+                  const isSelected = selectedSizeName === size.name;
+                  const isOutOfStock = size.quantity <= 0;
+
+                  return (
+                    <button
+                      key={size.id}
+                      type="button"
+                      disabled={isOutOfStock}
+                      onClick={() =>
+                        productId && handleSelectSize(productId, size.name)
+                      }
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
+                        isSelected
+                          ? isDark
+                            ? "border-orange-400 bg-orange-500/15 text-orange-300"
+                            : "border-orange-300 bg-orange-50 text-orange-600"
+                          : isDark
+                          ? "border-white/10 bg-white/5 text-neutral-200 hover:bg-white/10"
+                          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      } ${isOutOfStock ? "cursor-not-allowed opacity-40" : ""}`}
+                    >
+                      {size.name} ({size.quantity})
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedSize && (
+                <div
+                  className={
+                    isDark
+                      ? "mt-2 text-xs text-neutral-400"
+                      : "mt-2 text-xs text-slate-500"
+                  }
+                >
+                  Tồn kho size{" "}
+                  <span
+                    className={
+                      isDark
+                        ? "font-semibold text-white"
+                        : "font-semibold text-slate-900"
+                    }
+                  >
+                    {selectedSize.name}
+                  </span>
+                  :{" "}
+                  <span className="font-semibold text-orange-500">
+                    {selectedSize.quantity}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
             {!!productId && !!selectedSize && (
               <div className="mt-3 flex items-center gap-2">
@@ -649,7 +676,7 @@ const ChatBotWidget: React.FC<Props> = () => {
                     type="button"
                     disabled={!productId || addingProductId === productId}
                     onClick={() => handleAddToCart(item)}
-                    className="flex-1 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-[#111111] transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {addingProductId === productId
                       ? "Đang thêm..."
@@ -675,201 +702,201 @@ const ChatBotWidget: React.FC<Props> = () => {
     );
   };
 
-const renderOrderCard = (
-  item: OrderItem,
-  index: number,
-  isDetail = false
-) => {
-  const orderStatus = item.data?.orderStatus;
-  const paymentStatus = item.data?.paymentStatus;
-  const orderStatusStyles = getOrderStatusStyles(orderStatus);
-  const paymentStatusStyles = getPaymentStatusStyles(paymentStatus);
+  const renderOrderCard = (
+    item: OrderItem,
+    index: number,
+    isDetail = false
+  ) => {
+    const orderStatus = item.data?.orderStatus;
+    const paymentStatus = item.data?.paymentStatus;
+    const orderStatusStyles = getOrderStatusStyles(orderStatus);
+    const paymentStatusStyles = getPaymentStatusStyles(paymentStatus);
 
-  return (
-    <div
-      key={`${item.data?.orderId || item.title}-${index}`}
-      className={
-        isDark
-          ? "overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
-          : "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
-      }
-    >
-      <div className="flex gap-3 p-3">
-        <div
-          className={
-            isDark
-              ? "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#242424]"
-              : "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100"
-          }
-        >
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt={item.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div
-              className={
-                isDark
-                  ? "flex h-full w-full items-center justify-center text-xs text-neutral-500"
-                  : "flex h-full w-full items-center justify-center text-xs text-slate-400"
-              }
-            >
-              <ShoppingBagOutlinedIcon fontSize="small" />
-            </div>
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
+    return (
+      <div
+        key={`${item.data?.orderId || item.title}-${index}`}
+        className={
+          isDark
+            ? "overflow-hidden rounded-2xl border border-white/10 bg-[#181818] shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+            : "overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+        }
+      >
+        <div className="flex gap-3 p-3">
           <div
             className={
               isDark
-                ? "line-clamp-2 text-sm font-bold text-white"
-                : "line-clamp-2 text-sm font-bold text-slate-900"
+                ? "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-[#242424]"
+                : "h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100"
             }
           >
-            {item.title}
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className={
+                  isDark
+                    ? "flex h-full w-full items-center justify-center text-xs text-neutral-500"
+                    : "flex h-full w-full items-center justify-center text-xs text-slate-400"
+                }
+              >
+                <ShoppingBagOutlinedIcon fontSize="small" />
+              </div>
+            )}
           </div>
 
-          {item.subtitle && (
+          <div className="min-w-0 flex-1">
             <div
               className={
                 isDark
-                  ? "mt-1 text-xs leading-5 text-neutral-400"
-                  : "mt-1 text-xs leading-5 text-slate-500"
+                  ? "line-clamp-2 text-sm font-bold text-white"
+                  : "line-clamp-2 text-sm font-bold text-slate-900"
               }
             >
-              {item.subtitle}
+              {item.title}
             </div>
-          )}
 
-          {item.description && (
+            {item.subtitle && (
+              <div
+                className={
+                  isDark
+                    ? "mt-1 text-xs leading-5 text-neutral-400"
+                    : "mt-1 text-xs leading-5 text-slate-500"
+                }
+              >
+                {item.subtitle}
+              </div>
+            )}
+
+            {item.description && (
+              <div
+                className={
+                  isDark
+                    ? "mt-1 text-xs leading-5 text-neutral-300"
+                    : "mt-1 text-xs leading-5 text-slate-600"
+                }
+              >
+                {item.description}
+              </div>
+            )}
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span
+                className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+                style={{
+                  color: orderStatusStyles.text,
+                  background: orderStatusStyles.bg,
+                  borderColor: orderStatusStyles.border,
+                }}
+              >
+                {getOrderStatusLabel(orderStatus)}
+              </span>
+
+              <span
+                className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+                style={{
+                  color: paymentStatusStyles.text,
+                  background: paymentStatusStyles.bg,
+                  borderColor: paymentStatusStyles.border,
+                }}
+              >
+                {getPaymentStatusLabel(paymentStatus)}
+              </span>
+            </div>
+
             <div
               className={
                 isDark
-                  ? "mt-1 text-xs leading-5 text-neutral-300"
-                  : "mt-1 text-xs leading-5 text-slate-600"
+                  ? "mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-400"
+                  : "mt-3 grid grid-cols-1 gap-1 text-xs text-slate-500"
               }
             >
-              {item.description}
+              {item.data?.orderCode && (
+                <div>
+                  Mã đơn:{" "}
+                  <span
+                    className={
+                      isDark
+                        ? "font-semibold text-neutral-200"
+                        : "font-semibold text-slate-800"
+                    }
+                  >
+                    {item.data.orderCode}
+                  </span>
+                </div>
+              )}
+
+              {item.data?.createdAt && (
+                <div>
+                  Ngày tạo:{" "}
+                  <span
+                    className={
+                      isDark
+                        ? "font-semibold text-neutral-200"
+                        : "font-semibold text-slate-800"
+                    }
+                  >
+                    {formatDateTime(item.data.createdAt)}
+                  </span>
+                </div>
+              )}
+
+              {typeof item.data?.itemCount === "number" && (
+                <div>
+                  Số sản phẩm:{" "}
+                  <span
+                    className={
+                      isDark
+                        ? "font-semibold text-neutral-200"
+                        : "font-semibold text-slate-800"
+                    }
+                  >
+                    {item.data.itemCount}
+                  </span>
+                </div>
+              )}
+
+              {typeof item.data?.totalPrice === "number" && (
+                <div>
+                  Tổng tiền:{" "}
+                  <span className="font-bold text-orange-500">
+                    {formatPrice(item.data.totalPrice)}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span
-              className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-              style={{
-                color: orderStatusStyles.text,
-                background: orderStatusStyles.bg,
-                borderColor: orderStatusStyles.border,
-              }}
-            >
-              {getOrderStatusLabel(orderStatus)}
-            </span>
-
-            <span
-              className="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-              style={{
-                color: paymentStatusStyles.text,
-                background: paymentStatusStyles.bg,
-                borderColor: paymentStatusStyles.border,
-              }}
-            >
-              {getPaymentStatusLabel(paymentStatus)}
-            </span>
           </div>
+        </div>
 
+        {!!item.actions?.length && (
           <div
             className={
               isDark
-                ? "mt-3 grid grid-cols-1 gap-1 text-xs text-neutral-400"
-                : "mt-3 grid grid-cols-1 gap-1 text-xs text-slate-500"
+                ? "border-t border-white/8 px-3 py-3"
+                : "border-t border-slate-200 px-3 py-3"
             }
           >
-            {item.data?.orderCode && (
-              <div>
-                Mã đơn:{" "}
-                <span
-                  className={
-                    isDark
-                      ? "font-semibold text-neutral-200"
-                      : "font-semibold text-slate-800"
-                  }
-                >
-                  {item.data.orderCode}
-                </span>
-              </div>
-            )}
-
-            {item.data?.createdAt && (
-              <div>
-                Ngày tạo:{" "}
-                <span
-                  className={
-                    isDark
-                      ? "font-semibold text-neutral-200"
-                      : "font-semibold text-slate-800"
-                  }
-                >
-                  {formatDateTime(item.data.createdAt)}
-                </span>
-              </div>
-            )}
-
-            {typeof item.data?.itemCount === "number" && (
-              <div>
-                Số sản phẩm:{" "}
-                <span
-                  className={
-                    isDark
-                      ? "font-semibold text-neutral-200"
-                      : "font-semibold text-slate-800"
-                  }
-                >
-                  {item.data.itemCount}
-                </span>
-              </div>
-            )}
-
-            {typeof item.data?.totalPrice === "number" && (
-              <div>
-                Tổng tiền:{" "}
-                <span className="font-bold text-orange-500">
-                  {formatPrice(item.data.totalPrice)}
-                </span>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => handleActionClick(item.actions?.[0])}
+              className={
+                isDark
+                  ? "flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                  : "flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              }
+            >
+              <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
+              {item.actions?.[0]?.label ||
+                (isDetail ? "Xem đơn hàng" : "Xem chi tiết")}
+            </button>
           </div>
-        </div>
+        )}
       </div>
-
-      {!!item.actions?.length && (
-        <div
-          className={
-            isDark
-              ? "border-t border-white/8 px-3 py-3"
-              : "border-t border-slate-200 px-3 py-3"
-          }
-        >
-          <button
-            type="button"
-            onClick={() => handleActionClick(item.actions?.[0])}
-            className={
-              isDark
-                ? "flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                : "flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            }
-          >
-            <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />
-            {item.actions?.[0]?.label ||
-              (isDetail ? "Xem đơn hàng" : "Xem chi tiết")}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
+    );
+  };
 
   const renderStructuredContent = (msg: ExtendedChatMessage) => {
     if (msg.sender !== "bot") return null;
@@ -945,17 +972,17 @@ const renderOrderCard = (
       </div>
 
       <div
-  className={[
-    "fixed bottom-24 right-5 z-50 w-[calc(100vw-2rem)] max-w-[520px] origin-bottom-right transition-all duration-300",
-    open
-      ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-      : "pointer-events-none translate-y-4 scale-95 opacity-0",
-  ].join(" ")}
->
+        className={[
+          "fixed bottom-24 right-5 z-50 w-[calc(100vw-2rem)] max-w-[520px] origin-bottom-right transition-all duration-300",
+          open
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none translate-y-4 scale-95 opacity-0",
+        ].join(" ")}
+      >
         <Paper
-  elevation={0}
-  className="flex h-[680px] flex-col overflow-hidden rounded-[1.8rem] border border-orange-500/16 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
->
+          elevation={0}
+          className="flex h-[680px] flex-col overflow-hidden rounded-[1.8rem] border border-orange-500/16 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.16),_transparent_30%),linear-gradient(180deg,_#171717_0%,_#101010_100%)] shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
+        >
           <div className="flex items-start justify-between border-b border-white/8 px-5 py-4 text-white">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -1014,34 +1041,6 @@ const renderOrderCard = (
                     hoặc nhờ tư vấn theo nhu cầu tập luyện.
                   </p>
                 </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {suggestionMessages.map((item) => (
-                    <Button
-                      key={item}
-                      onClick={() => handleSuggestionClick(item)}
-                      variant="outlined"
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "999px",
-                        px: 1.8,
-                        py: 0.8,
-                        fontSize: "0.82rem",
-                        lineHeight: 1.45,
-                        justifyContent: "flex-start",
-                        color: "#f5f5f5",
-                        borderColor: "rgba(249,115,22,0.22)",
-                        backgroundColor: "#1b1b1b",
-                        "&:hover": {
-                          borderColor: "rgba(249,115,22,0.34)",
-                          backgroundColor: "rgba(249,115,22,0.16)",
-                        },
-                      }}
-                    >
-                      {item}
-                    </Button>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -1053,34 +1052,36 @@ const renderOrderCard = (
                       msg.sender === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-<div
-  className={[
-    "max-w-[84%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 transition-all duration-200 whitespace-pre-line",
-    msg.sender === "user"
-      ? "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111] rounded-br-md font-semibold shadow-[0_12px_28px_rgba(249,115,22,0.22)]"
-      : isDark
-      ? "border border-white/8 bg-[#1a1a1a] text-neutral-100 rounded-bl-md shadow-[0_10px_22px_rgba(0,0,0,0.14)]"
-      : "border border-slate-200 bg-white text-slate-800 rounded-bl-md shadow-[0_10px_22px_rgba(15,23,42,0.08)]",
-  ].join(" ")}
->
+                    <div
+                      className={[
+                        "max-w-[84%] rounded-[1.25rem] px-4 py-3 text-sm leading-6 transition-all duration-200 whitespace-pre-line",
+                        msg.sender === "user"
+                          ? "bg-[linear-gradient(135deg,#fb923c_0%,#f97316_100%)] text-[#111111] rounded-br-md font-semibold shadow-[0_12px_28px_rgba(249,115,22,0.22)]"
+                          : isDark
+                          ? "border border-white/8 bg-[#1a1a1a] text-neutral-100 rounded-bl-md shadow-[0_10px_22px_rgba(0,0,0,0.14)]"
+                          : "border border-slate-200 bg-white text-slate-800 rounded-bl-md shadow-[0_10px_22px_rgba(15,23,42,0.08)]",
+                      ].join(" ")}
+                    >
                       {msg.text}
                     </div>
                   </div>
                 )}
-{msg.sender === "bot" && msg.actions && msg.actions.length > 0 && (
-  <div className="ml-1 mt-2 flex flex-wrap gap-2">
-    {msg.actions.map((action, actionIndex) => (
-      <button
-        key={`${action.action}-${actionIndex}`}
-        type="button"
-        onClick={() => handleActionClick(action)}
-        className="rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-[#111111] transition hover:bg-orange-400"
-      >
-        {action.label}
-      </button>
-    ))}
-  </div>
-)}
+
+                {msg.sender === "bot" && msg.actions && msg.actions.length > 0 && (
+                  <div className="ml-1 mt-2 flex flex-wrap gap-2">
+                    {msg.actions.map((action, actionIndex) => (
+                      <button
+                        key={`${action.action}-${actionIndex}`}
+                        type="button"
+                        onClick={() => handleActionClick(action)}
+                        className="rounded-xl bg-orange-500 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:bg-orange-400"
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {msg.sender === "bot" &&
                   msg.products &&
                   msg.products.length > 0 &&
@@ -1145,6 +1146,35 @@ const renderOrderCard = (
 
           <div className="border-t border-white/8 bg-black/10 px-3 py-3">
             <div className="rounded-[1.35rem] border border-orange-500/12 bg-[#f6efe7] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+              <div className="mb-2 flex flex-wrap gap-2 px-2">
+                {suggestionMessages.map((item) => (
+                  <Button
+                    key={item}
+                    onClick={() => handleSuggestionClick(item)}
+                    variant="outlined"
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "999px",
+                      px: 1.6,
+                      py: 0.65,
+                      minHeight: 34,
+                      fontSize: "0.78rem",
+                      fontWeight: 600,
+                      lineHeight: 1.3,
+                      color: "#7a4b21",
+                      borderColor: "rgba(249,115,22,0.18)",
+                      backgroundColor: "rgba(255,255,255,0.82)",
+                      "&:hover": {
+                        borderColor: "rgba(249,115,22,0.3)",
+                        backgroundColor: "rgba(255,247,237,1)",
+                      },
+                    }}
+                  >
+                    {item}
+                  </Button>
+                ))}
+              </div>
+
               <div className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#7a5a44]">
                 Nhập câu hỏi của bạn
               </div>
